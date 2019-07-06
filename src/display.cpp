@@ -113,9 +113,9 @@ void Display::putMap(const LevelMap &map, int newCornerX, int newCornerY)
   m_cornerX = newCornerX;
   m_cornerY = newCornerY;
   //Start placing map cells starting from newly chosen corner
-  for(int y=newCornerY; y<m_screenWidth; ++y)
+  for(int y=newCornerY; y<m_screenHeight; ++y)
   {
-    for(int x=newCornerX; x<m_screenHeight; ++x)
+    for(int x=newCornerX; x<m_screenWidth; ++x)
     {
       if(map[y][x])
 	putChar(x, y, map[y][x]);
