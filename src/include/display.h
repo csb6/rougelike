@@ -18,23 +18,38 @@ const int MapHeight = 30;
 //  An array containing tiles to display onscreen
 typedef char LevelMap[MapWidth][MapHeight];
 
+enum class Edge
+{
+ TOP,
+ BOTTOM,
+ LEFT,
+ RIGHT,
+ NONE
+};
+
 class Display
 //Purpose: Puts/manages content onscreen using termbox library
 {
 private:
-  int m_cursorX, m_cursorY, m_errorStatus, m_screenWidth, m_screenHeight;
+  //int m_cursorX, m_cursorY;
+  int m_errorStatus, m_screenWidth, m_screenHeight, m_cornerX, m_cornerY;
   //The latest termbox input event
   tb_event m_event;
 public:
   Display();
   ~Display();
+  inline int convertCoord(int coord, bool isX);
   bool processInput();
-  bool isEmpty(const int x, const int y);
-  void clearChar(const int x, const int y);
-  void putChar(const int x, const int y, const char letter,
+  //x and y in terms of game map, not display
+  Edge atEdge(int x, int y);
+  bool isEmpty(int x, int y);
+  void clearChar(int x, int y);
+  void putChar(int x, int y, char letter,
 	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
-  void printText(const int startX, const int startY, const std::string text);
-  void putMap(const LevelMap &map);
+  //startX & startY are in terms of display, not the game map
+  void printText(int startX, int startY, const std::string text);
+  //newCornerX and newCornerY in terms of game map, not display
+  void putMap(const LevelMap &map, const int newCornerX = 0, const int newCornerY = 0);
   //Setters/Getters
   void clear() { tb_clear(); }
   void present() { tb_present(); }
