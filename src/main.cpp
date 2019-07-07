@@ -1,6 +1,7 @@
 /*TODO:
 [ ] Profile to see what is causing memory leaks when resizing window
 [ ] Make plain function for reading/return 2d array of map
+[ ] Implement proper scrolling; look at this link: http://www.roguebasin.com/index.php?title=Scrolling_map
 */
 #include "include/display.h"
 
@@ -37,7 +38,6 @@ public:
   GameBoard(Display &screen, LevelMap &map);
   void resize();
   bool canMove(int x, int y);
-  bool exists(int x, int y);
   void movePlayer(int newX, int newY);
   void translatePlayer(int dx, int dy);
 };
@@ -50,18 +50,13 @@ GameBoard::GameBoard(Display &screen, LevelMap &map) : m_screen(screen),
 
 void GameBoard::resize()
 {
-  m_screen.putMap(m_map);
+  m_screen.putMap(m_map, m_player.getX(), m_player.getY());
 }
 
 bool GameBoard::canMove(int x, int y)
 {
   return x < MapWidth && x >= 0 && y < MapHeight && y >= 0
-    && m_screen.isEmpty(x, y);
-}
-
-bool GameBoard::exists(int x, int y)
-{
-  return x < MapWidth && x >= 0 && y < MapHeight && y >= 0;
+    && m_map[y][x] == 0;
 }
 
 void GameBoard::movePlayer(int newX, int newY)
@@ -73,40 +68,12 @@ void GameBoard::movePlayer(int newX, int newY)
     //Note: screen doesn't visibly change until screen.present() called in main loop
     int oldX = m_player.getX();
     int oldY = m_player.getY();
-    m_screen.clearChar(oldX, oldY);
     m_map[oldY][oldX] = 0;
     m_player.move(newX, newY);
-    m_screen.putChar(newX, newY, '@');
     m_map[newY][newX] = '@';
-    Edge playerEdge = m_screen.atEdge(newX, newY);
-    int newCornerX, newCornerY;
-    //Shift screen if player about to go off of it
-    if(playerEdge == Edge::NONE)
-      return;
-    else if(playerEdge == Edge::RIGHT && exists(newX+1, newY))
-    {
-      newCornerX = newX+1;
-      newCornerY = newY;
-    }
-    else if(playerEdge == Edge::LEFT && exists(newX-1, newY))
-    {
-      newCornerX = newX-1;
-      newCornerY = newY;
-    }
-    else if(playerEdge == Edge::TOP && exists(newX, newY-1))
-    {
-      newCornerX = newX;
-      newCornerY = newY-1;
-    }
-    else if(playerEdge == Edge::BOTTOM && exists(newX, newY+1))
-    {
-      newCornerX = newX;
-      newCornerY = newY+1;
-    }
-    else
-      return;
+
     m_screen.clear();
-    m_screen.putMap(m_map, newCornerX, newCornerY);
+    m_screen.putMap(m_map, newX, newY);
   }
 }
 
@@ -152,7 +119,7 @@ int main()
   GameBoard board(screen, map);
   bool running = true;
   //Show initial map
-  screen.putMap(map);
+  screen.putMap(map, 1, 1);
   screen.present();
   //Start main game loop
   while(running && screen.processInput())

@@ -1,12 +1,13 @@
 #include <iostream>
 #include "include/display.h"
+#include <fstream>
 
 //  Map should take up at least min screen space so min-size screen is always full
 static_assert(MapWidth >= MinDisplayWidth && MapHeight >= MinDisplayHeight, "Map too small");
 
 //Display::Display() : m_cursorX(InitCursorX), m_cursorY(InitCursorY),
 //		     m_errorStatus(tb_init()), m_event{0, 0, 0, 0, 0, 0, 0, 0}
-Display::Display() : m_errorStatus(tb_init()), m_cornerX(0), m_cornerY(0),
+Display::Display() : m_errorStatus(tb_init()), m_cornerX(1), m_cornerY(1),
 		     m_event{0, 0, 0, 0, 0, 0, 0, 0}
 {
   if(m_errorStatus < 0)
@@ -40,24 +41,6 @@ int Display::convertCoord(int coord, bool isX)
 bool Display::processInput()
 {
   return tb_peek_event(&m_event, InputTimeout) > -1;
-}
-
-Edge Display::atEdge(int x, int y)
-{
-  //"Edge" means edge of part of map displayed onscreen
-  int row = convertCoord(y, false);
-  int col = convertCoord(x, true);
-  if(col == (m_screenWidth-1))
-    return Edge::RIGHT;
-  else if(x == m_cornerX)
-    return Edge::TOP;
-  else if(row == (m_screenHeight-1))
-    return Edge::BOTTOM;
-  else if(y == m_cornerY)
-    return Edge::LEFT;
-  return Edge::NONE;
-  //return col == (m_screenWidth-1) || x == m_cornerX || row == (m_screenHeight-1)
-  //  || y == m_cornerY;
 }
 
 bool Display::isEmpty(int x, int y)
@@ -105,17 +88,33 @@ void Display::printText(int startX, int startY, const std::string text)
   delete[] textChars;
 }
 
-void Display::putMap(const LevelMap &map, int newCornerX, int newCornerY)
+int Display::getCameraCoord(int playerCoord, bool isX)
+{
+  int screenSize = isX ? m_screenWidth : m_screenHeight;
+  int mapSize = isX ? MapWidth : MapHeight;
+  if(playerCoord < screenSize / 2)
+    return 0;
+  else if(playerCoord >= mapSize - screenSize / 2)
+    return mapSize - screenSize;
+  else
+    return playerCoord - screenSize / 2;
+}
+
+void Display::putMap(const LevelMap &map, const int playerX, const int playerY)
 {
   //Screen may be smaller than map, so display as much as possible
   m_screenWidth = std::min(tb_width(), MapWidth);
   m_screenHeight = std::min(tb_height(), MapHeight);
-  m_cornerX = newCornerX;
-  m_cornerY = newCornerY;
+  m_cornerX = getCameraCoord(playerX, true);
+  m_cornerY = getCameraCoord(playerY, false);
+  //std::fstream log;
+  //log.open("log.txt", std::fstream::app);
+  //log << "x: " << m_cornerX << " y: " << m_cornerY << "\n";
+  //log.close();
   //Start placing map cells starting from newly chosen corner
-  for(int y=newCornerY; y<m_screenHeight; ++y)
+  for(int y=m_cornerY; y<m_screenHeight; ++y)
   {
-    for(int x=newCornerX; x<m_screenWidth; ++x)
+    for(int x=m_cornerX; x<m_screenWidth; ++x)
     {
       if(map[y][x])
 	putChar(x, y, map[y][x]);

@@ -18,15 +18,6 @@ const int MapHeight = 30;
 //  An array containing tiles to display onscreen
 typedef char LevelMap[MapWidth][MapHeight];
 
-enum class Edge
-{
- TOP,
- BOTTOM,
- LEFT,
- RIGHT,
- NONE
-};
-
 class Display
 //Purpose: Puts/manages content onscreen using termbox library
 {
@@ -41,15 +32,15 @@ public:
   inline int convertCoord(int coord, bool isX);
   bool processInput();
   //x and y in terms of game map, not display
-  Edge atEdge(int x, int y);
   bool isEmpty(int x, int y);
   void clearChar(int x, int y);
   void putChar(int x, int y, char letter,
 	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
   //startX & startY are in terms of display, not the game map
   void printText(int startX, int startY, const std::string text);
-  //newCornerX and newCornerY in terms of game map, not display
-  void putMap(const LevelMap &map, const int newCornerX = 0, const int newCornerY = 0);
+  int getCameraCoord(int playerCoord, bool isX);
+  //playerX and playerY in terms of game map, not display
+  void putMap(const LevelMap &map, const int playerX, const int playerY);
   //Setters/Getters
   void clear() { tb_clear(); }
   void present() { tb_present(); }
