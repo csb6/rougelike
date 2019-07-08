@@ -1,9 +1,10 @@
 /*TODO:
 [ ] Profile to see what is causing memory leaks when resizing window
 [ ] Make plain function for reading/return 2d array of map
-[ ] Implement proper scrolling; look at this link: http://www.roguebasin.com/index.php?title=Scrolling_map
+[X] Implement proper scrolling; look at this link: http://www.roguebasin.com/index.php?title=Scrolling_map
 */
 #include "include/display.h"
+#include <fstream>
 
 class Actor
 {
@@ -82,6 +83,33 @@ void GameBoard::translatePlayer(int dx, int dy)
   movePlayer(m_player.getX() + dx, m_player.getY() + dy);
 }
 
+void loadMapFile(LevelMap &map, const std::string &path)
+{
+  std::fstream mapFile;
+  mapFile.open(path, std::fstream::in);
+  char cell;
+  int row = 0;
+  int col = 0;
+  while(mapFile >> cell && row < MapHeight)
+  {
+    if(cell == ',')
+      continue;
+    else if(cell == ';' || col >= MapWidth)
+    {
+      ++row;
+      col = 0;
+    }
+    else
+    {
+      if(cell == '0')
+	cell = 0;
+      map[row][col] = cell;
+      ++col;
+    }
+  }
+  mapFile.close();
+}
+
 int main()
 {
   LevelMap map = {{'1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'},
@@ -115,6 +143,8 @@ int main()
 		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
 		  {'1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'}};
 
+  /*LevelMap map;
+    loadMapFile(map, "test-map1.csv");*/
   Display screen;
   GameBoard board(screen, map);
   bool running = true;
