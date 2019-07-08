@@ -2,8 +2,8 @@
 [ ] Profile to see what is causing memory leaks when resizing window
 [X] Make plain function for reading/return 2d array of map
 [X] Implement proper scrolling; look at this link: http://www.roguebasin.com/index.php?title=Scrolling_map
-[ ] Add vector of all actors/entities? in current level, way to cycle through their turns
-[ ] Add way to have player Actor in vector but also with a reference in GameBoard
+[X] Add vector of all actors/entities? in current level, way to cycle through their turns
+[X] Add way to have player Actor in vector but also with a reference in GameBoard
 [ ] Add basic UI for showing who's turn it is, how many energy steps left
 [ ] Add Item, Chest classes, related code from old RPG project
 [ ] Add inventory system
@@ -19,16 +19,20 @@
 class Actor
 {
 private:
-  int m_xPos, m_yPos;
+  int m_xPos, m_yPos, m_energy;
+  bool m_isTurn;
 public:
   Actor(int x, int y);
   void move(int newX, int newY);
+  void update() {}
+  void setTurn(bool isTurn, int energy);
   //Setters/Getters
   int getX() { return m_xPos; }
   int getY() { return m_yPos; }
+  bool isTurn() { return m_isTurn; }
 };
 
-Actor::Actor(int x, int y) : m_xPos(x), m_yPos(y)
+Actor::Actor(int x, int y) : m_xPos(x), m_yPos(y), m_energy(0), m_isTurn(false)
 {
 
 }
@@ -37,6 +41,15 @@ void Actor::move(int newX, int newY)
 {
   m_xPos = newX;
   m_yPos = newY;
+  //End turn once Actor can make no more moves
+  if(--m_energy <= 0)
+    m_isTurn = false;
+}
+
+void Actor::setTurn(bool isTurn, int energy)
+{
+  m_isTurn = isTurn;
+  m_energy = energy;
 }
 
 class GameBoard
@@ -44,13 +57,16 @@ class GameBoard
 private:
   Display &m_screen;
   LevelMap m_map;
-  //m_player_index always is location of player object in m_actors
+  //m_player_index is always location of player object in m_actors
   int m_player_index;
+  //m_turn_index is always location of object whose turn it is in m_actors
+  int m_turn_index;
   std::vector<Actor> m_actors;
   inline Actor& player() { return m_actors[m_player_index]; }
 public:
   GameBoard(Display &screen, const std::string &mapPath);
   void loadMapFile(const std::string &path);
+  void updateActors();
   void resize();
   bool canMove(int x, int y);
   void movePlayer(int newX, int newY);
@@ -58,11 +74,16 @@ public:
 };
 
 GameBoard::GameBoard(Display &screen, const std::string &mapPath)
-  : m_screen(screen), m_map{}, m_player_index(0)
+  : m_screen(screen), m_map{}, m_player_index(0), m_turn_index(0)
 {
   //Show initial map, centered at player's current position
   loadMapFile(mapPath);
   m_screen.putMap(m_map, player().getX(), player().getY());
+  //When doing turns, will start iterating through m_actors backward
+  //so deletions of Actors are easy/safe; however, 1st turn should be the
+  //player's
+  m_turn_index = m_player_index;
+  player().setTurn(true, 3);
 }
 
 void GameBoard::loadMapFile(const std::string &path)
@@ -115,6 +136,25 @@ void GameBoard::loadMapFile(const std::string &path)
   }
 }
 
+void GameBoard::updateActors()
+{
+  //Check if actor with current turn is done;
+  //if so, move turn to next actor
+  if(!m_actors[m_turn_index].isTurn())
+  {
+    m_turn_index--;
+    m_actors[m_turn_index].setTurn(true, 3);
+  }
+
+  int i = m_turn_index;
+  while(i != m_turn_index)
+  {
+    m_actors[i].update();
+    if(i-- == -1)
+      i = m_actors.size() - 1;
+  }
+}
+
 void GameBoard::resize()
 {
   m_screen.putMap(m_map, player().getX(), player().getY());
@@ -128,16 +168,16 @@ bool GameBoard::canMove(int x, int y)
 
 void GameBoard::movePlayer(int newX, int newY)
 {
-  //Verify that it's safe to move to the new location
-  if(canMove(newX, newY))
+  //Verify that it's safe/legal to move to the new location
+  if(player().isTurn() && canMove(newX, newY))
   {
-    //Move the player, updating player object, screen buffer, & map
+    //Move player, update map then screen buffer
     //Note: screen doesn't visibly change until screen.present() called in main loop
     int oldX = player().getX();
     int oldY = player().getY();
+    player().move(newX, newY);
     m_map[oldY][oldX] = 0;
     m_map[newY][newX] = '@';
-    player().move(newX, newY);
 
     m_screen.clear();
     m_screen.putMap(m_map, newX, newY);
@@ -158,6 +198,8 @@ int main()
   //Start main game loop
   while(running && screen.processInput())
   {
+    board.updateActors();
+    
     switch(screen.getEventType())
     {
     case TB_EVENT_KEY:
