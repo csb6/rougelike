@@ -2,6 +2,14 @@
 [ ] Profile to see what is causing memory leaks when resizing window
 [X] Make plain function for reading/return 2d array of map
 [X] Implement proper scrolling; look at this link: http://www.roguebasin.com/index.php?title=Scrolling_map
+[ ] Add vector of all actors/entities? in current level, way to cycle through their turns
+[ ] Add way to have player Actor in vector but also with a reference in GameBoard
+[ ] Add basic UI for showing who's turn it is, how many energy steps left
+[ ] Add Item, Chest classes, related code from old RPG project
+[ ] Add inventory system
+[ ] Add basic test suite for key functionality (see old RPG code)
+[ ] Add RNG functionality (see olf RPG code)
+[ ] Find way to gracefully exit; use it in loadMapFile()'s error branch
 */
 #include "include/display.h"
 #include <fstream>
@@ -35,25 +43,42 @@ class GameBoard
 {
 private:
   Display &m_screen;
-  LevelMap &m_map;
-  Actor m_player;
+  LevelMap m_map;
+  //m_player_index always is location of player object in m_actors
+  int m_player_index;
+  std::vector<Actor> m_actors;
+  inline Actor& player() { return m_actors[m_player_index]; }
 public:
-  GameBoard(Display &screen, LevelMap &map);
+  GameBoard(Display &screen, const std::string &mapPath);
   void resize();
   bool canMove(int x, int y);
   void movePlayer(int newX, int newY);
   void translatePlayer(int dx, int dy);
+  void loadMapFile(const std::string &path);
 };
 
-GameBoard::GameBoard(Display &screen, LevelMap &map) : m_screen(screen),
-						       m_map(map), m_player(1, 1)
+GameBoard::GameBoard(Display &screen, const std::string &mapPath)
+  : m_screen(screen), m_map{}, m_player_index(0)
 {
-
+  //Set player Actor
+  m_actors.push_back(Actor(1, 1));
+  //Add monsters from map to Actor list
+  for(int y=0; y<MapHeight; ++y)
+  {
+    for(int x=0; x<MapWidth; ++x)
+    {
+      if(m_map[y][x] == 'M')
+	m_actors.push_back(Actor(x, y));
+    }
+  }
+  //Show initial map
+  loadMapFile(mapPath);
+  m_screen.putMap(m_map, 1, 1);
 }
 
 void GameBoard::resize()
 {
-  m_screen.putMap(m_map, m_player.getX(), m_player.getY());
+  m_screen.putMap(m_map, player().getX(), player().getY());
 }
 
 bool GameBoard::canMove(int x, int y)
@@ -69,10 +94,10 @@ void GameBoard::movePlayer(int newX, int newY)
   {
     //Move the player, updating player object, screen buffer, & map
     //Note: screen doesn't visibly change until screen.present() called in main loop
-    int oldX = m_player.getX();
-    int oldY = m_player.getY();
+    int oldX = player().getX();
+    int oldY = player().getY();
     m_map[oldY][oldX] = 0;
-    m_player.move(newX, newY);
+    player().move(newX, newY);
     m_map[newY][newX] = '@';
 
     m_screen.clear();
@@ -82,17 +107,17 @@ void GameBoard::movePlayer(int newX, int newY)
 
 void GameBoard::translatePlayer(int dx, int dy)
 {
-  movePlayer(m_player.getX() + dx, m_player.getY() + dy);
+  movePlayer(player().getX() + dx, player().getY() + dy);
 }
 
-void loadMapFile(LevelMap &map, const std::string &path)
+void GameBoard::loadMapFile(const std::string &path)
 {
   //First, make all tiles empty tiles
   for(int row=0; row<MapHeight; ++row)
   {
     for(int col=0; col<MapWidth; ++col)
     {
-      map[row][col] = 0;
+      m_map[row][col] = 0;
     }
   }
   std::ifstream mapFile(path);
@@ -116,7 +141,7 @@ void loadMapFile(LevelMap &map, const std::string &path)
       else if(line[pos] == '0')
 	++col;
       else
-	map[row][col++] = line[pos];
+	m_map[row][col++] = line[pos];
       if(col >= MapWidth)
 	break;
     }
@@ -126,13 +151,11 @@ void loadMapFile(LevelMap &map, const std::string &path)
 
 int main()
 {
-  LevelMap map;
-  loadMapFile(map, "test-map1.csv");
+  //LevelMap map;
+  //loadMapFile(map, "test-map1.csv");
   Display screen;
-  GameBoard board(screen, map);
+  GameBoard board(screen, "test-map1.csv");
   bool running = true;
-  //Show initial map
-  screen.putMap(map, 1, 1);
   screen.present();
   //Start main game loop
   while(running && screen.processInput())
