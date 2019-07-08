@@ -31,15 +31,14 @@ public:
   ~Display();
   inline int convertCoord(int coord, bool isX);
   bool processInput();
-  //x and y in terms of game map, not display
+  //x and y = coords in terms of game map, not display
+  //col and row = coords in terms of display, not game map
   bool isEmpty(int x, int y);
   void clearChar(int x, int y);
   void putChar(int x, int y, char letter,
 	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
-  //startX & startY are in terms of display, not the game map
-  void printText(int startX, int startY, const std::string text);
+  void printText(int col, int row, const std::string text);
   int getCameraCoord(int playerCoord, bool isX);
-  //playerX and playerY in terms of game map, not display
   void putMap(const LevelMap &map, const int playerX, const int playerY);
   //Setters/Getters
   void clear() { tb_clear(); }

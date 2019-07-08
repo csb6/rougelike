@@ -13,6 +13,7 @@ Display::Display() : m_errorStatus(tb_init()), m_cornerX(0), m_cornerY(0),
     std::cout << "Error: Couldn't start termbox; code " << m_errorStatus << "\n";
   if(!largeEnough())
   {
+    clear();
     printText(1, 1, "Error: screen not large enough");
   }
   tb_set_cursor(InitCursorX, InitCursorY);
@@ -20,8 +21,6 @@ Display::Display() : m_errorStatus(tb_init()), m_cornerX(0), m_cornerY(0),
   m_screenWidth = std::min(tb_width(), MapWidth);
   m_screenHeight = std::min(tb_height(), MapHeight);
   //Initially, screen's top left corner is (0, 0) on the map (see member init list)
-  //Show buffer onscreen
-  present();
 }
 
 Display::~Display()
@@ -65,22 +64,22 @@ void Display::putChar(int x, int y, const char letter,
   tb_change_cell(col, row, static_cast<uint32_t>(letter), fg, bg);
 }
 
-void Display::printText(int startX, int startY, const std::string text)
+void Display::printText(int col, int row, const std::string text)
 {
   char *textChars = new char[text.length()];
   for(std::string::size_type i=0; i<text.length(); ++i)
   {
-    textChars[i] = static_cast<char>(text[i]);
+    textChars[i] = text[i];
   }
-  int x = startX;
-  int y = startY;
+  int x = col;
+  int y = row;
   for(std::string::size_type i=0; i<text.length(); ++i)
   {
     putChar(x, y, textChars[i]);
     ++x;
     if(x >= tb_width())
     {
-      x = startX;
+      x = col;
       ++y;
     }
   }
@@ -104,6 +103,7 @@ void Display::putMap(const LevelMap &map, const int playerX, const int playerY)
   //Screen may be smaller than map, so display as much as possible
   m_screenWidth = std::min(tb_width(), MapWidth);
   m_screenHeight = std::min(tb_height(), MapHeight);
+  //Calculate where to start drawing from so player stays centered (if possible)
   m_cornerX = getCameraCoord(playerX, true);
   m_cornerY = getCameraCoord(playerY, false);
   for(int y=m_cornerY; y<(m_cornerY+m_screenHeight); ++y)

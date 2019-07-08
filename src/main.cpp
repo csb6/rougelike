@@ -50,19 +50,69 @@ private:
   inline Actor& player() { return m_actors[m_player_index]; }
 public:
   GameBoard(Display &screen, const std::string &mapPath);
+  void loadMapFile(const std::string &path);
   void resize();
   bool canMove(int x, int y);
   void movePlayer(int newX, int newY);
   void translatePlayer(int dx, int dy);
-  void loadMapFile(const std::string &path);
 };
 
 GameBoard::GameBoard(Display &screen, const std::string &mapPath)
   : m_screen(screen), m_map{}, m_player_index(0)
 {
-  //Show initial map
+  //Show initial map, centered at player's current position
   loadMapFile(mapPath);
-  m_screen.putMap(m_map, 1, 1);
+  m_screen.putMap(m_map, player().getX(), player().getY());
+}
+
+void GameBoard::loadMapFile(const std::string &path)
+{
+  //First, make all tiles empty tiles
+  for(int row=0; row<MapHeight; ++row)
+  {
+    for(int col=0; col<MapWidth; ++col)
+    {
+      m_map[row][col] = 0;
+    }
+  }
+  std::ifstream mapFile(path);
+  if(!mapFile)
+  {
+    std::cerr << "Error: could not load map file\n";
+    exit(1);
+  }
+
+  //Next, populate map/m_actors list with data from map file
+  int row = 0;
+  while(mapFile && row < MapHeight)
+  {
+    std::string line;
+    std::getline(mapFile, line);
+    int col = 0;
+    for(std::string::size_type pos=0; pos<line.size(); ++pos)
+    {
+      if(line[pos] == ',' || line[pos] == '\n' || line[pos] == '\r')
+	continue;
+      else if(line[pos] == '0')
+	++col;
+      else
+      {
+	//All Actors need to be in m_actors list/have char in m_map
+	m_map[row][col] = line[pos];
+	if(line[pos] == '@')
+	{
+	  //Need to have accurate index for player object
+	  m_player_index = m_actors.size();
+	}
+	//Add Actor to Actor list
+	m_actors.push_back(Actor(col, row));
+	++col;
+      }
+      if(col >= MapWidth)
+	break;
+    }
+    ++row;
+  }
 }
 
 void GameBoard::resize()
@@ -86,8 +136,8 @@ void GameBoard::movePlayer(int newX, int newY)
     int oldX = player().getX();
     int oldY = player().getY();
     m_map[oldY][oldX] = 0;
-    player().move(newX, newY);
     m_map[newY][newX] = '@';
+    player().move(newX, newY);
 
     m_screen.clear();
     m_screen.putMap(m_map, newX, newY);
@@ -99,59 +149,8 @@ void GameBoard::translatePlayer(int dx, int dy)
   movePlayer(player().getX() + dx, player().getY() + dy);
 }
 
-void GameBoard::loadMapFile(const std::string &path)
-{
-  //First, make all tiles empty tiles
-  for(int row=0; row<MapHeight; ++row)
-  {
-    for(int col=0; col<MapWidth; ++col)
-    {
-      m_map[row][col] = 0;
-    }
-  }
-  std::ifstream mapFile(path);
-  if(!mapFile)
-  {
-    std::cerr << "Error: could not load map file\n";
-    exit(1);
-  }
-
-  //Next, populate map with data from map file
-  int row = 0;
-  while(mapFile && row < MapHeight)
-  {
-    std::string line;
-    std::getline(mapFile, line);
-    int col = 0;
-    for(std::string::size_type pos=0; pos<line.size(); ++pos)
-    {
-      if(line[pos] == ',' || line[pos] == '\n')
-	continue;
-      else if(line[pos] == '0')
-	++col;
-      else
-      {
-	m_map[row][col] = line[pos];
-	//Add Actor to Actor list
-	if(line[pos] == '@')
-	{
-	  //Need to have accurate index for player object
-	  m_player_index = m_actors.size();
-	}
-	m_actors.push_back(Actor(col, row));
-	++col;
-      }
-      if(col >= MapWidth)
-	break;
-    }
-    ++row;
-  }
-}
-
 int main()
 {
-  //LevelMap map;
-  //loadMapFile(map, "test-map1.csv");
   Display screen;
   GameBoard board(screen, "test-map1.csv");
   bool running = true;
@@ -168,6 +167,7 @@ int main()
 	//Stop program immediately
 	running = false;
 	break;
+      //Basic player movement
       case TB_KEY_ARROW_RIGHT:
 	board.translatePlayer(1, 0);
 	screen.present();
@@ -186,6 +186,7 @@ int main()
 	break;
       }
       break;
+    //Adjust screen if window is resized
     case TB_EVENT_RESIZE:
       screen.clear();
       if(!screen.largeEnough())
