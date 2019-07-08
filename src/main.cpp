@@ -60,17 +60,6 @@ public:
 GameBoard::GameBoard(Display &screen, const std::string &mapPath)
   : m_screen(screen), m_map{}, m_player_index(0)
 {
-  //Set player Actor
-  m_actors.push_back(Actor(1, 1));
-  //Add monsters from map to Actor list
-  for(int y=0; y<MapHeight; ++y)
-  {
-    for(int x=0; x<MapWidth; ++x)
-    {
-      if(m_map[y][x] == 'M')
-	m_actors.push_back(Actor(x, y));
-    }
-  }
   //Show initial map
   loadMapFile(mapPath);
   m_screen.putMap(m_map, 1, 1);
@@ -141,7 +130,17 @@ void GameBoard::loadMapFile(const std::string &path)
       else if(line[pos] == '0')
 	++col;
       else
-	m_map[row][col++] = line[pos];
+      {
+	m_map[row][col] = line[pos];
+	//Add Actor to Actor list
+	if(line[pos] == '@')
+	{
+	  //Need to have accurate index for player object
+	  m_player_index = m_actors.size();
+	}
+	m_actors.push_back(Actor(col, row));
+	++col;
+      }
       if(col >= MapWidth)
 	break;
     }
