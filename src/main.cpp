@@ -1,10 +1,12 @@
 /*TODO:
 [ ] Profile to see what is causing memory leaks when resizing window
-[ ] Make plain function for reading/return 2d array of map
+[X] Make plain function for reading/return 2d array of map
 [X] Implement proper scrolling; look at this link: http://www.roguebasin.com/index.php?title=Scrolling_map
 */
 #include "include/display.h"
 #include <fstream>
+#include <iostream>
+#include <vector>
 
 class Actor
 {
@@ -20,7 +22,7 @@ public:
 
 Actor::Actor(int x, int y) : m_xPos(x), m_yPos(y)
 {
-  
+
 }
 
 void Actor::move(int newX, int newY)
@@ -46,7 +48,7 @@ public:
 GameBoard::GameBoard(Display &screen, LevelMap &map) : m_screen(screen),
 						       m_map(map), m_player(1, 1)
 {
-  
+
 }
 
 void GameBoard::resize()
@@ -85,66 +87,47 @@ void GameBoard::translatePlayer(int dx, int dy)
 
 void loadMapFile(LevelMap &map, const std::string &path)
 {
-  std::fstream mapFile;
-  mapFile.open(path, std::fstream::in);
-  char cell;
-  int row = 0;
-  int col = 0;
-  while(mapFile >> cell && row < MapHeight)
+  //First, make all tiles empty tiles
+  for(int row=0; row<MapHeight; ++row)
   {
-    if(cell == ',')
-      continue;
-    else if(cell == ';' || col >= MapWidth)
+    for(int col=0; col<MapWidth; ++col)
     {
-      ++row;
-      col = 0;
-    }
-    else
-    {
-      if(cell == '0')
-	cell = 0;
-      map[row][col] = cell;
-      ++col;
+      map[row][col] = 0;
     }
   }
-  mapFile.close();
+  std::ifstream mapFile(path);
+  if(!mapFile)
+  {
+    std::cerr << "Error: could not load map file\n";
+    exit(1);
+  }
+
+  //Next, populate map with data from map file
+  int row = 0;
+  while(mapFile && row < MapHeight)
+  {
+    std::string line;
+    std::getline(mapFile, line);
+    int col = 0;
+    for(std::string::size_type pos=0; pos<line.size(); ++pos)
+    {
+      if(line[pos] == ',' || line[pos] == '\n')
+	continue;
+      else if(line[pos] == '0')
+	++col;
+      else
+	map[row][col++] = line[pos];
+      if(col >= MapWidth)
+	break;
+    }
+    ++row;
+  }
 }
 
 int main()
 {
-  LevelMap map = {{'1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'},
-		  {'1','@',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,'@',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'M',0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,'b',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'1'},
-		  {'1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'}};
-
-  /*LevelMap map;
-    loadMapFile(map, "test-map1.csv");*/
+  LevelMap map;
+  loadMapFile(map, "test-map1.csv");
   Display screen;
   GameBoard board(screen, map);
   bool running = true;
@@ -165,22 +148,18 @@ int main()
 	break;
       case TB_KEY_ARROW_RIGHT:
 	board.translatePlayer(1, 0);
-	//screen.draw();
 	screen.present();
 	break;
       case TB_KEY_ARROW_LEFT:
 	board.translatePlayer(-1, 0);
-	//screen.draw();
 	screen.present();
 	break;
       case TB_KEY_ARROW_UP:
 	board.translatePlayer(0, -1);
-	//screen.draw();
 	screen.present();
 	break;
       case TB_KEY_ARROW_DOWN:
 	board.translatePlayer(0, 1);
-	//screen.draw();
 	screen.present();
 	break;
       }
