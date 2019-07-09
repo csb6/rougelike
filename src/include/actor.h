@@ -19,6 +19,7 @@ class Actor
 {
 private:
   int m_id, m_xPos, m_yPos, m_energy;
+  std::string m_name;
   bool m_isTurn;
   /*
   //Current Status - stats that change moment-to-moment from environment
@@ -47,7 +48,7 @@ private:
   std::int_least16_t m_trapSkill;      // 6 - Skill affecting chance of traps working
   */
 public:
-  Actor(int x, int y);
+  Actor(int x, int y, std::string name = "Monster");
   void move(int newX, int newY);
   void update() {}
   void setTurn(bool isTurn, int energy);
@@ -55,6 +56,7 @@ public:
   int getX() { return m_xPos; }
   int getY() { return m_yPos; }
   int getEnergy() { return m_energy; }
+  std::string getName() { return m_name; }
   bool isTurn() { return m_isTurn; }
 };
 #endif

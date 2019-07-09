@@ -15,7 +15,8 @@ Item::Item(std::string name, int weight) : m_id(generateId()),
 }
 
 
-Actor::Actor(int x, int y) : m_xPos(x), m_yPos(y), m_energy(0), m_isTurn(false)
+Actor::Actor(int x, int y, std::string name)
+  : m_xPos(x), m_yPos(y), m_energy(0), m_name(name), m_isTurn(false)
 {
 
 }

@@ -21,6 +21,8 @@ const int MapHeight = 30;
 //  An array containing tiles to display onscreen
 typedef char LevelMap[MapWidth][MapHeight];
 
+class Actor;
+
 class Display
 //Purpose: Puts/manages content onscreen using termbox library
 {
@@ -46,8 +48,8 @@ public:
 	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
   void printText(int col, int row, const std::string text);
   int getCameraCoord(int playerCoord, bool isX);
-  void putMap(const LevelMap &map, const int playerX, const int playerY);
-  void drawGUI(int playerEnergy);
+  void draw(const LevelMap &map, Actor &player);
+  void drawGUI(int playerEnergy, const std::string &playerName);
   //Setters/Getters
   void clear() { tb_clear(); }
   void present() { tb_present(); }

@@ -5,7 +5,7 @@
 [X] Add vector of all actors/entities? in current level, way to cycle through their turns
 [X] Add way to have player Actor in vector but also with a reference in GameBoard
 [ ] Add basic UI for showing who's turn it is, how many energy steps left
-[ ] Establish better lines of communication between Display and GameBoard so
+[X] Establish better lines of communication between Display and GameBoard so
     references don't have to be passed around so ad-hoc
 [ ] Implement way to automatically show name/energy of entity whose turn it is
 [ ] Add way to save/load maps
@@ -48,15 +48,14 @@ public:
 GameBoard::GameBoard(Display &screen, const std::string &mapPath)
   : m_screen(screen), m_map{}, m_player_index(0), m_turn_index(0)
 {
-  //Show initial map, centered at player's current position
   loadMapFile(mapPath);
-  m_screen.putMap(m_map, player().getX(), player().getY());
   //When doing turns, will start iterating through m_actors backward
   //so deletions of Actors are easy/safe; however, 1st turn should be the
   //player's
   m_turn_index = m_player_index;
   player().setTurn(true, 3);
-  m_screen.drawGUI(player().getEnergy());
+  //Show initial map, centered at player's current position
+  m_screen.draw(m_map, player());
 }
 
 /* Fills 2d array with tiles from given map file, instantiating
@@ -99,9 +98,13 @@ void GameBoard::loadMapFile(const std::string &path)
 	{
 	  //Need to have accurate index for player object
 	  m_player_index = m_actors.size();
+	  m_actors.push_back(Actor(col, row, "Player"));
 	}
-	//Add Actor to Actor list
-	m_actors.push_back(Actor(col, row));
+	else
+	{
+	  //Add Actor to Actor list
+	  m_actors.push_back(Actor(col, row));
+	}
 	++col;
       }
       if(col >= MapWidth)
@@ -135,8 +138,7 @@ void GameBoard::updateActors()
 /* Redraws Display to account for window resizing by user*/
 void GameBoard::resize()
 {
-  m_screen.putMap(m_map, player().getX(), player().getY());
-  m_screen.drawGUI(player().getEnergy());
+  m_screen.draw(m_map, player());
 }
 
 /* Determines if a position is a valid one for an Actor to move into*/
@@ -162,8 +164,7 @@ void GameBoard::movePlayer(int newX, int newY)
     m_map[newY][newX] = '@';
 
     m_screen.clear();
-    m_screen.putMap(m_map, newX, newY);
-    m_screen.drawGUI(player().getEnergy());
+    m_screen.draw(m_map, player());
   }
 }
 

@@ -1,5 +1,6 @@
 #include <iostream>
 #include "include/display.h"
+#include "include/actor.h"
 
 //  Map should take up at least min screen space so min-size screen is always full
 static_assert(MapWidth >= MinDisplayWidth && MapHeight >= MinDisplayHeight, "Map too small");
@@ -119,16 +120,24 @@ int Display::getCameraCoord(int playerCoord, bool isX)
     return playerCoord - screenSize / 2;
 }
 
+/* Adds labels/information shown to player in sidebars onscreen to screen
+   buffer, respecting the area used to draw the area around the player */
+void Display::drawGUI(int playerEnergy, const std::string &playerName)
+{
+  printText(0, boardHeight(), playerName);
+  printText(0, boardHeight()+1, "Energy: " + std::to_string(playerEnergy));
+}
+
 /* Places all non-empty tiles centered around the player into the screen buffer,
    stopping when there is no more room. Respects area left for GUI */
-void Display::putMap(const LevelMap &map, const int playerX, const int playerY)
+void Display::draw(const LevelMap &map, Actor &player)
 {
   //Screen may be smaller than map, so display as much as possible
   m_screenWidth = std::min(boardWidth(), MapWidth);
   m_screenHeight = std::min(boardHeight(), MapHeight);
   //Calculate where to start drawing from so player stays centered (if possible)
-  m_cornerX = getCameraCoord(playerX, true);
-  m_cornerY = getCameraCoord(playerY, false);
+  m_cornerX = getCameraCoord(player.getX(), true);
+  m_cornerY = getCameraCoord(player.getY(), false);
   for(int y=m_cornerY; y<(m_cornerY+m_screenHeight); ++y)
   {
     for(int x=m_cornerX; x<(m_cornerX+m_screenWidth); ++x)
@@ -137,13 +146,7 @@ void Display::putMap(const LevelMap &map, const int playerX, const int playerY)
 	putChar(x, y, map[y][x]);
     }
   }
-}
-
-/* Adds labels/information shown to player in sidebars onscreen to screen
-   buffer, respecting the area used to draw the area around the player */
-void Display::drawGUI(int playerEnergy)
-{
-  printText(0, boardHeight(), "Energy: " + std::to_string(playerEnergy));
+  drawGUI(player.getEnergy(), player.getName());
 }
 
 /* Checks if window is large enough to adequately display the game */
