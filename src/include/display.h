@@ -6,6 +6,9 @@
 //Display Constants
 const int MinDisplayWidth = 10;
 const int MinDisplayHeight = 10;
+//GUI dimensions subtracted from tb_width()/height() to get play area screen dimensions
+const int GUIHeight = 10;
+const int GUIWidth = 10;
 const int InputTimeout = 10; //in milliseconds
 const int InitCursorX = 1;
 const int InitCursorY = 1;
@@ -22,10 +25,14 @@ class Display
 //Purpose: Puts/manages content onscreen using termbox library
 {
 private:
+  //m_screenWidth/Height are dimensions of onscreen area to contain tiles
   //int m_cursorX, m_cursorY;
   int m_errorStatus, m_screenWidth, m_screenHeight, m_cornerX, m_cornerY;
   //The latest termbox input event
   tb_event m_event;
+  //boardWidth/Height are dimensions of current window bounded on sides by GUI
+  int boardWidth() { return tb_width()-GUIWidth; }
+  int boardHeight() { return tb_height()-GUIHeight; }
 public:
   Display();
   ~Display();
@@ -40,6 +47,7 @@ public:
   void printText(int col, int row, const std::string text);
   int getCameraCoord(int playerCoord, bool isX);
   void putMap(const LevelMap &map, const int playerX, const int playerY);
+  void drawGUI(int playerEnergy);
   //Setters/Getters
   void clear() { tb_clear(); }
   void present() { tb_present(); }

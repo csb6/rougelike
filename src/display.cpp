@@ -18,8 +18,8 @@ Display::Display() : m_errorStatus(tb_init()), m_cornerX(0), m_cornerY(0),
   }
   tb_set_cursor(InitCursorX, InitCursorY);
   //Screen may be smaller than map, so display as much as possible
-  m_screenWidth = std::min(tb_width(), MapWidth);
-  m_screenHeight = std::min(tb_height(), MapHeight);
+  m_screenWidth = std::min(boardWidth(), MapWidth);
+  m_screenHeight = std::min(boardHeight(), MapHeight);
   //Initially, screen's top left corner is (0, 0) on the map (see member init list)
 }
 
@@ -66,6 +66,9 @@ void Display::putChar(int x, int y, const char letter,
 
 void Display::printText(int col, int row, const std::string text)
 {
+  //Validate coordinates
+  if(col < 0 || col > tb_width() || row < 0 || row > tb_height())
+    return;
   char *textChars = new char[text.length()];
   for(std::string::size_type i=0; i<text.length(); ++i)
   {
@@ -75,7 +78,7 @@ void Display::printText(int col, int row, const std::string text)
   int y = row;
   for(std::string::size_type i=0; i<text.length(); ++i)
   {
-    putChar(x, y, textChars[i]);
+    tb_change_cell(x, y, static_cast<uint32_t>(textChars[i]), TB_WHITE, TB_BLACK);
     ++x;
     if(x >= tb_width())
     {
@@ -101,8 +104,8 @@ int Display::getCameraCoord(int playerCoord, bool isX)
 void Display::putMap(const LevelMap &map, const int playerX, const int playerY)
 {
   //Screen may be smaller than map, so display as much as possible
-  m_screenWidth = std::min(tb_width(), MapWidth);
-  m_screenHeight = std::min(tb_height(), MapHeight);
+  m_screenWidth = std::min(boardWidth(), MapWidth);
+  m_screenHeight = std::min(boardHeight(), MapHeight);
   //Calculate where to start drawing from so player stays centered (if possible)
   m_cornerX = getCameraCoord(playerX, true);
   m_cornerY = getCameraCoord(playerY, false);
@@ -114,6 +117,11 @@ void Display::putMap(const LevelMap &map, const int playerX, const int playerY)
 	putChar(x, y, map[y][x]);
     }
   }
+}
+
+void Display::drawGUI(int playerEnergy)
+{
+  printText(0, boardHeight(), "Energy: " + std::to_string(playerEnergy));
 }
 
 bool Display::largeEnough()

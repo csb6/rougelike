@@ -28,7 +28,7 @@ private:
   std::vector<Item> inventory; //Contains items for player
   std::int_least16_t m_carryWeight; //Current weight of inventory
   std::int_least16_t m_maxCarryWeight;
-  std::int_least16_t m_level; //General level; when upgraded, available to boost stats
+  std::int_least16_t m_level; //General level; when upgraded, points available to boost stats
   std::int_least16_t m_levelProgress; //On scale 0-100; when 100, level-up
 
   //Core Skills - basic stats affecting all actions broadly
@@ -54,6 +54,7 @@ public:
   //Setters/Getters
   int getX() { return m_xPos; }
   int getY() { return m_yPos; }
+  int getEnergy() { return m_energy; }
   bool isTurn() { return m_isTurn; }
 };
 #endif

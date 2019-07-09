@@ -8,7 +8,7 @@
 [ ] Add Item, Chest classes, related code from old RPG project
 [ ] Add inventory system
 [ ] Add basic test suite for key functionality (see old RPG code)
-[ ] Add RNG functionality (see olf RPG code)
+[ ] Add RNG functionality (see old RPG code)
 [ ] Find way to gracefully exit; use it in loadMapFile()'s error branch
 */
 #include "include/display.h"
@@ -48,6 +48,7 @@ GameBoard::GameBoard(Display &screen, const std::string &mapPath)
   //player's
   m_turn_index = m_player_index;
   player().setTurn(true, 3);
+  m_screen.drawGUI(player().getEnergy());
 }
 
 void GameBoard::loadMapFile(const std::string &path)
@@ -122,6 +123,7 @@ void GameBoard::updateActors()
 void GameBoard::resize()
 {
   m_screen.putMap(m_map, player().getX(), player().getY());
+  m_screen.drawGUI(player().getEnergy());
 }
 
 bool GameBoard::canMove(int x, int y)
@@ -145,6 +147,7 @@ void GameBoard::movePlayer(int newX, int newY)
 
     m_screen.clear();
     m_screen.putMap(m_map, newX, newY);
+    m_screen.drawGUI(player().getEnergy());
   }
 }
 
