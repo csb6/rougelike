@@ -4,6 +4,8 @@
 //  Map should take up at least min screen space so min-size screen is always full
 static_assert(MapWidth >= MinDisplayWidth && MapHeight >= MinDisplayHeight, "Map too small");
 
+/* Creates an object that manages access of/content in screen display, starting
+   up termbox library, checking for errors/appropriate screen size*/
 //Display::Display() : m_cursorX(InitCursorX), m_cursorY(InitCursorY),
 //		     m_errorStatus(tb_init()), m_event{0, 0, 0, 0, 0, 0, 0, 0}
 Display::Display() : m_errorStatus(tb_init()), m_cornerX(0), m_cornerY(0),
@@ -29,6 +31,9 @@ Display::~Display()
   tb_shutdown();
 }
 
+/* Converts coordinates written in terms of game map (the 2d array maintained
+   by the GameBoard) into the row/col coordinates used by termbox onscreen.
+   Most member functions use it, including putChar() */
 int Display::convertCoord(int coord, bool isX)
 {
   //Converts coord (x- or y-value) from coord on game map
@@ -36,11 +41,15 @@ int Display::convertCoord(int coord, bool isX)
   return coord - (isX ? m_cornerX : m_cornerY);
 }
 
+/* Grab user input if there is any, returning false if any error while
+   checking occurs*/
 bool Display::processInput()
 {
   return tb_peek_event(&m_event, InputTimeout) > -1;
 }
 
+/* Checks if any non-space character is currently in the screen buffer at the
+   given coordinate*/
 bool Display::isEmpty(int x, int y)
 {
   int row = convertCoord(y, false);
@@ -49,6 +58,7 @@ bool Display::isEmpty(int x, int y)
   return buffer[(tb_width() * row) + col].ch == EmptySpace;
 }
 
+/* Replaces the character at a given point with a space character */
 void Display::clearChar(int x, int y)
 {
   int row = convertCoord(y, false);
@@ -56,6 +66,8 @@ void Display::clearChar(int x, int y)
   tb_change_cell(col, row, EmptySpace, TB_WHITE, TB_BLACK);
 }
 
+/* Places a character at a given point with foreground/background colors.
+   Default fg/bg colors in header */
 void Display::putChar(int x, int y, const char letter,
 		      const uint16_t fg, const uint16_t bg)
 {
@@ -64,6 +76,9 @@ void Display::putChar(int x, int y, const char letter,
   tb_change_cell(col, row, static_cast<uint32_t>(letter), fg, bg);
 }
 
+/* Writes a string onscreen, starting at the given coords (in terms of
+   screen, not game map), wrapping by character at the screen edge and
+   dropping to the same starting x-position on the next line  */
 void Display::printText(int col, int row, const std::string text)
 {
   //Validate coordinates
@@ -89,6 +104,9 @@ void Display::printText(int col, int row, const std::string text)
   delete[] textChars;
 }
 
+/* Gets position of top-left corner of screen so that the screen buffer
+   (a slice of the game map) stays centered over the player, locking to the
+   edges when the player approaches the map edge */
 int Display::getCameraCoord(int playerCoord, bool isX)
 {
   int screenSize = isX ? m_screenWidth : m_screenHeight;
@@ -101,6 +119,8 @@ int Display::getCameraCoord(int playerCoord, bool isX)
     return playerCoord - screenSize / 2;
 }
 
+/* Places all non-empty tiles centered around the player into the screen buffer,
+   stopping when there is no more room. Respects area left for GUI */
 void Display::putMap(const LevelMap &map, const int playerX, const int playerY)
 {
   //Screen may be smaller than map, so display as much as possible
@@ -119,11 +139,14 @@ void Display::putMap(const LevelMap &map, const int playerX, const int playerY)
   }
 }
 
+/* Adds labels/information shown to player in sidebars onscreen to screen
+   buffer, respecting the area used to draw the area around the player */
 void Display::drawGUI(int playerEnergy)
 {
   printText(0, boardHeight(), "Energy: " + std::to_string(playerEnergy));
 }
 
+/* Checks if window is large enough to adequately display the game */
 bool Display::largeEnough()
 {
   return tb_width() >= MinDisplayWidth && tb_height() >= MinDisplayHeight;

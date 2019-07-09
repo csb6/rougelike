@@ -5,6 +5,10 @@
 [X] Add vector of all actors/entities? in current level, way to cycle through their turns
 [X] Add way to have player Actor in vector but also with a reference in GameBoard
 [ ] Add basic UI for showing who's turn it is, how many energy steps left
+[ ] Establish better lines of communication between Display and GameBoard so
+    references don't have to be passed around so ad-hoc
+[ ] Implement way to automatically show name/energy of entity whose turn it is
+[ ] Add way to save/load maps
 [ ] Add Item, Chest classes, related code from old RPG project
 [ ] Add inventory system
 [ ] Add basic test suite for key functionality (see old RPG code)
@@ -17,6 +21,8 @@
 #include <iostream>
 
 class GameBoard
+//Purpose: To represent the game map/the actors/pieces on it, as well as to
+//    handle user input for controlling the player
 {
 private:
   Display &m_screen;
@@ -37,6 +43,8 @@ public:
   void translatePlayer(int dx, int dy);
 };
 
+/* Creates a new board linking to the termbox screen; opens/loads
+   the given map, and sets up in-game GUI*/
 GameBoard::GameBoard(Display &screen, const std::string &mapPath)
   : m_screen(screen), m_map{}, m_player_index(0), m_turn_index(0)
 {
@@ -51,6 +59,8 @@ GameBoard::GameBoard(Display &screen, const std::string &mapPath)
   m_screen.drawGUI(player().getEnergy());
 }
 
+/* Fills 2d array with tiles from given map file, instantiating
+   new Actors/other entities as needed in their correct positions*/
 void GameBoard::loadMapFile(const std::string &path)
 {
   //First, make all tiles empty tiles
@@ -101,6 +111,8 @@ void GameBoard::loadMapFile(const std::string &path)
   }
 }
 
+/* Calls update functions on all actors currently on the board,
+   working backwards so removing an actor doesn't skip anything*/
 void GameBoard::updateActors()
 {
   //Check if actor with current turn is done;
@@ -120,18 +132,22 @@ void GameBoard::updateActors()
   }
 }
 
+/* Redraws Display to account for window resizing by user*/
 void GameBoard::resize()
 {
   m_screen.putMap(m_map, player().getX(), player().getY());
   m_screen.drawGUI(player().getEnergy());
 }
 
+/* Determines if a position is a valid one for an Actor to move into*/
 bool GameBoard::canMove(int x, int y)
 {
   return x < MapWidth && x >= 0 && y < MapHeight && y >= 0
     && m_map[y][x] == 0;
 }
 
+/* If possible, moves the player into a new location, updating the player
+    object, map array, screen buffer, and display to show the change*/
 void GameBoard::movePlayer(int newX, int newY)
 {
   //Verify that it's safe/legal to move to the new location
@@ -151,6 +167,7 @@ void GameBoard::movePlayer(int newX, int newY)
   }
 }
 
+/* Shortcut for moving player through change in current position*/
 void GameBoard::translatePlayer(int dx, int dy)
 {
   movePlayer(player().getX() + dx, player().getY() + dy);
