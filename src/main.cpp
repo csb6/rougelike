@@ -122,11 +122,12 @@ void GameBoard::updateActors()
 {
   //Check if actor with current turn is done;
   //if so, move turn to next actor, update screen
-  if(!m_actors[m_turn_index].isTurn())
+  if(!currActor().isTurn())
   {
     m_turn_index--;
-    m_actors[m_turn_index].setTurn(true, 3);
+    currActor().setTurn(true, 3);
     m_screen.draw(m_map, player(), currActor());
+    m_screen.present();
   }
 
   int i = m_turn_index;
