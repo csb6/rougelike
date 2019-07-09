@@ -12,45 +12,9 @@
 [ ] Find way to gracefully exit; use it in loadMapFile()'s error branch
 */
 #include "include/display.h"
+#include "include/actor.h"
 #include <fstream>
 #include <iostream>
-#include <vector>
-
-class Actor
-{
-private:
-  int m_xPos, m_yPos, m_energy;
-  bool m_isTurn;
-public:
-  Actor(int x, int y);
-  void move(int newX, int newY);
-  void update() {}
-  void setTurn(bool isTurn, int energy);
-  //Setters/Getters
-  int getX() { return m_xPos; }
-  int getY() { return m_yPos; }
-  bool isTurn() { return m_isTurn; }
-};
-
-Actor::Actor(int x, int y) : m_xPos(x), m_yPos(y), m_energy(0), m_isTurn(false)
-{
-
-}
-
-void Actor::move(int newX, int newY)
-{
-  m_xPos = newX;
-  m_yPos = newY;
-  //End turn once Actor can make no more moves
-  if(--m_energy <= 0)
-    m_isTurn = false;
-}
-
-void Actor::setTurn(bool isTurn, int energy)
-{
-  m_isTurn = isTurn;
-  m_energy = energy;
-}
 
 class GameBoard
 {
@@ -199,7 +163,7 @@ int main()
   while(running && screen.processInput())
   {
     board.updateActors();
-    
+
     switch(screen.getEventType())
     {
     case TB_EVENT_KEY:
