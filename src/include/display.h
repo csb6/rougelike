@@ -48,8 +48,8 @@ public:
 	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
   void printText(int col, int row, const std::string text);
   int getCameraCoord(int playerCoord, bool isX);
-  void draw(const LevelMap &map, Actor &player);
-  void drawGUI(int playerEnergy, const std::string &playerName);
+  void draw(const LevelMap &map, Actor &player, Actor &currActor);
+  void drawGUI(Actor &player, Actor &currActor);
   //Setters/Getters
   void clear() { tb_clear(); }
   void present() { tb_present(); }

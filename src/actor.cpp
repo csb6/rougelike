@@ -25,8 +25,9 @@ void Actor::move(int newX, int newY)
 {
   m_xPos = newX;
   m_yPos = newY;
+  --m_energy;
   //End turn once Actor can make no more moves
-  if(--m_energy <= 0)
+  if(m_energy <= 0)
     m_isTurn = false;
 }
 

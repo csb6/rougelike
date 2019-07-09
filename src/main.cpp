@@ -4,7 +4,8 @@
 [X] Implement proper scrolling; look at this link: http://www.roguebasin.com/index.php?title=Scrolling_map
 [X] Add vector of all actors/entities? in current level, way to cycle through their turns
 [X] Add way to have player Actor in vector but also with a reference in GameBoard
-[ ] Add basic UI for showing who's turn it is, how many energy steps left
+[X] Add basic UI for showing who's turn it is, how many energy steps left
+[ ] Fix bug where turn indicator won't update until player tries to move with 0 energy
 [X] Establish better lines of communication between Display and GameBoard so
     references don't have to be passed around so ad-hoc
 [ ] Implement way to automatically show name/energy of entity whose turn it is
@@ -33,6 +34,7 @@ private:
   int m_turn_index;
   std::vector<Actor> m_actors;
   inline Actor& player() { return m_actors[m_player_index]; }
+  inline Actor& currActor() { return m_actors[m_turn_index]; }
 public:
   GameBoard(Display &screen, const std::string &mapPath);
   void loadMapFile(const std::string &path);
@@ -55,7 +57,7 @@ GameBoard::GameBoard(Display &screen, const std::string &mapPath)
   m_turn_index = m_player_index;
   player().setTurn(true, 3);
   //Show initial map, centered at player's current position
-  m_screen.draw(m_map, player());
+  m_screen.draw(m_map, player(), currActor());
 }
 
 /* Fills 2d array with tiles from given map file, instantiating
@@ -119,11 +121,12 @@ void GameBoard::loadMapFile(const std::string &path)
 void GameBoard::updateActors()
 {
   //Check if actor with current turn is done;
-  //if so, move turn to next actor
+  //if so, move turn to next actor, update screen
   if(!m_actors[m_turn_index].isTurn())
   {
     m_turn_index--;
     m_actors[m_turn_index].setTurn(true, 3);
+    m_screen.draw(m_map, player(), currActor());
   }
 
   int i = m_turn_index;
@@ -138,7 +141,7 @@ void GameBoard::updateActors()
 /* Redraws Display to account for window resizing by user*/
 void GameBoard::resize()
 {
-  m_screen.draw(m_map, player());
+  m_screen.draw(m_map, player(), currActor());
 }
 
 /* Determines if a position is a valid one for an Actor to move into*/
@@ -164,7 +167,7 @@ void GameBoard::movePlayer(int newX, int newY)
     m_map[newY][newX] = '@';
 
     m_screen.clear();
-    m_screen.draw(m_map, player());
+    m_screen.draw(m_map, player(), currActor());
   }
 }
 
