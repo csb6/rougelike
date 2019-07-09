@@ -85,16 +85,11 @@ void Display::printText(int col, int row, const std::string text)
   //Validate coordinates
   if(col < 0 || col > tb_width() || row < 0 || row > tb_height())
     return;
-  char *textChars = new char[text.length()];
-  for(std::string::size_type i=0; i<text.length(); ++i)
-  {
-    textChars[i] = text[i];
-  }
   int x = col;
   int y = row;
   for(std::string::size_type i=0; i<text.length(); ++i)
   {
-    tb_change_cell(x, y, static_cast<uint32_t>(textChars[i]), TB_WHITE, TB_BLACK);
+    tb_change_cell(x, y, static_cast<uint32_t>(text[i]), TB_WHITE, TB_BLACK);
     ++x;
     if(x >= tb_width())
     {
@@ -102,7 +97,6 @@ void Display::printText(int col, int row, const std::string text)
       ++y;
     }
   }
-  delete[] textChars;
 }
 
 /* Gets position of top-left corner of screen so that the screen buffer

@@ -5,9 +5,10 @@
 [X] Add vector of all actors/entities? in current level, way to cycle through their turns
 [X] Add way to have player Actor in vector but also with a reference in GameBoard
 [X] Add basic UI for showing who's turn it is, how many energy steps left
-[ ] Fix bug where turn indicator won't update until player tries to move with 0 energy
+[X] Fix bug where turn indicator won't update until player tries to move with 0 energy
 [X] Establish better lines of communication between Display and GameBoard so
     references don't have to be passed around so ad-hoc
+[X] Call screen.present() in only 1 spot every tick: right after updateActors()
 [ ] Implement way to automatically show name/energy of entity whose turn it is
 [ ] Add way to save/load maps
 [ ] Add Item, Chest classes, related code from old RPG project
@@ -127,7 +128,6 @@ void GameBoard::updateActors()
     m_turn_index--;
     currActor().setTurn(true, 3);
     m_screen.draw(m_map, player(), currActor());
-    m_screen.present();
   }
 
   int i = m_turn_index;
@@ -183,12 +183,9 @@ int main()
   Display screen;
   GameBoard board(screen, "test-map1.csv");
   bool running = true;
-  screen.present();
   //Start main game loop
   while(running && screen.processInput())
   {
-    board.updateActors();
-
     switch(screen.getEventType())
     {
     case TB_EVENT_KEY:
@@ -201,19 +198,15 @@ int main()
       //Basic player movement
       case TB_KEY_ARROW_RIGHT:
 	board.translatePlayer(1, 0);
-	screen.present();
 	break;
       case TB_KEY_ARROW_LEFT:
 	board.translatePlayer(-1, 0);
-	screen.present();
 	break;
       case TB_KEY_ARROW_UP:
 	board.translatePlayer(0, -1);
-	screen.present();
 	break;
       case TB_KEY_ARROW_DOWN:
 	board.translatePlayer(0, 1);
-	screen.present();
 	break;
       }
       break;
@@ -227,9 +220,11 @@ int main()
 	//Redraw as much of map as possible
 	board.resize();
       }
-      screen.present();
       break;
     }
+
+    board.updateActors();
+    screen.present();
   }
 
   return 0;
