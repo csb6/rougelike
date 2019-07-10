@@ -9,7 +9,7 @@
 [X] Establish better lines of communication between Display and GameBoard so
     references don't have to be passed around so ad-hoc
 [X] Call screen.present() in only 1 spot every tick: right after updateActors()
-[ ] Implement way to automatically show name/energy of entity whose turn it is
+[X] Implement way to automatically show name/energy of entity whose turn it is
 [ ] Add way to save/load maps
 [ ] Add Item, Chest classes, related code from old RPG project
 [ ] Add inventory system

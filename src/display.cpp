@@ -119,9 +119,11 @@ int Display::getCameraCoord(int playerCoord, bool isX)
    buffer, respecting the area used to draw the area around the player */
 void Display::drawGUI(Actor &player, Actor &currActor)
 {
-  printText(0, boardHeight(), "Turn: "+currActor.getName());
-  printText(0, boardHeight()+1, "You: "+player.getName());
-  printText(0, boardHeight()+2, "Energy: " + std::to_string(player.getEnergy()));
+  printText(0, boardHeight(), currActor.getName() + "'s Turn:");
+  printText(0, boardHeight()+1, " Energy: " + std::to_string(currActor.getEnergy()));
+  printText(0, boardHeight()+2, "You:");
+  printText(0, boardHeight()+3, " Name: " + player.getName());
+  printText(0, boardHeight()+4, " Energy: " + std::to_string(player.getEnergy()));
 }
 
 /* Places all non-empty tiles centered around the player into the screen buffer,
