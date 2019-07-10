@@ -20,7 +20,7 @@ Display::Display(LevelMap &map)
     clear();
     printText(1, 1, "Error: screen not large enough");
   }
-  tb_set_cursor(InitCursorX, InitCursorY);
+  //tb_set_cursor(InitCursorX, InitCursorY);
   //Screen may be smaller than map, so display as much as possible
   m_screenWidth = std::min(boardWidth(), MapWidth);
   m_screenHeight = std::min(boardHeight(), MapHeight);

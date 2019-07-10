@@ -58,7 +58,7 @@ GameBoard::GameBoard(bool &running, const std::string &mapPath)
   //so deletions of Actors are easy/safe; however, 1st turn should be the
   //player's
   m_turn_index = m_player_index;
-  player().setTurn(true, 3);
+  player().setTurn(true);
   //Show initial map, centered at player's current position
   m_screen.draw(player(), currActor());
 }
@@ -173,8 +173,9 @@ void GameBoard::updateActors()
   //if so, move turn to next actor, update screen
   if(!currActor().isTurn())
   {
-    m_turn_index--;
-    currActor().setTurn(true, 3);
+    if(--m_turn_index == -1)
+      m_turn_index = m_actors.size() - 1;
+    currActor().setTurn(true);
     m_screen.draw(player(), currActor());
   }
 

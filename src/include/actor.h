@@ -51,7 +51,7 @@ public:
   Actor(int x, int y, std::string name = "Monster");
   void move(int newX, int newY);
   void update() {}
-  void setTurn(bool isTurn, int energy);
+  void setTurn(bool isTurn, int energy = 3);
   //Setters/Getters
   int getX() { return m_xPos; }
   int getY() { return m_yPos; }
