@@ -27,8 +27,9 @@ class GameBoard
 //    handle user input for controlling the player
 {
 private:
-  Display &m_screen;
+  bool &m_running;
   LevelMap m_map;
+  Display m_screen;
   //m_player_index is always location of player object in m_actors
   int m_player_index;
   //m_turn_index is always location of object whose turn it is in m_actors
@@ -37,10 +38,11 @@ private:
   inline Actor& player() { return m_actors[m_player_index]; }
   inline Actor& currActor() { return m_actors[m_turn_index]; }
 public:
-  GameBoard(Display &screen, const std::string &mapPath);
+  GameBoard(bool &running, const std::string &mapPath);
   void loadMapFile(const std::string &path);
+  bool processInput();
   void updateActors();
-  void resize();
+  void present();
   bool canMove(int x, int y);
   void movePlayer(int newX, int newY);
   void translatePlayer(int dx, int dy);
@@ -48,8 +50,8 @@ public:
 
 /* Creates a new board linking to the termbox screen; opens/loads
    the given map, and sets up in-game GUI*/
-GameBoard::GameBoard(Display &screen, const std::string &mapPath)
-  : m_screen(screen), m_map{}, m_player_index(0), m_turn_index(0)
+GameBoard::GameBoard(bool &running, const std::string &mapPath)
+  : m_running(running), m_map{}, m_screen(m_map), m_player_index(0), m_turn_index(0)
 {
   loadMapFile(mapPath);
   //When doing turns, will start iterating through m_actors backward
@@ -58,7 +60,7 @@ GameBoard::GameBoard(Display &screen, const std::string &mapPath)
   m_turn_index = m_player_index;
   player().setTurn(true, 3);
   //Show initial map, centered at player's current position
-  m_screen.draw(m_map, player(), currActor());
+  m_screen.draw(player(), currActor());
 }
 
 /* Fills 2d array with tiles from given map file, instantiating
@@ -117,6 +119,52 @@ void GameBoard::loadMapFile(const std::string &path)
   }
 }
 
+/* Checks with screen to see if any user input, then changes game state
+   based on the event type (e.g. move player, resize screen) */
+bool GameBoard::processInput()
+{
+  if(!m_screen.getInput())
+    return false;
+  switch(m_screen.getEventType())
+  {
+  //Respond to user key presses
+  case TB_EVENT_KEY:
+    switch(m_screen.getEventKey())
+    {
+    case TB_KEY_CTRL_C:
+      //Stop program immediately
+      m_running = false;
+      break;
+      //Basic player movement
+    case TB_KEY_ARROW_RIGHT:
+      translatePlayer(1, 0);
+      break;
+    case TB_KEY_ARROW_LEFT:
+      translatePlayer(-1, 0);
+      break;
+    case TB_KEY_ARROW_UP:
+      translatePlayer(0, -1);
+      break;
+    case TB_KEY_ARROW_DOWN:
+      translatePlayer(0, 1);
+      break;
+    }
+    break;
+  //Adjust screen if window is resized
+  case TB_EVENT_RESIZE:
+    m_screen.clear();
+    if(!m_screen.largeEnough())
+      m_screen.printText(1, 1, "Error: screen not large enough");
+    else
+    {
+      //Redraw as much of map as possible
+      m_screen.draw(player(), currActor());
+    }
+    break;
+  }
+  return true;
+}
+
 /* Calls update functions on all actors currently on the board,
    working backwards so removing an actor doesn't skip anything*/
 void GameBoard::updateActors()
@@ -127,22 +175,21 @@ void GameBoard::updateActors()
   {
     m_turn_index--;
     currActor().setTurn(true, 3);
-    m_screen.draw(m_map, player(), currActor());
+    m_screen.draw(player(), currActor());
   }
 
   int i = m_turn_index;
   while(i != m_turn_index)
   {
     m_actors[i].update();
-    if(i-- == -1)
+    if(--i == -1)
       i = m_actors.size() - 1;
   }
 }
 
-/* Redraws Display to account for window resizing by user*/
-void GameBoard::resize()
+void GameBoard::present()
 {
-  m_screen.draw(m_map, player(), currActor());
+  m_screen.present();
 }
 
 /* Determines if a position is a valid one for an Actor to move into*/
@@ -168,7 +215,7 @@ void GameBoard::movePlayer(int newX, int newY)
     m_map[newY][newX] = '@';
 
     m_screen.clear();
-    m_screen.draw(m_map, player(), currActor());
+    m_screen.draw(player(), currActor());
   }
 }
 
@@ -180,51 +227,13 @@ void GameBoard::translatePlayer(int dx, int dy)
 
 int main()
 {
-  Display screen;
-  GameBoard board(screen, "test-map1.csv");
   bool running = true;
+  GameBoard board(running, "test-map1.csv");
   //Start main game loop
-  while(running && screen.processInput())
+  while(running && board.processInput())
   {
-    switch(screen.getEventType())
-    {
-    case TB_EVENT_KEY:
-      switch(screen.getEventKey())
-      {
-      case TB_KEY_CTRL_C:
-	//Stop program immediately
-	running = false;
-	break;
-      //Basic player movement
-      case TB_KEY_ARROW_RIGHT:
-	board.translatePlayer(1, 0);
-	break;
-      case TB_KEY_ARROW_LEFT:
-	board.translatePlayer(-1, 0);
-	break;
-      case TB_KEY_ARROW_UP:
-	board.translatePlayer(0, -1);
-	break;
-      case TB_KEY_ARROW_DOWN:
-	board.translatePlayer(0, 1);
-	break;
-      }
-      break;
-    //Adjust screen if window is resized
-    case TB_EVENT_RESIZE:
-      screen.clear();
-      if(!screen.largeEnough())
-	screen.printText(1, 1, "Error: screen not large enough");
-      else
-      {
-	//Redraw as much of map as possible
-	board.resize();
-      }
-      break;
-    }
-
     board.updateActors();
-    screen.present();
+    board.present();
   }
 
   return 0;

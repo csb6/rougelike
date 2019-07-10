@@ -27,6 +27,7 @@ class Display
 //Purpose: Puts/manages content onscreen using termbox library
 {
 private:
+  LevelMap &m_map;
   //m_screenWidth/Height are dimensions of onscreen area to contain tiles
   //int m_cursorX, m_cursorY;
   int m_errorStatus, m_screenWidth, m_screenHeight, m_cornerX, m_cornerY;
@@ -36,10 +37,10 @@ private:
   int boardWidth() { return tb_width()-GUIWidth; }
   int boardHeight() { return tb_height()-GUIHeight; }
 public:
-  Display();
+  Display(LevelMap &map);
   ~Display();
   inline int convertCoord(int coord, bool isX);
-  bool processInput();
+  bool getInput();
   //x and y = coords in terms of game map, not display
   //col and row = coords in terms of display, not game map
   bool isEmpty(int x, int y);
@@ -48,7 +49,8 @@ public:
 	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
   void printText(int col, int row, const std::string text);
   int getCameraCoord(int playerCoord, bool isX);
-  void draw(const LevelMap &map, Actor &player, Actor &currActor);
+  //Note: draw functions alter screen buffer; must call present() to push to display
+  void draw(Actor &player, Actor &currActor);
   void drawGUI(Actor &player, Actor &currActor);
   //Setters/Getters
   void clear() { tb_clear(); }

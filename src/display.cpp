@@ -9,8 +9,9 @@ static_assert(MapWidth >= MinDisplayWidth && MapHeight >= MinDisplayHeight, "Map
    up termbox library, checking for errors/appropriate screen size*/
 //Display::Display() : m_cursorX(InitCursorX), m_cursorY(InitCursorY),
 //		     m_errorStatus(tb_init()), m_event{0, 0, 0, 0, 0, 0, 0, 0}
-Display::Display() : m_errorStatus(tb_init()), m_cornerX(0), m_cornerY(0),
-		     m_event{0, 0, 0, 0, 0, 0, 0, 0}
+Display::Display(LevelMap &map)
+  : m_map(map), m_errorStatus(tb_init()), m_cornerX(0), m_cornerY(0),
+    m_event{0, 0, 0, 0, 0, 0, 0, 0}
 {
   if(m_errorStatus < 0)
     std::cout << "Error: Couldn't start termbox; code " << m_errorStatus << "\n";
@@ -44,7 +45,7 @@ int Display::convertCoord(int coord, bool isX)
 
 /* Grab user input if there is any, returning false if any error while
    checking occurs*/
-bool Display::processInput()
+bool Display::getInput()
 {
   return tb_peek_event(&m_event, InputTimeout) > -1;
 }
@@ -125,7 +126,7 @@ void Display::drawGUI(Actor &player, Actor &currActor)
 
 /* Places all non-empty tiles centered around the player into the screen buffer,
    stopping when there is no more room. Respects area left for GUI */
-void Display::draw(const LevelMap &map, Actor &player, Actor &currActor)
+void Display::draw(Actor &player, Actor &currActor)
 {
   //Screen may be smaller than map, so display as much as possible
   m_screenWidth = std::min(boardWidth(), MapWidth);
@@ -137,8 +138,8 @@ void Display::draw(const LevelMap &map, Actor &player, Actor &currActor)
   {
     for(int x=m_cornerX; x<(m_cornerX+m_screenWidth); ++x)
     {
-      if(map[y][x])
-	putChar(x, y, map[y][x]);
+      if(m_map[y][x])
+	putChar(x, y, m_map[y][x]);
     }
   }
   drawGUI(player, currActor);
