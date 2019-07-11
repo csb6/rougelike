@@ -33,6 +33,8 @@ private:
   int m_errorStatus, m_screenWidth, m_screenHeight, m_cornerX, m_cornerY;
   //The latest termbox input event
   tb_event m_event;
+  //Variables for printing text without absolute positioning
+  int m_textCol, m_textX, m_textY, m_textMaxWidth;
   //boardWidth/Height are dimensions of current window bounded on sides by GUI
   int boardWidth() { return tb_width()-GUIWidth; }
   int boardHeight() { return tb_height()-GUIHeight; }
@@ -47,7 +49,10 @@ public:
   void clearChar(int x, int y);
   void putChar(int x, int y, char letter,
 	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
-  void printText(int col, int row, const std::string text);
+  void printText(int col, int row, const std::string text,
+		 const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
+  void printTextCol(int gridCol, const std::string text,
+		    const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
   int getCameraCoord(int playerCoord, bool isX);
   //Note: draw functions alter screen buffer; must call present() to push to display
   void printActorInventory(Actor &actor);

@@ -10,7 +10,7 @@
     references don't have to be passed around so ad-hoc
 [X] Call screen.present() in only 1 spot every tick: right after updateActors()
 [X] Implement way to automatically show name/energy of entity whose turn it is
-[ ] Add way to draw GUI with using absolute positioning
+[ ] Add way to draw GUI without using absolute positioning
 [ ] Add way to specify characteristics of monsters in text config files, which can
     then be loaded when the program starts
 [ ] Add way to save/load maps
@@ -226,7 +226,6 @@ void GameBoard::movePlayer(int newX, int newY)
     m_map[oldY][oldX] = 0;
     m_map[newY][newX] = '@';
 
-    m_screen.clear();
     m_screen.draw(player(), currActor());
   }
 }

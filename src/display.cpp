@@ -11,7 +11,8 @@ static_assert(MapWidth >= MinDisplayWidth && MapHeight >= MinDisplayHeight, "Map
 //		     m_errorStatus(tb_init()), m_event{0, 0, 0, 0, 0, 0, 0, 0}
 Display::Display(LevelMap &map)
   : m_map(map), m_errorStatus(tb_init()), m_cornerX(0), m_cornerY(0),
-    m_event{0, 0, 0, 0, 0, 0, 0, 0}
+    m_event{0, 0, 0, 0, 0, 0, 0, 0}, m_textCol(0), m_textX(0),
+    m_textY(0), m_textMaxWidth(0)
 {
   if(m_errorStatus < 0)
     std::cout << "Error: Couldn't start termbox; code " << m_errorStatus << "\n";
@@ -80,8 +81,10 @@ void Display::putChar(int x, int y, const char letter,
 
 /* Writes a string onscreen, starting at the given coords (in terms of
    screen, not game map), wrapping by character at the screen edge and
-   dropping to the same starting x-position on the next line  */
-void Display::printText(int col, int row, const std::string text)
+   dropping to the same starting x-position on the next line.
+   Default fg/bg colors in header  */
+void Display::printText(int col, int row, const std::string text,
+			const uint16_t fg, const uint16_t bg)
 {
   //Validate coordinates
   if(col < 0 || col > tb_width() || row < 0 || row > tb_height())
@@ -90,13 +93,39 @@ void Display::printText(int col, int row, const std::string text)
   int y = row;
   for(std::string::size_type i=0; i<text.length(); ++i)
   {
-    tb_change_cell(x, y, static_cast<uint32_t>(text[i]), TB_WHITE, TB_BLACK);
+    tb_change_cell(x, y, static_cast<uint32_t>(text[i]), fg, bg);
     ++x;
     if(x >= tb_width())
     {
       x = col;
       ++y;
     }
+  }
+}
+
+/*Prints given text into abstract columns, where each column is
+  the width of its widest element; once a higher column is specified,
+  the smaller columns cannot be altered/added to. Default fg/bg colors in header*/
+void Display::printTextCol(int gridCol, const std::string text,
+			   const uint16_t fg, const uint16_t bg)
+{
+  if(gridCol < m_textCol)
+    return;
+  else if(gridCol == m_textCol)
+  {
+    printText(m_textX, boardHeight()+m_textY, text, fg, bg);
+    if(static_cast<int>(text.size()) > m_textMaxWidth)
+      m_textMaxWidth = text.size();
+    ++m_textY;
+  }
+  else
+  {
+    m_textCol = gridCol;
+    //Offset next column by some amount of space
+    m_textX += (m_textMaxWidth + 2);
+    printText(m_textX, boardHeight(), text, fg, bg);
+    m_textY = 1;
+    m_textMaxWidth = text.size();
   }
 }
 
@@ -115,41 +144,49 @@ int Display::getCameraCoord(int playerCoord, bool isX)
     return playerCoord - screenSize / 2;
 }
 
+/* Prints all items in an actor's inventory into the GUI area*/
 void Display::printActorInventory(Actor &actor)
 {
-  printText(0, boardHeight()+5, actor.getName() + "'s Inventory:");
+  printTextCol(0, actor.getName() + "'s Inventory:", TB_YELLOW);
   int inventorySize = actor.getInventorySize();
   if(inventorySize > 0)
   {
     for(int i=0; i<inventorySize; ++i)
     {
       Item& item = actor.getItemAt(i);
-      printText(0, boardHeight()+5+1+i, " " + std::to_string(i+1) + ". " + item.getName()
-		+ " - Weight: " + std::to_string(item.getWeight()));
-      //std::cout << "\t" << i+1 << ". " << item.name << "\tWeight: " << item.weight << "\n";
+      printTextCol(0, " " + std::to_string(i+1) + ". " + item.getName() + " - Weight: "
+		   + std::to_string(item.getWeight()));
     }
   }
   else
     //std::cout << "\tempty\n";
-    printText(0, boardHeight()+5+1, " empty");
+    printTextCol(0, " empty");
 }
 
 /* Adds labels/information shown to player in sidebars onscreen to screen
    buffer, respecting the area used to draw the area around the player */
 void Display::drawGUI(Actor &player, Actor &currActor)
 {
-  printText(0, boardHeight(), currActor.getName() + "'s Turn:");
-  printText(0, boardHeight()+1, " Energy: " + std::to_string(currActor.getEnergy()));
-  printText(0, boardHeight()+2, "You:");
-  printText(0, boardHeight()+3, " Name: " + player.getName());
-  printText(0, boardHeight()+4, " Energy: " + std::to_string(player.getEnergy()));
+  printTextCol(0, "Turn:", TB_YELLOW);
+  printTextCol(0, " Name: " + currActor.getName());
+  printTextCol(0, " Energy: " + std::to_string(currActor.getEnergy()));
   printActorInventory(player);
+  printTextCol(1, "You:", TB_YELLOW);
+  printTextCol(1, " Name: " + player.getName());
+  printTextCol(1, " Energy: " + std::to_string(player.getEnergy()));
+  //For printTextCol(); need to be set to 0 after each frame
+  //so columns constructed correctly each frame
+  m_textCol = 0;
+  m_textX = 0;
+  m_textY = 0;
+  m_textMaxWidth = 0;
 }
 
 /* Places all non-empty tiles centered around the player into the screen buffer,
    stopping when there is no more room. Respects area left for GUI */
 void Display::draw(Actor &player, Actor &currActor)
 {
+  clear();
   //Screen may be smaller than map, so display as much as possible
   m_screenWidth = std::min(boardWidth(), MapWidth);
   m_screenHeight = std::min(boardHeight(), MapHeight);
