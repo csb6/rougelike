@@ -4,7 +4,7 @@
 #include "termbox.h"
 
 //Display Constants
-const int MinDisplayWidth = 10;
+const int MinDisplayWidth = 30;
 const int MinDisplayHeight = 10;
 //GUI dimensions subtracted from tb_width()/height() to get play area screen dimensions
 const int GUIHeight = 10;
@@ -55,7 +55,7 @@ public:
 		    const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
   int getCameraCoord(int playerCoord, bool isX);
   //Note: draw functions alter screen buffer; must call present() to push to display
-  void printActorInventory(Actor &actor);
+  void printActorInventory(int gridCol, Actor &actor);
   void drawGUI(Actor &player, Actor &currActor);
   void draw(Actor &player, Actor &currActor);
   //Setters/Getters

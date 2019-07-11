@@ -145,22 +145,21 @@ int Display::getCameraCoord(int playerCoord, bool isX)
 }
 
 /* Prints all items in an actor's inventory into the GUI area*/
-void Display::printActorInventory(Actor &actor)
+void Display::printActorInventory(int gridCol, Actor &actor)
 {
-  printTextCol(0, actor.getName() + "'s Inventory:", TB_YELLOW);
+  printTextCol(gridCol, actor.getName() + "'s Inventory:", TB_YELLOW);
   int inventorySize = actor.getInventorySize();
   if(inventorySize > 0)
   {
     for(int i=0; i<inventorySize; ++i)
     {
       Item& item = actor.getItemAt(i);
-      printTextCol(0, " " + std::to_string(i+1) + ". " + item.getName() + " - Weight: "
+      printTextCol(gridCol, " " + std::to_string(i+1) + ". " + item.getName() + " - Weight: "
 		   + std::to_string(item.getWeight()));
     }
   }
   else
-    //std::cout << "\tempty\n";
-    printTextCol(0, " empty");
+    printTextCol(gridCol, " empty");
 }
 
 /* Adds labels/information shown to player in sidebars onscreen to screen
@@ -170,10 +169,10 @@ void Display::drawGUI(Actor &player, Actor &currActor)
   printTextCol(0, "Turn:", TB_YELLOW);
   printTextCol(0, " Name: " + currActor.getName());
   printTextCol(0, " Energy: " + std::to_string(currActor.getEnergy()));
-  printActorInventory(player);
   printTextCol(1, "You:", TB_YELLOW);
   printTextCol(1, " Name: " + player.getName());
   printTextCol(1, " Energy: " + std::to_string(player.getEnergy()));
+  printActorInventory(1, player);
   //For printTextCol(); need to be set to 0 after each frame
   //so columns constructed correctly each frame
   m_textCol = 0;
@@ -186,7 +185,6 @@ void Display::drawGUI(Actor &player, Actor &currActor)
    stopping when there is no more room. Respects area left for GUI */
 void Display::draw(Actor &player, Actor &currActor)
 {
-  clear();
   //Screen may be smaller than map, so display as much as possible
   m_screenWidth = std::min(boardWidth(), MapWidth);
   m_screenHeight = std::min(boardHeight(), MapHeight);

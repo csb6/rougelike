@@ -10,14 +10,19 @@
     references don't have to be passed around so ad-hoc
 [X] Call screen.present() in only 1 spot every tick: right after updateActors()
 [X] Implement way to automatically show name/energy of entity whose turn it is
-[ ] Add way to draw GUI without using absolute positioning
+[X] Add way to draw GUI without using absolute positioning
 [ ] Add way to specify characteristics of monsters in text config files, which can
     then be loaded when the program starts
 [ ] Add way to save/load maps
 [ ] Add Item, Chest classes, related code from old RPG project
+[ ] Add screen/functionality to interact with/transfer items to/from Chests,
+    as well as drop items from inventory
 [X] Add inventory system
 [ ] Add basic test suite for key functionality (see old RPG code)
 [ ] Add RNG functionality (see old RPG code)
+[ ] Add more comprehensive way to view larger inventory
+[ ] Add better, safer, more comprehensive way to draw GUI
+[ ] Add way to equip items/armor
 [ ] Find way to gracefully exit; use it in loadMapFile()'s error branch
 */
 #include "include/display.h"
@@ -187,6 +192,7 @@ void GameBoard::updateActors()
     if(--m_turn_index == -1)
       m_turn_index = m_actors.size() - 1;
     currActor().setTurn(true);
+    m_screen.clear();
     m_screen.draw(player(), currActor());
   }
 
@@ -226,6 +232,7 @@ void GameBoard::movePlayer(int newX, int newY)
     m_map[oldY][oldX] = 0;
     m_map[newY][newX] = '@';
 
+    m_screen.clear();
     m_screen.draw(player(), currActor());
   }
 }
