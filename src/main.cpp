@@ -14,7 +14,7 @@
 [ ] Add way to specify characteristics of monsters in text config files, which can
     then be loaded when the program starts
 [ ] Add way to save/load maps
-[ ] Add Item, Chest classes, related code from old RPG project
+[X] Add Item, Chest classes, related code from old RPG project
 [ ] Add screen/functionality to interact with/transfer items to/from Chests,
     as well as drop items from inventory
 [X] Add inventory system
@@ -43,6 +43,7 @@ private:
   //m_turn_index is always location of object whose turn it is in m_actors
   int m_turn_index;
   std::vector<Actor> m_actors;
+  std::vector<Chest> m_chests;
   inline Actor& player() { return m_actors[m_player_index]; }
   inline Actor& currActor() { return m_actors[m_turn_index]; }
 public:
@@ -112,6 +113,11 @@ void GameBoard::loadMapFile(const std::string &path)
 	  //Need to have accurate index for player object
 	  m_player_index = m_actors.size();
 	  m_actors.push_back(Actor(col, row, "Player"));
+	}
+	else if(line[pos] == 'C')
+	{
+	  //Add any chests on the map to the list of chests
+	  m_chests.push_back(Chest(col, row));
 	}
 	else
 	{

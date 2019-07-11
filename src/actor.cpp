@@ -1,20 +1,4 @@
 #include "include/actor.h"
-#include <utility>
-
-//Global ID generator - should be included in all .cpp files
-int generateId()
-{
-  static int id = -1;
-  ++id;
-  return id;
-}
-
-Item::Item(std::string name, int weight) : m_id(generateId()),
-					   m_weight(weight), m_name(name)
-{
-
-}
-
 
 Actor::Actor(int x, int y, std::string name)
   : m_xPos(x), m_yPos(y), m_energy(0), m_name(name), m_isTurn(false),

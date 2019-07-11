@@ -1,19 +1,6 @@
 #ifndef ACTOR_H
 #define ACTOR_H
-#include <vector>
-#include <string>
-
-class Item
-{
- private:
-  int m_id, m_weight;
-  std::string m_name;
- public:
-  Item(std::string name = "Item", int weight = 0);
-  int getId() { return m_id; }
-  int getWeight() { return m_weight; }
-  std::string getName() { return m_name; }
-};
+#include "item.h"
 
 class Actor
 {

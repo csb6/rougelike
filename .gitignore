@@ -2,6 +2,7 @@
 #.*
 src/*~
 src/*#
+src/.#*
 src/include/*~
 src/include/*#
 src/rpg2
