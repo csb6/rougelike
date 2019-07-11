@@ -50,8 +50,9 @@ public:
   void printText(int col, int row, const std::string text);
   int getCameraCoord(int playerCoord, bool isX);
   //Note: draw functions alter screen buffer; must call present() to push to display
-  void draw(Actor &player, Actor &currActor);
+  void printActorInventory(Actor &actor);
   void drawGUI(Actor &player, Actor &currActor);
+  void draw(Actor &player, Actor &currActor);
   //Setters/Getters
   void clear() { tb_clear(); }
   void present() { tb_present(); }
@@ -59,5 +60,6 @@ public:
   int getErrorStatus() { return m_errorStatus; };
   int getEventType() { return m_event.type; };
   int getEventKey() { return m_event.key; }
+  int getEventChar() { return m_event.ch; }
 };
 #endif

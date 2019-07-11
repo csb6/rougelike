@@ -18,18 +18,18 @@ class Item
 class Actor
 {
 private:
-  int m_id, m_xPos, m_yPos, m_energy;
+  int /*m_id,*/ m_xPos, m_yPos, m_energy;
   std::string m_name;
   bool m_isTurn;
   /*
   //Current Status - stats that change moment-to-moment from environment
   int m_health;
-  bool m_isAlive;
+  bool m_isAlive;*/
   //Armor armorWorn[ARMOR_AMOUNT_LIMIT]; //Array of armor being worn; helmet, shirt, pants, boots
-  std::vector<Item> inventory; //Contains items for player
+  std::vector<Item> m_inventory; //Contains items for player
   std::int_least16_t m_carryWeight; //Current weight of inventory
   std::int_least16_t m_maxCarryWeight;
-  std::int_least16_t m_level; //General level; when upgraded, points available to boost stats
+  /*std::int_least16_t m_level; //General level; when upgraded, points available to boost stats
   std::int_least16_t m_levelProgress; //On scale 0-100; when 100, level-up
 
   //Core Skills - basic stats affecting all actions broadly
@@ -52,11 +52,16 @@ public:
   void move(int newX, int newY);
   void update() {}
   void setTurn(bool isTurn, int energy = 3);
+  bool canCarry(int itemWeight);
+  Item& getItemAt(int index);
+  void addItem(Item &item);
+  void deleteItem(Item &item);
   //Setters/Getters
   int getX() { return m_xPos; }
   int getY() { return m_yPos; }
   int getEnergy() { return m_energy; }
   std::string getName() { return m_name; }
   bool isTurn() { return m_isTurn; }
+  int getInventorySize() { return m_inventory.size(); }
 };
 #endif

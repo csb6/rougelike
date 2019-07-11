@@ -10,9 +10,12 @@
     references don't have to be passed around so ad-hoc
 [X] Call screen.present() in only 1 spot every tick: right after updateActors()
 [X] Implement way to automatically show name/energy of entity whose turn it is
+[ ] Add way to draw GUI with using absolute positioning
+[ ] Add way to specify characteristics of monsters in text config files, which can
+    then be loaded when the program starts
 [ ] Add way to save/load maps
 [ ] Add Item, Chest classes, related code from old RPG project
-[ ] Add inventory system
+[X] Add inventory system
 [ ] Add basic test suite for key functionality (see old RPG code)
 [ ] Add RNG functionality (see old RPG code)
 [ ] Find way to gracefully exit; use it in loadMapFile()'s error branch
@@ -129,6 +132,7 @@ bool GameBoard::processInput()
   {
   //Respond to user key presses
   case TB_EVENT_KEY:
+    //First, look at key combos
     switch(m_screen.getEventKey())
     {
     case TB_KEY_CTRL_C:
@@ -148,6 +152,13 @@ bool GameBoard::processInput()
     case TB_KEY_ARROW_DOWN:
       translatePlayer(0, 1);
       break;
+    default:
+      //If not a key combo, look at individual keys
+      switch(m_screen.getEventChar())
+      {
+      case 'i':
+	break;
+      }
     }
     break;
   //Adjust screen if window is resized

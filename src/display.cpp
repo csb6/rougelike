@@ -115,6 +115,25 @@ int Display::getCameraCoord(int playerCoord, bool isX)
     return playerCoord - screenSize / 2;
 }
 
+void Display::printActorInventory(Actor &actor)
+{
+  printText(0, boardHeight()+5, actor.getName() + "'s Inventory:");
+  int inventorySize = actor.getInventorySize();
+  if(inventorySize > 0)
+  {
+    for(int i=0; i<inventorySize; ++i)
+    {
+      Item& item = actor.getItemAt(i);
+      printText(0, boardHeight()+5+1+i, " " + std::to_string(i+1) + ". " + item.getName()
+		+ " - Weight: " + std::to_string(item.getWeight()));
+      //std::cout << "\t" << i+1 << ". " << item.name << "\tWeight: " << item.weight << "\n";
+    }
+  }
+  else
+    //std::cout << "\tempty\n";
+    printText(0, boardHeight()+5+1, " empty");
+}
+
 /* Adds labels/information shown to player in sidebars onscreen to screen
    buffer, respecting the area used to draw the area around the player */
 void Display::drawGUI(Actor &player, Actor &currActor)
@@ -124,6 +143,7 @@ void Display::drawGUI(Actor &player, Actor &currActor)
   printText(0, boardHeight()+2, "You:");
   printText(0, boardHeight()+3, " Name: " + player.getName());
   printText(0, boardHeight()+4, " Energy: " + std::to_string(player.getEnergy()));
+  printActorInventory(player);
 }
 
 /* Places all non-empty tiles centered around the player into the screen buffer,
