@@ -25,37 +25,9 @@
 [ ] Add way to equip items/armor
 [ ] Find way to gracefully exit; use it in loadMapFile()'s error branch
 */
-#include "include/display.h"
-#include "include/actor.h"
+#include "include/gameboard.h"
 #include <fstream>
 #include <iostream>
-
-class GameBoard
-//Purpose: To represent the game map/the actors/pieces on it, as well as to
-//    handle user input for controlling the player
-{
-private:
-  bool &m_running;
-  LevelMap m_map;
-  Display m_screen;
-  //m_player_index is always location of player object in m_actors
-  int m_player_index;
-  //m_turn_index is always location of object whose turn it is in m_actors
-  int m_turn_index;
-  std::vector<Actor> m_actors;
-  std::vector<Chest> m_chests;
-  inline Actor& player() { return m_actors[m_player_index]; }
-  inline Actor& currActor() { return m_actors[m_turn_index]; }
-public:
-  GameBoard(bool &running, const std::string &mapPath);
-  void loadMapFile(const std::string &path);
-  bool processInput();
-  void updateActors();
-  void present();
-  bool canMove(int x, int y);
-  void movePlayer(int newX, int newY);
-  void translatePlayer(int dx, int dy);
-};
 
 /* Creates a new board linking to the termbox screen; opens/loads
    the given map, and sets up in-game GUI*/
@@ -112,14 +84,14 @@ void GameBoard::loadMapFile(const std::string &path)
 	{
 	  //Need to have accurate index for player object
 	  m_player_index = m_actors.size();
-	  m_actors.push_back(Actor(col, row, "Player"));
+	  m_actors.push_back(Actor(col, row, "Player", '@'));
 	}
 	else if(line[pos] == 'C')
 	{
 	  //Add any chests on the map to the list of chests
 	  m_chests.push_back(Chest(col, row));
 	}
-	else
+	else if(line[pos] == 'M')
 	{
 	  //Add Actor to Actor list
 	  m_actors.push_back(Actor(col, row));
@@ -203,12 +175,12 @@ void GameBoard::updateActors()
   }
 
   int i = m_turn_index;
-  while(i != m_turn_index)
+  do
   {
-    m_actors[i].update();
+    m_actors[i].update(*this);
     if(--i == -1)
       i = m_actors.size() - 1;
-  }
+  } while(i != m_turn_index);
 }
 
 void GameBoard::present()
@@ -223,30 +195,44 @@ bool GameBoard::canMove(int x, int y)
     && m_map[y][x] == 0;
 }
 
+/* If possible, moves the actor into a new location, updating the Actor
+    object, map array, screen buffer, and display to show the change*/
+bool GameBoard::moveActor(Actor &actor, int newX, int newY)
+{
+  //Verify that it's safe/legal to move to the new location
+  if(actor.isTurn() && canMove(newX, newY))
+  {
+    //Move player, update map then screen buffer
+    //Note: screen doesn't visibly change until screen.present() called in main loop
+    int oldX = actor.getX();
+    int oldY = actor.getY();
+    actor.move(newX, newY);
+    m_map[oldY][oldX] = 0;
+    m_map[newY][newX] = actor.getCh();
+
+    m_screen.clear();
+    m_screen.draw(player(), currActor());
+    return true;
+  }
+  return false;
+}
+
+bool GameBoard::translateActor(Actor &actor, int dx, int dy)
+{
+  return moveActor(actor, actor.getX() + dx, actor.getY() + dy);
+}
+
 /* If possible, moves the player into a new location, updating the player
     object, map array, screen buffer, and display to show the change*/
 void GameBoard::movePlayer(int newX, int newY)
 {
-  //Verify that it's safe/legal to move to the new location
-  if(player().isTurn() && canMove(newX, newY))
-  {
-    //Move player, update map then screen buffer
-    //Note: screen doesn't visibly change until screen.present() called in main loop
-    int oldX = player().getX();
-    int oldY = player().getY();
-    player().move(newX, newY);
-    m_map[oldY][oldX] = 0;
-    m_map[newY][newX] = '@';
-
-    m_screen.clear();
-    m_screen.draw(player(), currActor());
-  }
+  moveActor(player(), newX, newY);
 }
 
 /* Shortcut for moving player through change in current position*/
 void GameBoard::translatePlayer(int dx, int dy)
 {
-  movePlayer(player().getX() + dx, player().getY() + dy);
+  translateActor(player(), dx, dy);
 }
 
 int main()

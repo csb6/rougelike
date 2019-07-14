@@ -1,7 +1,8 @@
 #include "include/actor.h"
+#include "include/gameboard.h"
 
-Actor::Actor(int x, int y, std::string name)
-  : m_xPos(x), m_yPos(y), m_energy(0), m_name(name), m_isTurn(false),
+Actor::Actor(int x, int y, std::string name, char ch)
+  : m_xPos(x), m_yPos(y), m_energy(0), m_ch(ch), m_name(name), m_isTurn(false),
     m_carryWeight(0), m_maxCarryWeight(20)
 {
   m_inventory.push_back(Item("Knife", 4));
@@ -12,7 +13,19 @@ void Actor::move(int newX, int newY)
   m_xPos = newX;
   m_yPos = newY;
   --m_energy;
-  //End turn once Actor can make no more moves
+}
+
+void Actor::update(GameBoard &board)
+{
+  //Simple, dumb AI that just moves right until hitting wall/running out
+  //of energy; ending turn
+  if(m_isTurn && m_name != "Player")
+  {
+    bool moved = board.translateActor(*this, 1, 0);
+    if(!moved)
+      m_isTurn = false;
+  }
+  //End turn once Actor can make no more moves; should be in all update()'s
   if(m_energy <= 0)
     m_isTurn = false;
 }

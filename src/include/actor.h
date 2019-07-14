@@ -2,10 +2,13 @@
 #define ACTOR_H
 #include "item.h"
 
+class GameBoard;
+
 class Actor
 {
 private:
   int /*m_id,*/ m_xPos, m_yPos, m_energy;
+  char m_ch; //character representing this Actor on board
   std::string m_name;
   bool m_isTurn;
   /*
@@ -35,9 +38,9 @@ private:
   std::int_least16_t m_trapSkill;      // 6 - Skill affecting chance of traps working
   */
 public:
-  Actor(int x, int y, std::string name = "Monster");
+  Actor(int x, int y, std::string name = "Monster", char ch = 'M');
   void move(int newX, int newY);
-  void update() {}
+  void update(GameBoard &board);
   void setTurn(bool isTurn, int energy = 3);
   bool canCarry(int itemWeight);
   Item& getItemAt(int index);
@@ -47,6 +50,7 @@ public:
   int getX() { return m_xPos; }
   int getY() { return m_yPos; }
   int getEnergy() { return m_energy; }
+  char getCh() { return m_ch; }
   std::string getName() { return m_name; }
   bool isTurn() { return m_isTurn; }
   int getInventorySize() { return m_inventory.size(); }
