@@ -11,6 +11,7 @@
 [X] Call screen.present() in only 1 spot every tick: right after updateActors()
 [X] Implement way to automatically show name/energy of entity whose turn it is
 [X] Add way to draw GUI without using absolute positioning
+[X] Add way to log messages to sidebar
 [ ] Add way to specify characteristics of monsters in text config files, which can
     then be loaded when the program starts
 [ ] Add way to save/load maps
@@ -207,6 +208,11 @@ void GameBoard::showInventory(Actor &actor)
   }
   else
     m_screen.printText(2, 2, "empty");
+}
+
+void GameBoard::log(const std::string &text)
+{
+  m_screen.log(text);
 }
 
 void GameBoard::present()

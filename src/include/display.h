@@ -13,6 +13,7 @@ const int InputTimeout = 10; //in milliseconds
 const int InitCursorX = 1;
 const int InitCursorY = 1;
 const char EmptySpace = 32;
+const int MaxLogSize = 4; //in number of messages
 
 //Map Constants
 //  Map should take up at least min screen space so min-size screen is always full
@@ -35,6 +36,10 @@ private:
   tb_event m_event;
   //Variables for printing text without absolute positioning
   int m_textCol, m_textX, m_textY, m_textMaxWidth;
+
+  std::string m_log[MaxLogSize];
+  //Row that next log message should display on; number of log messages stored
+  int m_logRow;
   //boardWidth/Height are dimensions of current window bounded on sides by GUI
   int boardWidth() { return tb_width()-GUIWidth; }
   int boardHeight() { return tb_height()-GUIHeight; }
@@ -51,6 +56,7 @@ public:
 	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
   void printText(int col, int row, const std::string text,
 		 const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
+  void log(const std::string &text);
   void printTextCol(int gridCol, const std::string text,
 		    const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
   int getCameraCoord(int playerCoord, bool isX);

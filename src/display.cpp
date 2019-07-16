@@ -1,6 +1,7 @@
 #include <iostream>
 #include "include/display.h"
 #include "include/actor.h"
+#include <algorithm>
 
 //  Map should take up at least min screen space so min-size screen is always full
 static_assert(MapWidth >= MinDisplayWidth && MapHeight >= MinDisplayHeight, "Map too small");
@@ -12,7 +13,7 @@ static_assert(MapWidth >= MinDisplayWidth && MapHeight >= MinDisplayHeight, "Map
 Display::Display(LevelMap &map)
   : m_map(map), m_errorStatus(tb_init()), m_cornerX(0), m_cornerY(0),
     m_event{0, 0, 0, 0, 0, 0, 0, 0}, m_textCol(0), m_textX(0),
-    m_textY(0), m_textMaxWidth(0)
+    m_textY(0), m_textMaxWidth(0), m_log{}, m_logRow(0)
 {
   if(m_errorStatus < 0)
     std::cout << "Error: Couldn't start termbox; code " << m_errorStatus << "\n";
@@ -103,6 +104,22 @@ void Display::printText(int col, int row, const std::string text,
   }
 }
 
+/* Puts text message into stored message log; useful for debugging/showing
+   events as they occur*/
+void Display::log(const std::string &text)
+{
+  if(m_logRow >= MaxLogSize)
+  {
+    std::rotate(begin(m_log), begin(m_log)+1, end(m_log));
+    m_log[MaxLogSize-1] = text;
+  }
+  else
+  {
+    m_log[m_logRow] = text;
+    ++m_logRow;
+  }
+}
+
 /*Prints given text into abstract columns, where each column is
   the width of its widest element; once a higher column is specified,
   the smaller columns cannot be altered/added to. Default fg/bg colors in header*/
@@ -148,12 +165,21 @@ int Display::getCameraCoord(int playerCoord, bool isX)
    buffer, respecting the area used to draw the area around the player */
 void Display::drawGUI(Actor &player, Actor &currActor)
 {
+  //Draw player/current Actor's info
   printTextCol(0, "Turn:", TB_YELLOW);
   printTextCol(0, " Name: " + currActor.getName());
   printTextCol(0, " Energy: " + std::to_string(currActor.getEnergy()));
   printTextCol(1, "You:", TB_YELLOW);
   printTextCol(1, " Name: " + player.getName());
   printTextCol(1, " Energy: " + std::to_string(player.getEnergy()));
+
+  //Draw event log
+  int row = 0;
+  while(row < tb_height() && row < m_logRow)
+  {
+    printText(boardWidth(), row, m_log[row]);
+    ++row;
+  }
   //For printTextCol(); need to be set to 0 after each frame
   //so columns constructed correctly each frame
   m_textCol = 0;

@@ -24,6 +24,7 @@ public:
   bool processInput();
   void updateActors();
   void showInventory(Actor &actor);
+  void log(const std::string &text);
   void present();
   bool canMove(int x, int y);
   bool moveActor(Actor &actor, int newX, int newY);

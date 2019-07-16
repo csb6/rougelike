@@ -24,6 +24,8 @@ void Actor::update(GameBoard *board)
     bool moved = board->translateActor(*this, 1, 0);
     if(!moved)
       m_isTurn = false;
+    else
+      board->log(m_name + " moved");
   }
   //End turn once Actor can make no more moves; should be in all update()'s
   if(m_energy <= 0)
