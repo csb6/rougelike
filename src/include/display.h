@@ -55,7 +55,6 @@ public:
 		    const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
   int getCameraCoord(int playerCoord, bool isX);
   //Note: draw functions alter screen buffer; must call present() to push to display
-  void printActorInventory(int gridCol, Actor &actor);
   void drawGUI(Actor &player, Actor &currActor);
   void draw(Actor &player, Actor &currActor);
   //Setters/Getters

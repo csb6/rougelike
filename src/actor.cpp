@@ -15,13 +15,13 @@ void Actor::move(int newX, int newY)
   --m_energy;
 }
 
-void Actor::update(GameBoard &board)
+void Actor::update(GameBoard *board)
 {
   //Simple, dumb AI that just moves right until hitting wall/running out
   //of energy; ending turn
   if(m_isTurn && m_name != "Player")
   {
-    bool moved = board.translateActor(*this, 1, 0);
+    bool moved = board->translateActor(*this, 1, 0);
     if(!moved)
       m_isTurn = false;
   }

@@ -40,7 +40,7 @@ private:
 public:
   Actor(int x, int y, std::string name = "Monster", char ch = 'M');
   void move(int newX, int newY);
-  void update(GameBoard &board);
+  void update(GameBoard *board);
   void setTurn(bool isTurn, int energy = 3);
   bool canCarry(int itemWeight);
   Item& getItemAt(int index);

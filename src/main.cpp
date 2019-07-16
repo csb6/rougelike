@@ -20,7 +20,7 @@
 [X] Add inventory system
 [ ] Add basic test suite for key functionality (see old RPG code)
 [ ] Add RNG functionality (see old RPG code)
-[ ] Add more comprehensive way to view larger inventory
+[X] Add more comprehensive way to view larger inventory
 [ ] Add better, safer, more comprehensive way to draw GUI
 [ ] Add way to equip items/armor
 [ ] Find way to gracefully exit; use it in loadMapFile()'s error branch
@@ -122,6 +122,11 @@ bool GameBoard::processInput()
       //Stop program immediately
       m_running = false;
       break;
+    case TB_KEY_ESC:
+      //Redraws whole screen (useful for exiting inventory subscreen, etc.)
+      m_screen.clear();
+      m_screen.draw(player(), currActor());
+      break;
       //Basic player movement
     case TB_KEY_ARROW_RIGHT:
       translatePlayer(1, 0);
@@ -140,6 +145,7 @@ bool GameBoard::processInput()
       switch(m_screen.getEventChar())
       {
       case 'i':
+	showInventory(player());
 	break;
       }
     }
@@ -177,10 +183,30 @@ void GameBoard::updateActors()
   int i = m_turn_index;
   do
   {
-    m_actors[i].update(*this);
+    m_actors[i].update(this);
     if(--i == -1)
       i = m_actors.size() - 1;
   } while(i != m_turn_index);
+}
+
+/* Displays an actor's current inventory in subscreen; ESC/any redraws closes it*/
+void GameBoard::showInventory(Actor &actor)
+{
+  m_screen.printText(0, 0, actor.getName() + "'s Inventory: (ESC to exit)", TB_YELLOW);
+  int size = actor.getInventorySize();
+  int row = 1;
+  if(size > 0)
+  {
+    for(int i=0; i<size; ++i)
+    {
+      Item& item = actor.getItemAt(i);
+      m_screen.printText(0, row, " " + std::to_string(i+1) + ". " + item.getName()
+			 + " - Weight: " + std::to_string(item.getWeight()));
+      ++row;
+    }
+  }
+  else
+    m_screen.printText(2, 2, "empty");
 }
 
 void GameBoard::present()

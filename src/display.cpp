@@ -144,24 +144,6 @@ int Display::getCameraCoord(int playerCoord, bool isX)
     return playerCoord - screenSize / 2;
 }
 
-/* Prints all items in an actor's inventory into the GUI area*/
-void Display::printActorInventory(int gridCol, Actor &actor)
-{
-  printTextCol(gridCol, actor.getName() + "'s Inventory:", TB_YELLOW);
-  int inventorySize = actor.getInventorySize();
-  if(inventorySize > 0)
-  {
-    for(int i=0; i<inventorySize; ++i)
-    {
-      Item& item = actor.getItemAt(i);
-      printTextCol(gridCol, " " + std::to_string(i+1) + ". " + item.getName() + " - Weight: "
-		   + std::to_string(item.getWeight()));
-    }
-  }
-  else
-    printTextCol(gridCol, " empty");
-}
-
 /* Adds labels/information shown to player in sidebars onscreen to screen
    buffer, respecting the area used to draw the area around the player */
 void Display::drawGUI(Actor &player, Actor &currActor)
@@ -172,7 +154,6 @@ void Display::drawGUI(Actor &player, Actor &currActor)
   printTextCol(1, "You:", TB_YELLOW);
   printTextCol(1, " Name: " + player.getName());
   printTextCol(1, " Energy: " + std::to_string(player.getEnergy()));
-  printActorInventory(1, player);
   //For printTextCol(); need to be set to 0 after each frame
   //so columns constructed correctly each frame
   m_textCol = 0;

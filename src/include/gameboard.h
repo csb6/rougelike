@@ -23,6 +23,7 @@ public:
   void loadMapFile(const std::string &path);
   bool processInput();
   void updateActors();
+  void showInventory(Actor &actor);
   void present();
   bool canMove(int x, int y);
   bool moveActor(Actor &actor, int newX, int newY);
