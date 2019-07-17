@@ -5,7 +5,7 @@ Actor::Actor(int x, int y, std::string name, char ch)
   : m_xPos(x), m_yPos(y), m_energy(0), m_ch(ch), m_name(name), m_isTurn(false),
     m_carryWeight(0), m_maxCarryWeight(20)
 {
-  m_inventory.push_back(Item("Knife", 4));
+  m_inventory.push_back(Item(x, y, "Knife", 4));
 }
 
 void Actor::move(int newX, int newY)

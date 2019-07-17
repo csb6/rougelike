@@ -90,8 +90,13 @@ void GameBoard::loadMapFile(const std::string &path)
 	}
 	else if(line[pos] == 'M')
 	{
-	  //Add Actor to Actor list
+	  //Add Monster to Actor list
 	  m_actors.push_back(Actor(col, row));
+	}
+	else if(line[pos] == 'i')
+	{
+	  //Add Item to Item list
+	  m_items.push_back(Item(col, row));
 	}
 	++col;
       }

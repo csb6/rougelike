@@ -14,6 +14,7 @@ private:
   int m_player_index;
   //m_turn_index is always location of object whose turn it is in m_actors
   int m_turn_index;
+  std::vector<Item> m_items;
   std::vector<Actor> m_actors;
   inline Actor& player() { return m_actors[m_player_index]; }
   inline Actor& currActor() { return m_actors[m_turn_index]; }
