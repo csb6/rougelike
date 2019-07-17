@@ -23,10 +23,11 @@ public:
   void loadMapFile(const std::string &path);
   bool processInput();
   void updateActors();
+  void deleteItem(Item& item);
   void showInventory(Actor &actor);
   void log(const std::string &text);
   void present();
-  bool canMove(int x, int y);
+  bool isValid(int x, int y);
   bool moveActor(Actor &actor, int newX, int newY);
   bool translateActor(Actor &actor, int dx, int dy);
   void movePlayer(int newX, int newY);

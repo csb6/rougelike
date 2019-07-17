@@ -17,13 +17,14 @@
 [ ] Add way to save/load maps
 [X] Add Item, Chest classes, related code from old RPG project
 [X] Remove Chest class/functions; instead, just have loose Items on map
-[ ] Add way to pick up map items (add to inventory) by walking on them
+[X] Add way to pick up map items (add to inventory) by walking on them
 [ ] Add way to drop items onto map (remove from inventory)
 [X] Add inventory system
 [ ] Add basic test suite for key functionality (see old RPG code)
 [ ] Add RNG functionality (see old RPG code)
 [X] Add more comprehensive way to view larger inventory
 [ ] Add better, safer, more comprehensive way to draw GUI
+[ ] Add better, faster way to get ref to Item from an (x, y) coordinate
 [ ] Add way to equip items/armor
 [ ] Find way to gracefully exit; use it in loadMapFile()'s error branch
 */
@@ -191,6 +192,15 @@ void GameBoard::updateActors()
   } while(i != m_turn_index);
 }
 
+void GameBoard::deleteItem(Item& item)
+{
+  if(m_items.size() > 0)
+  {
+    std::swap(item, m_items.back());
+    m_items.pop_back();;
+  }
+}
+
 /* Displays an actor's current inventory in subscreen; ESC/any redraws closes it*/
 void GameBoard::showInventory(Actor &actor)
 {
@@ -224,20 +234,20 @@ void GameBoard::present()
 }
 
 /* Determines if a position is a valid one for an Actor to move into*/
-bool GameBoard::canMove(int x, int y)
+bool GameBoard::isValid(int x, int y)
 {
-  return x < MapWidth && x >= 0 && y < MapHeight && y >= 0
-    && m_map[y][x] == 0;
+  return x < MapWidth && x >= 0 && y < MapHeight && y >= 0;
 }
 
 /* If possible, moves the actor into a new location, updating the Actor
     object, map array, screen buffer, and display to show the change*/
 bool GameBoard::moveActor(Actor &actor, int newX, int newY)
 {
-  //Verify that it's safe/legal to move to the new location
-  if(!actor.isTurn())
+  //Check to make sure turn is respected/that position exists
+  if(!actor.isTurn() || !isValid(newX, newY))
     return false;
-  if(canMove(newX, newY))
+  //Check if tile is empty (meaning Actor can move there)
+  if(m_map[newY][newX] == 0)
   {
     //Move player, update map then screen buffer
     //Note: screen doesn't visibly change until screen.present() called in main loop
@@ -250,6 +260,27 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
     m_screen.clear();
     m_screen.draw(player(), currActor());
     return true;
+  }
+  //If an Item is in that position, try to pick it up
+  if(m_map[newY][newX] == 'i')
+  {
+    for(Item& each : m_items)
+    {
+      if(each.getX() == newX && each.getY() == newY)
+      {
+        if(actor.canCarry(each.getWeight()))
+	{
+	  actor.addItem(each);
+	  deleteItem(each);
+	  m_map[newY][newX] = 0;
+	  log(actor.getName() + " picked up " + each.getName());
+
+	  m_screen.clear();
+	  m_screen.draw(player(), currActor());
+	}
+	break;
+      }
+    }
   }
   return false;
 }
