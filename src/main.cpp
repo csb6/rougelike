@@ -16,8 +16,9 @@
     then be loaded when the program starts
 [ ] Add way to save/load maps
 [X] Add Item, Chest classes, related code from old RPG project
-[ ] Add screen/functionality to interact with/transfer items to/from Chests,
-    as well as drop items from inventory
+[X] Remove Chest class/functions; instead, just have loose Items on map
+[ ] Add way to pick up map items (add to inventory) by walking on them
+[ ] Add way to drop items onto map (remove from inventory)
 [X] Add inventory system
 [ ] Add basic test suite for key functionality (see old RPG code)
 [ ] Add RNG functionality (see old RPG code)
@@ -86,11 +87,6 @@ void GameBoard::loadMapFile(const std::string &path)
 	  //Need to have accurate index for player object
 	  m_player_index = m_actors.size();
 	  m_actors.push_back(Actor(col, row, "Player", '@'));
-	}
-	else if(line[pos] == 'C')
-	{
-	  //Add any chests on the map to the list of chests
-	  m_chests.push_back(Chest(col, row));
 	}
 	else if(line[pos] == 'M')
 	{
@@ -210,6 +206,8 @@ void GameBoard::showInventory(Actor &actor)
     m_screen.printText(2, 2, "empty");
 }
 
+/* Puts text message into stored message log; useful for debugging/showing
+   events as they occur*/
 void GameBoard::log(const std::string &text)
 {
   m_screen.log(text);
@@ -232,7 +230,9 @@ bool GameBoard::canMove(int x, int y)
 bool GameBoard::moveActor(Actor &actor, int newX, int newY)
 {
   //Verify that it's safe/legal to move to the new location
-  if(actor.isTurn() && canMove(newX, newY))
+  if(!actor.isTurn())
+    return false;
+  if(canMove(newX, newY))
   {
     //Move player, update map then screen buffer
     //Note: screen doesn't visibly change until screen.present() called in main loop

@@ -177,7 +177,7 @@ void Display::drawGUI(Actor &player, Actor &currActor)
   int row = 0;
   while(row < tb_height() && row < m_logRow)
   {
-    printText(boardWidth(), row, m_log[row]);
+    printText(m_screenWidth, row, m_log[row]);
     ++row;
   }
   //For printTextCol(); need to be set to 0 after each frame
