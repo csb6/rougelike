@@ -31,7 +31,7 @@ private:
   LevelMap &m_map;
   //m_screenWidth/Height are dimensions of onscreen area to contain tiles
   //int m_cursorX, m_cursorY;
-  int m_errorStatus, m_screenWidth, m_screenHeight, m_cornerX, m_cornerY;
+  int m_screenWidth, m_screenHeight, m_cornerX, m_cornerY;
   //The latest termbox input event
   tb_event m_event;
   //Variables for printing text without absolute positioning
@@ -41,8 +41,8 @@ private:
   //Row that next log message should display on; number of log messages stored
   int m_logRow;
   //boardWidth/Height are dimensions of current window bounded on sides by GUI
-  int boardWidth() { return tb_width()-GUIWidth; }
-  int boardHeight() { return tb_height()-GUIHeight; }
+  inline int boardWidth() { return tb_width()-GUIWidth; }
+  inline int boardHeight() { return tb_height()-GUIHeight; }
 public:
   Display(LevelMap &map);
   ~Display();
@@ -67,7 +67,6 @@ public:
   void clear() { tb_clear(); }
   void present() { tb_present(); }
   bool largeEnough();
-  int getErrorStatus() { return m_errorStatus; };
   int getEventType() { return m_event.type; };
   int getEventKey() { return m_event.key; }
   int getEventChar() { return m_event.ch; }

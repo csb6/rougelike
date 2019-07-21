@@ -75,6 +75,8 @@ void GameBoard::loadMapFile(const std::string &path)
     int col = 0;
     for(std::string::size_type pos=0; pos<line.size(); ++pos)
     {
+      if(col >= MapWidth)
+	break;
       if(line[pos] == ',' || line[pos] == '\n' || line[pos] == '\r')
 	continue;
       else if(line[pos] == '0')
@@ -101,8 +103,6 @@ void GameBoard::loadMapFile(const std::string &path)
 	}
 	++col;
       }
-      if(col >= MapWidth)
-	break;
     }
     ++row;
   }
@@ -262,7 +262,7 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
     return true;
   }
   //If an Item is in that position, try to pick it up
-  if(m_map[newY][newX] == 'i')
+  else if(m_map[newY][newX] == 'i')
   {
     for(Item& each : m_items)
     {

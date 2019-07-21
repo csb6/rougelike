@@ -11,12 +11,12 @@ static_assert(MapWidth >= MinDisplayWidth && MapHeight >= MinDisplayHeight, "Map
 //Display::Display() : m_cursorX(InitCursorX), m_cursorY(InitCursorY),
 //		     m_errorStatus(tb_init()), m_event{0, 0, 0, 0, 0, 0, 0, 0}
 Display::Display(LevelMap &map)
-  : m_map(map), m_errorStatus(tb_init()), m_cornerX(0), m_cornerY(0),
-    m_event{0, 0, 0, 0, 0, 0, 0, 0}, m_textCol(0), m_textX(0),
-    m_textY(0), m_textMaxWidth(0), m_log{}, m_logRow(0)
+  : m_map(map), m_cornerX(0), m_cornerY(0), m_event{0, 0, 0, 0, 0, 0, 0, 0},
+    m_textCol(0), m_textX(0), m_textY(0), m_textMaxWidth(0), m_log{}, m_logRow(0)
 {
-  if(m_errorStatus < 0)
-    std::cout << "Error: Couldn't start termbox; code " << m_errorStatus << "\n";
+  int errorStatus = tb_init();
+  if(errorStatus < 0)
+    std::cout << "Error: Couldn't start termbox; code " << errorStatus << "\n";
   if(!largeEnough())
   {
     clear();
