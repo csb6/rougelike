@@ -5,7 +5,7 @@
 
 //Display Constants
 const int MinDisplayWidth = 30;
-const int MinDisplayHeight = 10;
+const int MinDisplayHeight = 16;
 //GUI dimensions subtracted from tb_width()/height() to get play area screen dimensions
 const int GUIHeight = 10;
 const int GUIWidth = 10;

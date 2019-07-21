@@ -27,6 +27,7 @@ public:
   bool processInput();
   void updateActors();
   void showInventory(Actor &actor);
+  void showStats(Actor &actor);
   void log(const std::string &text);
   void present();
   bool isValid(int x, int y);

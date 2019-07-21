@@ -1,16 +1,5 @@
 /*TODO:
 [ ] Profile to see what is causing memory leaks when resizing window
-[X] Make plain function for reading/return 2d array of map
-[X] Implement proper scrolling; look at this link: http://www.roguebasin.com/index.php?title=Scrolling_map
-[X] Add vector of all actors/entities? in current level, way to cycle through their turns
-[X] Add way to have player Actor in vector but also with a reference in GameBoard
-[X] Add basic UI for showing who's turn it is, how many energy steps left
-[X] Fix bug where turn indicator won't update until player tries to move with 0 energy
-[X] Establish better lines of communication between Display and GameBoard so
-    references don't have to be passed around so ad-hoc
-[X] Call screen.present() in only 1 spot every tick: right after updateActors()
-[X] Implement way to automatically show name/energy of entity whose turn it is
-[X] Add way to draw GUI without using absolute positioning
 [X] Add way to log messages to sidebar
 [ ] Add way to specify characteristics of monsters in text config files, which can
     then be loaded when the program starts
@@ -20,6 +9,7 @@
 [X] Add way to pick up map items (add to inventory) by walking on them
 [ ] Add way to drop items onto map (remove from inventory)
 [X] Add inventory system
+[X] Add character sheet
 [ ] Add basic test suite for key functionality (see old RPG code)
 [ ] Add RNG functionality (see old RPG code)
 [X] Add more comprehensive way to view larger inventory
@@ -150,6 +140,9 @@ bool GameBoard::processInput()
       case 'i':
 	showInventory(player());
 	break;
+      case 'c':
+	showStats(player());
+	break;
       }
     }
     break;
@@ -209,7 +202,28 @@ void GameBoard::showInventory(Actor &actor)
     }
   }
   else
-    m_screen.printText(2, 2, "empty");
+    m_screen.printText(2, row, "empty");
+}
+
+/*Prints character sheet for an Actor, showing main stats*/
+void GameBoard::showStats(Actor &actor)
+{
+  m_screen.printText(0, 0, actor.getName() + "'s Character Sheet: (ESC to exit)", TB_YELLOW);
+  m_screen.printText(0, 1, "carryWeight: " + std::to_string(actor.m_carryWeight));
+  m_screen.printText(0, 2, "maxCarryWeight: " + std::to_string(actor.m_maxCarryWeight));
+  m_screen.printText(0, 3, "level: " + std::to_string(actor.m_level));
+  m_screen.printText(0, 4, "levelProgress: " + std::to_string(actor.m_levelProgress));
+  m_screen.printText(0, 5, "strength: " + std::to_string(actor.m_strength));
+  m_screen.printText(0, 6, "cunning: " + std::to_string(actor.m_cunning));
+  m_screen.printText(0, 7, "agility: " + std::to_string(actor.m_agility));
+  m_screen.printText(0, 8, "education: " + std::to_string(actor.m_education));
+  m_screen.printText(0, 9, "sidearmSkill: " + std::to_string(actor.m_sidearmSkill));
+  m_screen.printText(0, 10, "longarmSkill: " + std::to_string(actor.m_longarmSkill));
+  m_screen.printText(0, 11, "meleeSkill: " + std::to_string(actor.m_meleeSkill));
+  m_screen.printText(0, 12, "vehicleSkill: " + std::to_string(actor.m_vehicleSkill));
+  m_screen.printText(0, 13, "barterSkill: " + std::to_string(actor.m_barterSkill));
+  m_screen.printText(0, 14, "negotiateSkill: " + std::to_string(actor.m_negotiateSkill));
+  m_screen.printText(0, 15, "trapSkill: " + std::to_string(actor.m_trapSkill));
 }
 
 /* Puts text message into stored message log; useful for debugging/showing
