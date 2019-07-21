@@ -192,15 +192,6 @@ void GameBoard::updateActors()
   } while(i != m_turn_index);
 }
 
-void GameBoard::deleteItem(Item& item)
-{
-  if(m_items.size() > 0)
-  {
-    std::swap(item, m_items.back());
-    m_items.pop_back();;
-  }
-}
-
 /* Displays an actor's current inventory in subscreen; ESC/any redraws closes it*/
 void GameBoard::showInventory(Actor &actor)
 {
@@ -239,48 +230,76 @@ bool GameBoard::isValid(int x, int y)
   return x < MapWidth && x >= 0 && y < MapHeight && y >= 0;
 }
 
-/* If possible, moves the actor into a new location, updating the Actor
-    object, map array, screen buffer, and display to show the change*/
+/* Moves actor from current position to another, redrawing screen
+   buffer to show change. Private function, only to be called by
+   moveActor()*/
+void GameBoard::changePos(Actor &actor, int newX, int newY)
+{
+  //Move player, update map then screen buffer
+  //Note: screen doesn't visibly change until screen.present() called in main loop
+  int oldX = actor.getX();
+  int oldY = actor.getY();
+  actor.move(newX, newY);
+  m_map[oldY][oldX] = 0;
+  m_map[newY][newX] = actor.getCh();
+
+  m_screen.clear();
+  m_screen.draw(player(), currActor());
+}
+
+/* Removes given Item from m_items*/
+void GameBoard::deleteItem(Item& item)
+{
+  if(m_items.size() > 0)
+  {
+    std::swap(item, m_items.back());
+    m_items.pop_back();
+  }
+}
+
+/* Picks up an Item at given coords if one can be found at that
+   position; private function, only to be called by moveActor()*/
+void GameBoard::pickupItem(Actor &actor, int x, int y)
+{
+  for(Item& each : m_items)
+  {
+    //Find existing Item at the given position
+    if(each.getX() == x && each.getY() == y)
+    {
+      if(actor.canCarry(each.getWeight()))
+      {
+	actor.addItem(each);
+	//Item now in Actor inventory, not on map, so stop tracking
+	deleteItem(each);
+	m_map[y][x] = 0;
+	log(actor.getName() + " picked up " + each.getName());
+
+	m_screen.clear();
+	m_screen.draw(player(), currActor());
+      }
+      break;
+    }
+  }
+}
+
+/* Performs action on given position; will move Actor there if possible,
+   pickup an Item at that position, or attack a Monster at that position*/
 bool GameBoard::moveActor(Actor &actor, int newX, int newY)
 {
   //Check to make sure turn is respected/that position exists
   if(!actor.isTurn() || !isValid(newX, newY))
     return false;
-  //Check if tile is empty (meaning Actor can move there)
+  //If tile is empty, move Actor to it
   if(m_map[newY][newX] == 0)
   {
-    //Move player, update map then screen buffer
-    //Note: screen doesn't visibly change until screen.present() called in main loop
-    int oldX = actor.getX();
-    int oldY = actor.getY();
-    actor.move(newX, newY);
-    m_map[oldY][oldX] = 0;
-    m_map[newY][newX] = actor.getCh();
-
-    m_screen.clear();
-    m_screen.draw(player(), currActor());
+    changePos(actor, newX, newY);
     return true;
   }
   //If an Item is in that position, try to pick it up
   else if(m_map[newY][newX] == 'i')
   {
-    for(Item& each : m_items)
-    {
-      if(each.getX() == newX && each.getY() == newY)
-      {
-        if(actor.canCarry(each.getWeight()))
-	{
-	  actor.addItem(each);
-	  deleteItem(each);
-	  m_map[newY][newX] = 0;
-	  log(actor.getName() + " picked up " + each.getName());
-
-	  m_screen.clear();
-	  m_screen.draw(player(), currActor());
-	}
-	break;
-      }
-    }
+    pickupItem(actor, newX, newY);
+    return true;
   }
   return false;
 }

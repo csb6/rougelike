@@ -18,12 +18,14 @@ private:
   std::vector<Actor> m_actors;
   inline Actor& player() { return m_actors[m_player_index]; }
   inline Actor& currActor() { return m_actors[m_turn_index]; }
+  void deleteItem(Item& item);
+  void changePos(Actor &actor, int newX, int newY);
+  void pickupItem(Actor &actor, int x, int y);
 public:
   GameBoard(bool &running, const std::string &mapPath);
   void loadMapFile(const std::string &path);
   bool processInput();
   void updateActors();
-  void deleteItem(Item& item);
   void showInventory(Actor &actor);
   void log(const std::string &text);
   void present();
