@@ -11,28 +11,31 @@ private:
   char m_ch; //character representing this Actor on board
   std::string m_name;
   bool m_isTurn;
-  /*
+
   //Current Status - stats that change moment-to-moment from environment
-  int m_health;
-  bool m_isAlive;*/
+  std::int_least16_t m_health = 15;
   //Armor armorWorn[ARMOR_AMOUNT_LIMIT]; //Array of armor being worn; helmet, shirt, pants, boots
   std::vector<Item> m_inventory; //Contains items for player
 public:
   Actor(int x, int y, std::string name = "Monster", char ch = 'M');
+  bool operator==(const Actor &other);
   void move(int newX, int newY);
+  void attack(Actor &target);
   void update(GameBoard *board);
   void setTurn(bool isTurn, int energy = 3);
   bool canCarry(int itemWeight);
   Item& getItemAt(int index);
   void addItem(Item &item);
   void deleteItem(Item &item);
+  void addHealth(int amount);
   //Setters/Getters
-  int getX() { return m_xPos; }
-  int getY() { return m_yPos; }
+  int getX() const { return m_xPos; }
+  int getY() const { return m_yPos; }
   int getEnergy() { return m_energy; }
   char getCh() { return m_ch; }
   std::string getName() { return m_name; }
   bool isTurn() { return m_isTurn; }
+  bool isAlive() { return m_health > 0; }
   int getInventorySize() { return m_inventory.size(); }
   std::int_least16_t m_carryWeight = 0; //Current weight of inventory
   std::int_least16_t m_maxCarryWeight = 20;

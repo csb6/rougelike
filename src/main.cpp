@@ -271,6 +271,20 @@ void GameBoard::deleteItem(Item& item)
   }
 }
 
+/* Removes given Actor from m_actors*/
+void GameBoard::deleteActor(Actor& actor)
+{
+  if(m_actors.size() > 0)
+  {
+    //Need to update player index if Actor before it in vector is deleted
+    auto pos = std::find(m_actors.begin(), m_actors.end(), actor) - m_actors.begin();
+    if(pos < m_player_index)
+      --m_player_index;
+    m_actors.erase(m_actors.begin()+pos);
+    log("Death occurred");
+  }
+}
+
 /* Picks up an Item at given coords if one can be found at that
    position; private function, only to be called by moveActor()*/
 void GameBoard::pickupItem(Actor &actor, int x, int y)
@@ -296,6 +310,27 @@ void GameBoard::pickupItem(Actor &actor, int x, int y)
   }
 }
 
+void GameBoard::attack(Actor &attacker, int targetX, int targetY)
+{
+  for(Actor &each : m_actors)
+  {
+    log(each.getName() + "(" + std::to_string(each.getX()) + ", " + std::to_string(each.getY()) + ")");
+    if(each.getX() == targetX && each.getY() == targetY)
+    {
+      log("Attacked");
+      attacker.attack(each);
+      if(!each.isAlive())
+      {
+	m_map[targetY][targetX] = 0;
+	deleteActor(each);
+      }
+      m_screen.clear();
+      m_screen.draw(player(), currActor());
+      break;
+    }
+  }
+}
+
 /* Performs action on given position; will move Actor there if possible,
    pickup an Item at that position, or attack a Monster at that position*/
 bool GameBoard::moveActor(Actor &actor, int newX, int newY)
@@ -313,7 +348,10 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
   else if(m_map[newY][newX] == 'i')
   {
     pickupItem(actor, newX, newY);
-    return true;
+  }
+  else if(m_map[newY][newX] == 'M' && actor.getName() == "Player")
+  {
+    attack(actor, newX, newY);
   }
   return false;
 }

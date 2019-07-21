@@ -9,10 +9,22 @@ Actor::Actor(int x, int y, std::string name, char ch)
   m_carryWeight += knife.getWeight();
 }
 
+bool Actor::operator==(const Actor &other)
+{
+  return m_xPos == other.getX() && m_yPos == other.getY();
+}
+
 void Actor::move(int newX, int newY)
 {
   m_xPos = newX;
   m_yPos = newY;
+  --m_energy;
+}
+
+void Actor::attack(Actor &target)
+{
+  target.addHealth(-5);
+  m_levelProgress += 5;
   --m_energy;
 }
 
@@ -69,4 +81,9 @@ void Actor::deleteItem(Item &item)
     if(m_inventory.size() == 0)
       m_inventory.shrink_to_fit();
   }
+}
+
+void Actor::addHealth(int amount)
+{
+  m_health += amount;
 }

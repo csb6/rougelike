@@ -18,9 +18,11 @@ private:
   std::vector<Actor> m_actors;
   inline Actor& player() { return m_actors[m_player_index]; }
   inline Actor& currActor() { return m_actors[m_turn_index]; }
-  void deleteItem(Item& item);
+  void deleteItem(Item &item);
+  void deleteActor(Actor &actor);
   void changePos(Actor &actor, int newX, int newY);
   void pickupItem(Actor &actor, int x, int y);
+  void attack(Actor &actor, int targetX, int targetY);
 public:
   GameBoard(bool &running, const std::string &mapPath);
   void loadMapFile(const std::string &path);
@@ -31,7 +33,7 @@ public:
   void log(const std::string &text);
   void present();
   bool isValid(int x, int y);
-  bool moveActor(Actor &actor, int newX, int newY);
+  bool moveActor(Actor &attacker, int newX, int newY);
   bool translateActor(Actor &actor, int dx, int dy);
   void movePlayer(int newX, int newY);
   void translatePlayer(int dx, int dy);
