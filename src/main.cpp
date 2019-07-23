@@ -11,6 +11,8 @@
 [X] Add inventory system
 [X] Add character sheet
 [X] Add basic attack system/related logging
+[ ] Remove bool returns for moveActor() when Monster AI in update() no longer
+    needs it
 [ ] Add basic test suite for key functionality (see old RPG code)
 [ ] Add RNG functionality (see old RPG code)
 [X] Add more comprehensive way to view larger inventory
@@ -278,17 +280,9 @@ void GameBoard::deleteActor(Actor& actor)
   if(m_actors.size() > 0)
   {
     using vector_t = std::vector<Actor>::size_type;
-    int pos(-1);
     //Find the Actor's position in m_actors of Actor for erase()
-    for(vector_t i=0; i<m_actors.size(); ++i)
-    {
-      if(m_actors[i] == actor)
-      {
-	pos = i;
-	break;
-      }
-    }
-    if(pos == -1)
+    auto pos = std::find(m_actors.begin(), m_actors.end(), actor) - m_actors.begin();
+    if(static_cast<vector_t>(pos) >= m_actors.size())
     {
       log("Error: no Actor at" + std::to_string(actor.getX()) + ", "
 	  + std::to_string(actor.getY()));
