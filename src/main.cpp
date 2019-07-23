@@ -15,11 +15,13 @@
     needs it
 [ ] Add basic test suite for key functionality (see old RPG code)
 [ ] Add RNG functionality (see old RPG code)
+[ ] Factor out input functionality into separate Input class which takes
+    references to GameBoard, calls new resize() function on it
 [X] Add more comprehensive way to view larger inventory
 [ ] Add better, safer, more comprehensive way to draw GUI
 [ ] Add better, faster way to get ref to Item from an (x, y) coordinate
 [ ] Add way to equip items/armor
-[ ] Find way to gracefully exit; use it in loadMapFile()'s error branch
+[ ] Find way to gracefully exit; use it in loadMap()'s error branch
 */
 #include "include/gameboard.h"
 #include <fstream>
@@ -30,7 +32,7 @@
 GameBoard::GameBoard(bool &running, const std::string &mapPath)
   : m_running(running), m_map{}, m_screen(m_map), m_player_index(0), m_turn_index(0)
 {
-  loadMapFile(mapPath);
+  loadMap(mapPath);
   //When doing turns, will start iterating through m_actors backward
   //so deletions of Actors are easy/safe; however, 1st turn should be the
   //player's
@@ -42,7 +44,7 @@ GameBoard::GameBoard(bool &running, const std::string &mapPath)
 
 /* Fills 2d array with tiles from given map file, instantiating
    new Actors/other entities as needed in their correct positions*/
-void GameBoard::loadMapFile(const std::string &path)
+void GameBoard::loadMap(const std::string &path)
 {
   //First, make all tiles empty tiles
   for(int row=0; row<MapHeight; ++row)

@@ -1,6 +1,8 @@
 #include "include/actor.h"
 #include "include/gameboard.h"
 
+/* Creates new Actor (a monster/player) at the given position with a name/on-screen
+  character representation*/
 Actor::Actor(int x, int y, std::string name, char ch)
   : m_xPos(x), m_yPos(y), m_energy(0), m_ch(ch), m_name(name), m_isTurn(false)
 {
@@ -9,11 +11,14 @@ Actor::Actor(int x, int y, std::string name, char ch)
   m_carryWeight += knife.getWeight();
 }
 
+/* Since no 2 Actors can occupy the same space at once, Actors are uniquely
+  idenified by their coordinates*/
 bool Actor::operator==(const Actor &other)
 {
   return m_xPos == other.m_xPos && m_yPos == other.m_yPos;
 }
 
+/* Changes the Actor's position*/
 void Actor::move(int newX, int newY)
 {
   m_xPos = newX;
@@ -21,6 +26,7 @@ void Actor::move(int newX, int newY)
   --m_energy;
 }
 
+/* Attempts to attack another Actor*/
 void Actor::attack(Actor &target)
 {
   target.addHealth(-5);
@@ -28,6 +34,8 @@ void Actor::attack(Actor &target)
   --m_energy;
 }
 
+/* Called once every tick; serves as location for AI, visual
+  effects, or anything else that needs to happen regularly*/
 void Actor::update(GameBoard *board)
 {
   //Simple, dumb AI that just moves right until hitting wall/running out
@@ -43,6 +51,7 @@ void Actor::update(GameBoard *board)
     m_isTurn = false;
 }
 
+/* Changes if turn/not, how much energy for the turn*/
 void Actor::setTurn(bool isTurn, int energy)
 {
   m_isTurn = isTurn;
@@ -55,6 +64,7 @@ bool Actor::canCarry(int itemWeight)
   return (m_carryWeight + itemWeight) <= m_maxCarryWeight;
 }
 
+/* Gives reference to item in inventory*/
 Item& Actor::getItemAt(int index)
 {
   using index_t = std::vector<Item>::size_type;
@@ -63,12 +73,14 @@ Item& Actor::getItemAt(int index)
   return m_inventory.at(v_index);
 }
 
+/* Adds a new Item to inventory*/
 void Actor::addItem(Item &item)
 {
   m_inventory.push_back(item);
   m_carryWeight += item.getWeight();
 }
 
+/* Removes an Item from inventory*/
 void Actor::deleteItem(Item &item)
 {
   if(m_inventory.size() > 0)
@@ -81,6 +93,7 @@ void Actor::deleteItem(Item &item)
   }
 }
 
+/* Changes health points of Actor*/
 void Actor::addHealth(int amount)
 {
   m_health += amount;
