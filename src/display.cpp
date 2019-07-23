@@ -8,11 +8,10 @@ static_assert(MapWidth >= MinDisplayWidth && MapHeight >= MinDisplayHeight, "Map
 
 /* Creates an object that manages access of/content in screen display, starting
    up termbox library, checking for errors/appropriate screen size*/
-//Display::Display() : m_cursorX(InitCursorX), m_cursorY(InitCursorY),
-//		     m_errorStatus(tb_init()), m_event{0, 0, 0, 0, 0, 0, 0, 0}
 Display::Display(LevelMap &map)
-  : m_map(map), m_cornerX(0), m_cornerY(0), m_event{0, 0, 0, 0, 0, 0, 0, 0},
-    m_textCol(0), m_textX(0), m_textY(0), m_textMaxWidth(0), m_log{}, m_logRow(0)
+  : m_map(map), m_cursorX(-1), m_cursorY(-1), m_cornerX(0), m_cornerY(0),
+    m_event{0, 0, 0, 0, 0, 0, 0, 0}, m_textCol(0), m_textX(0), m_textY(0),
+    m_textMaxWidth(0), m_log{}, m_logRow(0)
 {
   int errorStatus = tb_init();
   if(errorStatus < 0)
@@ -22,7 +21,6 @@ Display::Display(LevelMap &map)
     clear();
     printText(1, 1, "Error: screen not large enough");
   }
-  //tb_set_cursor(InitCursorX, InitCursorY);
   //Screen may be smaller than map, so display as much as possible
   m_screenWidth = std::min(boardWidth(), MapWidth);
   m_screenHeight = std::min(boardHeight(), MapHeight);
@@ -60,6 +58,30 @@ bool Display::isEmpty(int x, int y)
   int col = convertCoord(x, true);
   tb_cell *buffer = tb_cell_buffer();
   return buffer[(tb_width() * row) + col].ch == EmptySpace;
+}
+
+void Display::moveCursor(int x, int y)
+{
+  m_cursorY = convertCoord(y, false);
+  m_cursorX = convertCoord(x, true);
+  tb_set_cursor(m_cursorX, m_cursorY);
+}
+
+void Display::translateCursor(int dx, int dy)
+{
+  if(m_cursorX != -1 && m_cursorY != -1)
+  {
+    m_cursorY += dy;
+    m_cursorX += dx;
+    tb_set_cursor(m_cursorX, m_cursorY);
+  }
+}
+
+void Display::hideCursor()
+{
+  tb_set_cursor(TB_HIDE_CURSOR, TB_HIDE_CURSOR);
+  m_cursorX = -1;
+  m_cursorY = -1;
 }
 
 /* Replaces the character at a given point with a space character */

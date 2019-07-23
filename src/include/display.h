@@ -10,8 +10,6 @@ const int MinDisplayHeight = 16;
 const int GUIHeight = 10;
 const int GUIWidth = 10;
 const int InputTimeout = 10; //in milliseconds
-const int InitCursorX = 1;
-const int InitCursorY = 1;
 const char EmptySpace = 32;
 const int MaxLogSize = 4; //in number of messages
 
@@ -30,7 +28,7 @@ class Display
 private:
   LevelMap &m_map;
   //m_screenWidth/Height are dimensions of onscreen area to contain tiles
-  //int m_cursorX, m_cursorY;
+  int m_cursorX, m_cursorY;
   int m_screenWidth, m_screenHeight, m_cornerX, m_cornerY;
   //The latest termbox input event
   tb_event m_event;
@@ -51,6 +49,10 @@ public:
   //x and y = coords in terms of game map, not display
   //col and row = coords in terms of display, not game map
   bool isEmpty(int x, int y);
+  bool hasCursor() { return m_cursorX != -1 && m_cursorY != -1; }
+  void moveCursor(int x, int y);
+  void translateCursor(int dx, int dy);
+  void hideCursor();
   void clearChar(int x, int y);
   void putChar(int x, int y, char letter,
 	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
@@ -70,5 +72,8 @@ public:
   int getEventType() { return m_event.type; };
   int getEventKey() { return m_event.key; }
   int getEventChar() { return m_event.ch; }
+  //To get board x/y, have to add back cornerX/Y (see convertCoord)
+  int getCursorX() { return m_cursorX + m_cornerX; }
+  int getCursorY() { return m_cursorY + m_cornerY; }
 };
 #endif
