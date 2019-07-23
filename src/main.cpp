@@ -10,6 +10,7 @@
 [ ] Add way to drop items onto map (remove from inventory)
 [X] Add inventory system
 [X] Add character sheet
+[X] Add basic attack system/related logging
 [ ] Add basic test suite for key functionality (see old RPG code)
 [ ] Add RNG functionality (see old RPG code)
 [X] Add more comprehensive way to view larger inventory
@@ -276,12 +277,33 @@ void GameBoard::deleteActor(Actor& actor)
 {
   if(m_actors.size() > 0)
   {
-    //Need to update player index if Actor before it in vector is deleted
-    auto pos = std::find(m_actors.begin(), m_actors.end(), actor) - m_actors.begin();
+    using vector_t = std::vector<Actor>::size_type;
+    int pos(-1);
+    //Find the Actor's position in m_actors of Actor for erase()
+    for(vector_t i=0; i<m_actors.size(); ++i)
+    {
+      if(m_actors[i] == actor)
+      {
+	pos = i;
+	break;
+      }
+    }
+    if(pos == -1)
+    {
+      log("Error: no Actor at" + std::to_string(actor.getX()) + ", "
+	  + std::to_string(actor.getY()));
+      return;
+    }
+
+    log(actor.getName() + " died");
+    m_actors.erase(m_actors.begin()+pos);
+    //Need to update player/turn indexes to account for deletion
     if(pos < m_player_index)
       --m_player_index;
-    m_actors.erase(m_actors.begin()+pos);
-    log("Death occurred");
+    else if(pos == m_player_index)
+      log("Player is dead/deleted");
+    if(static_cast<vector_t>(m_turn_index) >= m_actors.size())
+      m_turn_index = m_actors.size() - 1;
   }
 }
 
@@ -310,14 +332,16 @@ void GameBoard::pickupItem(Actor &actor, int x, int y)
   }
 }
 
+/* Have given Actor attack an Actor at another position. If no Actor
+   at that position, do nothing; private function, only to be called
+   by moveActor()*/
 void GameBoard::attack(Actor &attacker, int targetX, int targetY)
 {
   for(Actor &each : m_actors)
   {
-    log(each.getName() + "(" + std::to_string(each.getX()) + ", " + std::to_string(each.getY()) + ")");
     if(each.getX() == targetX && each.getY() == targetY)
     {
-      log("Attacked");
+      log(attacker.getName() + " attacked " + each.getName());
       attacker.attack(each);
       if(!each.isAlive())
       {

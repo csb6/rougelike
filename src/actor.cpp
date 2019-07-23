@@ -11,7 +11,7 @@ Actor::Actor(int x, int y, std::string name, char ch)
 
 bool Actor::operator==(const Actor &other)
 {
-  return m_xPos == other.getX() && m_yPos == other.getY();
+  return m_xPos == other.m_xPos && m_yPos == other.m_yPos;
 }
 
 void Actor::move(int newX, int newY)
@@ -37,11 +37,9 @@ void Actor::update(GameBoard *board)
     bool moved = board->translateActor(*this, 1, 0);
     if(!moved)
       m_isTurn = false;
-    else
-      board->log(m_name + " moved");
   }
   //End turn once Actor can make no more moves; should be in all update()'s
-  if(m_energy <= 0)
+  if(m_energy <= 0 || m_health <= 0)
     m_isTurn = false;
 }
 
