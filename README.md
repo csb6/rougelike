@@ -34,5 +34,5 @@ inventory
 ## Future
 
 I hope to add a larger variety of monsters, items, and combat to the game. Additionally, I aim to
-implement a procedural map generator and more levels (right now there is just 1 test mpa, which is pretty boring),
+implement a procedural map generator and more levels (right now there is just 1 test map, which is pretty boring),
 as well as some sort of goal as the game's end condition.

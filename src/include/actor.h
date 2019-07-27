@@ -4,6 +4,8 @@
 
 class GameBoard;
 
+const int RNGUpperLimit = 100;
+
 class Actor
 {
 private:
@@ -20,7 +22,7 @@ public:
   Actor(int x, int y, std::string name = "Monster", char ch = 'M');
   bool operator==(const Actor &other);
   void move(int newX, int newY);
-  void attack(Actor &target);
+  bool attack(Actor &target);
   void update(GameBoard *board);
   void setTurn(bool isTurn, int energy = 3);
   bool canCarry(int itemWeight);
@@ -32,6 +34,7 @@ public:
   int getX() const { return m_xPos; }
   int getY() const { return m_yPos; }
   int getEnergy() { return m_energy; }
+  int getHealth() { return m_health; }
   char getCh() { return m_ch; }
   std::string getName() { return m_name; }
   bool isTurn() { return m_isTurn; }

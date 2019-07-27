@@ -1,5 +1,55 @@
 #include "include/actor.h"
 #include "include/gameboard.h"
+#include <random>
+#include <ctime>
+
+//RNG
+/* Gets random integer on range [min, max]*/
+int getRandomNumber(int min, int max)
+{
+  static std::mt19937 generator(static_cast<unsigned int>(std::time(nullptr)));
+  std::uniform_int_distribution<int> distribution(min, max);
+  return distribution(generator);
+}
+
+/* Given a skill amount for 2 actors, decide using RNG/relative skills who wins skill check */
+bool actorWins(int skillAmt, int otherSkillAmt)
+{
+  int randNumber = getRandomNumber(0, RNGUpperLimit);
+  int difference = skillAmt - otherSkillAmt;
+  int divider = RNGUpperLimit / 2;
+  if(difference != 0)
+    //Scales linearly; actor with 12 better wins ~98% of time ((50 + 48) / 100)
+    divider += (difference * 4);
+  return randNumber < divider;
+}
+
+/* Given skill amounts/armor arrays for 2 actors, determine who wins the fight
+ * using RNG based on their armor and the given skill amounts
+bool actorWinsFight(int skillAmt, int otherSkillAmt, Armor *armorWorn, Armor *otherArmorWorn)
+{
+  int armorBonus = getArmorBonus(skillAmt, armorWorn);
+  int otherArmorBonus = getArmorBonus(otherSkillAmt, otherArmorWorn);
+  return actorWins(skillAmt + armorBonus, otherSkillAmt + otherArmorBonus);
+}
+
+ Given lists of skills for 2 actors, decide using RNG/relative skills who wins skill check 
+ * by summing skills in each list, calling actorWins(); weight using multipliers when creating
+ * the list in calling location
+bool multiSkillCheck(int *skills, int *otherSkills, int numberOfSkills)
+{
+  int i = 0;
+  int skillSum = 0;
+  int otherSkillSum = 0;
+  while(i<numberOfSkills)
+  {
+    skillSum += skills[i];
+    otherSkillSum += otherSkills[i];
+    ++i;
+  }
+  return actorWins(skillSum, otherSkillSum);
+}*/
+
 
 /* Creates new Actor (a monster/player) at the given position with a name/on-screen
   character representation*/
@@ -12,7 +62,7 @@ Actor::Actor(int x, int y, std::string name, char ch)
 }
 
 /* Since no 2 Actors can occupy the same space at once, Actors are uniquely
-  idenified by their coordinates*/
+  identified by their coordinates*/
 bool Actor::operator==(const Actor &other)
 {
   return m_xPos == other.m_xPos && m_yPos == other.m_yPos;
@@ -27,11 +77,20 @@ void Actor::move(int newX, int newY)
 }
 
 /* Attempts to attack another Actor*/
-void Actor::attack(Actor &target)
+bool Actor::attack(Actor &target)
 {
-  target.addHealth(-5);
-  m_levelProgress += 5;
   --m_energy;
+  if(actorWins(m_strength, target.m_strength))
+  {
+    target.addHealth(-5);
+    m_levelProgress += 5;
+    return true;
+  }
+  else
+  {
+    addHealth(-5);
+    return false;
+  }
 }
 
 /* Called once every tick; serves as location for AI, visual
@@ -47,7 +106,7 @@ void Actor::update(GameBoard *board)
       m_isTurn = false;
   }
   //End turn once Actor can make no more moves; should be in all update()'s
-  if(m_energy <= 0 || m_health <= 0)
+  if(m_energy <= 0)
     m_isTurn = false;
 }
 

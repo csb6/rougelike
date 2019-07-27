@@ -14,7 +14,7 @@
 [ ] Remove bool returns for moveActor() when Monster AI in update() no longer
     needs it
 [ ] Add basic test suite for key functionality (see old RPG code)
-[ ] Add RNG functionality (see old RPG code)
+[X] Add RNG functionality (see old RPG code)
 [ ] Factor out input functionality into separate Input class which takes
     references to GameBoard, calls new resize() function on it
 [X] Add more comprehensive way to view larger inventory
@@ -160,8 +160,8 @@ bool GameBoard::processInput()
 	  int cursorY = m_screen.getCursorY();
 	  if(isValid(cursorX, cursorY))
 	  {
-	    moveActor(player(), cursorX, cursorY);
 	    log("Player teleported");
+	    moveActor(player(), cursorX, cursorY);
 	    m_screen.hideCursor();
 	    m_screen.clear();
 	    m_screen.draw(player(), currActor());
@@ -247,21 +247,22 @@ void GameBoard::showInventory(Actor &actor)
 void GameBoard::showStats(Actor &actor)
 {
   m_screen.printText(0, 0, actor.getName() + "'s Character Sheet: (ESC to exit)", TB_YELLOW);
-  m_screen.printText(0, 1, "Carry Weight: " + std::to_string(actor.m_carryWeight));
-  m_screen.printText(0, 2, "Max Carry Weight: " + std::to_string(actor.m_maxCarryWeight));
-  m_screen.printText(0, 3, "Level: " + std::to_string(actor.m_level));
-  m_screen.printText(0, 4, "XP: " + std::to_string(actor.m_levelProgress));
-  m_screen.printText(0, 5, "Strength: " + std::to_string(actor.m_strength));
-  m_screen.printText(0, 6, "Cunning: " + std::to_string(actor.m_cunning));
-  m_screen.printText(0, 7, "Agility: " + std::to_string(actor.m_agility));
-  m_screen.printText(0, 8, "Education: " + std::to_string(actor.m_education));
-  m_screen.printText(0, 9, "Sidearm: " + std::to_string(actor.m_sidearmSkill));
-  m_screen.printText(0, 10, "Longarm: " + std::to_string(actor.m_longarmSkill));
-  m_screen.printText(0, 11, "Melee: " + std::to_string(actor.m_meleeSkill));
-  m_screen.printText(0, 12, "Vehicle: " + std::to_string(actor.m_vehicleSkill));
-  m_screen.printText(0, 13, "Barter: " + std::to_string(actor.m_barterSkill));
-  m_screen.printText(0, 14, "Negotiate: " + std::to_string(actor.m_negotiateSkill));
-  m_screen.printText(0, 15, "Trap: " + std::to_string(actor.m_trapSkill));
+  m_screen.printText(0, 1, "Health: " + std::to_string(actor.getHealth()));
+  m_screen.printText(0, 2, "Carry Weight: " + std::to_string(actor.m_carryWeight));
+  m_screen.printText(0, 3, "Max Carry Weight: " + std::to_string(actor.m_maxCarryWeight));
+  m_screen.printText(0, 4, "Level: " + std::to_string(actor.m_level));
+  m_screen.printText(0, 5, "XP: " + std::to_string(actor.m_levelProgress));
+  m_screen.printText(0, 6, "Strength: " + std::to_string(actor.m_strength));
+  m_screen.printText(0, 7, "Cunning: " + std::to_string(actor.m_cunning));
+  m_screen.printText(0, 8, "Agility: " + std::to_string(actor.m_agility));
+  m_screen.printText(0, 9, "Education: " + std::to_string(actor.m_education));
+  m_screen.printText(0, 10, "Sidearm: " + std::to_string(actor.m_sidearmSkill));
+  m_screen.printText(0, 11, "Longarm: " + std::to_string(actor.m_longarmSkill));
+  m_screen.printText(0, 12, "Melee: " + std::to_string(actor.m_meleeSkill));
+  m_screen.printText(0, 13, "Vehicle: " + std::to_string(actor.m_vehicleSkill));
+  m_screen.printText(0, 14, "Barter: " + std::to_string(actor.m_barterSkill));
+  m_screen.printText(0, 15, "Negotiate: " + std::to_string(actor.m_negotiateSkill));
+  m_screen.printText(0, 16, "Trap: " + std::to_string(actor.m_trapSkill));
 }
 
 /* Puts text message into stored message log; useful for debugging/showing
@@ -370,8 +371,12 @@ void GameBoard::attack(Actor &attacker, int targetX, int targetY)
   {
     if(each.getX() == targetX && each.getY() == targetY)
     {
-      log(attacker.getName() + " attacked " + each.getName());
-      attacker.attack(each);
+      //Attacker attempts to attack; print result (success/fail)
+      if(attacker.attack(each))
+	log(attacker.getName() + " attacked " + each.getName());
+      else
+	log(each.getName() + " attacked " + attacker.getName());
+
       if(!each.isAlive())
       {
 	m_map[targetY][targetX] = 0;
