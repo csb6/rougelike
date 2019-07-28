@@ -30,6 +30,7 @@ public:
   void updateActors();
   void showInventory(Actor &actor);
   void showStats(Actor &actor);
+  void showEquipped(Actor &actor);
   void log(const std::string &text);
   void present();
   bool isValid(int x, int y);

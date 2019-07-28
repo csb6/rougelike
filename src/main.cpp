@@ -149,6 +149,9 @@ bool GameBoard::processInput()
       case 'c':
 	showStats(player());
 	break;
+      case 'e':
+	showEquipped(player());
+	break;
 	//Controls for showing/moving cursor
       case 't':
       {
@@ -235,7 +238,8 @@ void GameBoard::showInventory(Actor &actor)
     {
       Item& item = actor.getItemAt(i);
       m_screen.printText(0, row, " " + std::to_string(i+1) + ". " + item.getName()
-			 + " - Weight: " + std::to_string(item.getWeight()));
+			 + " - Weight: " + std::to_string(item.getWeight())
+			 + (item.isEquipped() ? " E" : "  "), TB_CYAN);
       ++row;
     }
   }
@@ -247,22 +251,35 @@ void GameBoard::showInventory(Actor &actor)
 void GameBoard::showStats(Actor &actor)
 {
   m_screen.printText(0, 0, actor.getName() + "'s Character Sheet: (ESC to exit)", TB_YELLOW);
-  m_screen.printText(0, 1, "Health: " + std::to_string(actor.getHealth()));
-  m_screen.printText(0, 2, "Carry Weight: " + std::to_string(actor.m_carryWeight));
-  m_screen.printText(0, 3, "Max Carry Weight: " + std::to_string(actor.m_maxCarryWeight));
-  m_screen.printText(0, 4, "Level: " + std::to_string(actor.m_level));
-  m_screen.printText(0, 5, "XP: " + std::to_string(actor.m_levelProgress));
-  m_screen.printText(0, 6, "Strength: " + std::to_string(actor.m_strength));
-  m_screen.printText(0, 7, "Cunning: " + std::to_string(actor.m_cunning));
-  m_screen.printText(0, 8, "Agility: " + std::to_string(actor.m_agility));
-  m_screen.printText(0, 9, "Education: " + std::to_string(actor.m_education));
-  m_screen.printText(0, 10, "Sidearm: " + std::to_string(actor.m_sidearmSkill));
-  m_screen.printText(0, 11, "Longarm: " + std::to_string(actor.m_longarmSkill));
-  m_screen.printText(0, 12, "Melee: " + std::to_string(actor.m_meleeSkill));
-  m_screen.printText(0, 13, "Vehicle: " + std::to_string(actor.m_vehicleSkill));
-  m_screen.printText(0, 14, "Barter: " + std::to_string(actor.m_barterSkill));
-  m_screen.printText(0, 15, "Negotiate: " + std::to_string(actor.m_negotiateSkill));
-  m_screen.printText(0, 16, "Trap: " + std::to_string(actor.m_trapSkill));
+  m_screen.printText(0, 1, "Health: " + std::to_string(actor.getHealth()), TB_CYAN);
+  m_screen.printText(0, 2, "Carry Weight: " + std::to_string(actor.m_carryWeight), TB_CYAN);
+  m_screen.printText(0, 3, "Carry Capacity: " + std::to_string(actor.m_maxCarryWeight), TB_CYAN);
+  m_screen.printText(0, 4, "Level: " + std::to_string(actor.m_level), TB_CYAN);
+  m_screen.printText(0, 5, "XP: " + std::to_string(actor.m_levelProgress), TB_CYAN);
+  m_screen.printText(0, 6, "Strength: " + std::to_string(actor.m_strength), TB_CYAN);
+  m_screen.printText(0, 7, "Cunning: " + std::to_string(actor.m_cunning), TB_CYAN);
+  m_screen.printText(0, 8, "Agility: " + std::to_string(actor.m_agility), TB_CYAN);
+  m_screen.printText(0, 9, "Education: " + std::to_string(actor.m_education), TB_CYAN);
+  m_screen.printText(0, 10, "Sidearm: " + std::to_string(actor.m_sidearmSkill), TB_CYAN);
+  m_screen.printText(0, 11, "Longarm: " + std::to_string(actor.m_longarmSkill), TB_CYAN);
+  m_screen.printText(0, 12, "Melee: " + std::to_string(actor.m_meleeSkill), TB_CYAN);
+  m_screen.printText(0, 13, "Vehicle: " + std::to_string(actor.m_vehicleSkill), TB_CYAN);
+  m_screen.printText(0, 14, "Barter: " + std::to_string(actor.m_barterSkill), TB_CYAN);
+  m_screen.printText(0, 15, "Negotiate: " + std::to_string(actor.m_negotiateSkill), TB_CYAN);
+  m_screen.printText(0, 16, "Trap: " + std::to_string(actor.m_trapSkill), TB_CYAN);
+}
+
+void GameBoard::showEquipped(Actor &actor)
+{
+  m_screen.printText(0, 0, actor.getName() + "'s Equipped Items: (ESC to exit)", TB_YELLOW);
+  for(int i=0; i<ARMOR_MAX; ++i)
+  {
+    Item *item = actor.getArmorAt(i);
+    if(!item)
+      m_screen.printText(0, i+1, " Empty", TB_CYAN);
+    else
+      m_screen.printText(0, i+1, item->getName(), TB_CYAN);
+  }
 }
 
 /* Puts text message into stored message log; useful for debugging/showing

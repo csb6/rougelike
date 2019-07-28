@@ -57,8 +57,8 @@ Actor::Actor(int x, int y, std::string name, char ch)
   : m_xPos(x), m_yPos(y), m_energy(0), m_ch(ch), m_name(name), m_isTurn(false)
 {
   Item knife = Item(x, y, "Knife", 4);
-  m_inventory.push_back(knife);
   m_carryWeight += knife.getWeight();
+  m_inventory.push_back(knife);
 }
 
 /* Since no 2 Actors can occupy the same space at once, Actors are uniquely
@@ -142,14 +142,41 @@ void Actor::addItem(Item &item)
 /* Removes an Item from inventory*/
 void Actor::deleteItem(Item &item)
 {
-  if(m_inventory.size() > 0)
+  if(m_inventory.size() <= 0 || item.isEquipped())
+    return;
+  std::swap(item, m_inventory.back());
+  m_inventory.pop_back();
+  //This may hurt performance, but is useful after chests with lots of items are emptied
+  if(m_inventory.size() == 0)
+    m_inventory.shrink_to_fit();
+}
+
+void Actor::equipArmor(int index, Armor position)
+{
+  using index_t = std::vector<Item>::size_type;
+  if(static_cast<index_t>(index) >= m_inventory.size() || position >= ARMOR_MAX)
+    return;
+  if(m_armor[position])
   {
-    std::swap(item, m_inventory.back());
-    m_inventory.pop_back();
-    //This may hurt performance, but is useful after chests with lots of items are emptied
-    if(m_inventory.size() == 0)
-      m_inventory.shrink_to_fit();
+    *m_armor[position] = m_inventory[index];
+    m_inventory[index].setEquip(true);
   }
+}
+
+void Actor::deequipArmor(Armor position)
+{
+  if(!m_armor[position])
+  {
+    m_armor[position]->setEquip(false);
+    m_armor[position] = nullptr;
+  }
+}
+
+Item* Actor::getArmorAt(int index)
+{
+  if(index >= ARMOR_MAX)
+    return nullptr;
+  return m_armor[index];
 }
 
 /* Changes health points of Actor*/
