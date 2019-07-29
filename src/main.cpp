@@ -165,6 +165,9 @@ bool GameBoard::processInput()
       case 'e':
 	showEquipped(player());
 	break;
+      case 'E':
+	equipItem(player());
+	break;
 	//Controls for showing/moving cursor
       case 't':
       {
@@ -231,8 +234,9 @@ void GameBoard::updateActors()
 void GameBoard::showInventory(Actor &actor)
 {
   m_screen.printText(0, 0, actor.getName() + "'s Inventory: (ESC to exit)", TB_YELLOW);
+  m_screen.printText(0, 1, "E) Equip item", TB_YELLOW);
   int size = actor.getInventorySize();
-  int row = 1;
+  int row = 2;
   if(size > 0)
   {
     for(int i=0; i<size; ++i)
@@ -272,14 +276,15 @@ void GameBoard::showStats(Actor &actor)
 
 void GameBoard::showEquipped(Actor &actor)
 {
+  std::string labels[ARMOR_MAX] = {". Head: ", ". Chest: ", ". Legs: ", ". Feet: "};
   m_screen.printText(0, 0, actor.getName() + "'s Equipped Items: (ESC to exit)", TB_YELLOW);
   for(int i=0; i<ARMOR_MAX; ++i)
   {
     Item *item = actor.getArmorAt(i);
     if(!item)
-      m_screen.printText(0, i+1, " Empty", TB_CYAN);
+      m_screen.printText(0, i+1, std::to_string(i+1) + labels[i] + "Empty", TB_CYAN);
     else
-      m_screen.printText(0, i+1, item->getName(), TB_CYAN);
+      m_screen.printText(0, i+1, std::to_string(i+1) + labels[i] + item->getName(), TB_CYAN);
   }
 }
 
@@ -353,6 +358,16 @@ void GameBoard::deleteActor(Actor& actor)
     if(static_cast<vector_t>(m_turn_index) >= m_actors.size())
       m_turn_index = m_actors.size() - 1;
   }
+}
+
+void GameBoard::equipItem(Actor &actor)
+{
+  int index = m_screen.input("Enter item #: ") - 1;
+  int pos = m_screen.input("Enter armor position [1-4]: ", 0, 1) - 1;
+  actor.equipArmor(index, static_cast<Armor>(pos));
+
+  m_screen.clear();
+  m_screen.draw(player(), currActor());
 }
 
 /* Picks up an Item at given coords if one can be found at that

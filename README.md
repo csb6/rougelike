@@ -13,6 +13,8 @@ all Unix-style terminal emulators supported by ![termbox](https://github.com/nsf
 - **i** View inventory
 - **@** View character sheet (mostly empty for now)
 - **e** View equipped item slots (also mostly empty)
+- **E** Equip an item (enter its inventory number, then its Armor slot number); any item
+  can be equipped as armor, even a knife!
 - **ESC** Redraw screen. Use this to close inventory/character sheet/hide teleportation cursor
 - **t** Teleport the player. Pressing **t** will show a cursor on the player's position. After
 moving the cursor to the desired location (see below), press **t** again to teleport there
@@ -28,6 +30,7 @@ inventory. Teleporting to a Monster's position causes you to attack the monster.
 - RNG combat
 - Viewable player inventory/character sheet
 - An event log
+- Equippable items
 - Monsters ('M')
 - Items ('i'), which can be picked up
 - Walls ('1')

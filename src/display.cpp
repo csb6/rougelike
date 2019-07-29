@@ -128,6 +128,58 @@ void Display::printText(int col, int row, const std::string text,
   }
 }
 
+/* Prompt user to enter an integer using given message; -1 is error code,
+   not exception-safe*/
+int Display::input(const std::string msg, int col, int row)
+{
+  printText(col, row, msg);
+  //Move col over so text typed out
+  //printed to right of msg
+  col += msg.size();
+
+  std::string num;
+  while(getInput())
+  {
+    switch(getEventType())
+    {
+      //Respond to user key presses
+    case TB_EVENT_KEY:
+      //First, look at key combos
+      switch(getEventKey())
+      {
+      case TB_KEY_ESC:
+	//Exit early
+	return -1;
+      case TB_KEY_ENTER:
+	//Give number to caller
+	return std::stoi(num);
+      default:
+	//If not a key combo, look at individual keys
+	switch(getEventChar())
+	{
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case '0':
+	  num += getEventChar();
+	  printText(col, row, num);
+	  break;
+	}
+      }
+      break;
+    }
+    //Show any changes
+    present();
+  }
+  return -1;
+}
+
 /* Puts text message into stored message log; useful for debugging/showing
    events as they occur*/
 void Display::log(const std::string &text)

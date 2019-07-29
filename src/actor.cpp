@@ -156,16 +156,16 @@ void Actor::equipArmor(int index, Armor position)
   using index_t = std::vector<Item>::size_type;
   if(static_cast<index_t>(index) >= m_inventory.size() || position >= ARMOR_MAX)
     return;
-  if(m_armor[position])
+  if(!m_armor[position])
   {
-    *m_armor[position] = m_inventory[index];
+    m_armor[position] = &m_inventory[index];
     m_inventory[index].setEquip(true);
   }
 }
 
 void Actor::deequipArmor(Armor position)
 {
-  if(!m_armor[position])
+  if(m_armor[position])
   {
     m_armor[position]->setEquip(false);
     m_armor[position] = nullptr;

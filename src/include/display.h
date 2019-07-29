@@ -58,6 +58,7 @@ public:
 	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
   void printText(int col, int row, const std::string text,
 		 const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
+  int input(std::string msg, int col = 0, int row = 0);
   void log(const std::string &text);
   void printTextCol(int gridCol, const std::string text,
 		    const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);

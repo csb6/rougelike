@@ -20,6 +20,7 @@ private:
   inline Actor& currActor() { return m_actors[m_turn_index]; }
   void deleteItem(Item &item);
   void deleteActor(Actor &actor);
+  void equipItem(Actor &actor);
   void changePos(Actor &actor, int newX, int newY);
   void pickupItem(Actor &actor, int x, int y);
   void attack(Actor &attacker, int targetX, int targetY);
