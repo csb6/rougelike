@@ -21,6 +21,7 @@ private:
   void deleteItem(Item &item);
   void deleteActor(Actor &actor);
   void equipItem(Actor &actor);
+  void deequipItem(Actor &actor);
   void changePos(Actor &actor, int newX, int newY);
   void pickupItem(Actor &actor, int x, int y);
   void attack(Actor &attacker, int targetX, int targetY);

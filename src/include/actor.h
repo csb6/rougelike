@@ -29,8 +29,8 @@ public:
   Item& getItemAt(int index);
   void addItem(Item &item);
   void deleteItem(Item &item);
-  void equipArmor(int index, Armor position);
-  void deequipArmor(Armor position);
+  void equipArmor(int index, int position);
+  void deequipArmor(int position);
   Item* getArmorAt(int index);
   void addHealth(int amount);
   //Setters/Getters

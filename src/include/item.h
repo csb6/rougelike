@@ -17,7 +17,7 @@ class Item
 private:
   int m_xPos, m_yPos, m_id, m_weight;
   std::string m_name;
-  bool m_isEquipped;
+  bool m_isEquipped = false;
 public:
   Item(int x = 0, int y = 0, std::string name = "Item", int weight = 0);
   int getX() { return m_xPos; }

@@ -168,6 +168,9 @@ bool GameBoard::processInput()
       case 'E':
 	equipItem(player());
 	break;
+      case 'D':
+	deequipItem(player());
+	break;
 	//Controls for showing/moving cursor
       case 't':
       {
@@ -234,7 +237,7 @@ void GameBoard::updateActors()
 void GameBoard::showInventory(Actor &actor)
 {
   m_screen.printText(0, 0, actor.getName() + "'s Inventory: (ESC to exit)", TB_YELLOW);
-  m_screen.printText(0, 1, "E) Equip item", TB_YELLOW);
+  m_screen.printText(0, 1, "E) Equip item, D) Deequip item", TB_YELLOW);
   int size = actor.getInventorySize();
   int row = 2;
   if(size > 0)
@@ -360,11 +363,22 @@ void GameBoard::deleteActor(Actor& actor)
   }
 }
 
+/* Equips item in inventory into an Actor's armor slot*/
 void GameBoard::equipItem(Actor &actor)
 {
   int index = m_screen.input("Enter item #: ") - 1;
   int pos = m_screen.input("Enter armor position [1-4]: ", 0, 1) - 1;
-  actor.equipArmor(index, static_cast<Armor>(pos));
+  actor.equipArmor(index, pos);
+
+  m_screen.clear();
+  m_screen.draw(player(), currActor());
+}
+
+/* Deequips item from Actor's armor slot*/
+void GameBoard::deequipItem(Actor &actor)
+{
+  int pos = m_screen.input("Enter armor position [1-4]: ", 0, 1) - 1;
+  actor.deequipArmor(pos);
 
   m_screen.clear();
   m_screen.draw(player(), currActor());

@@ -33,7 +33,7 @@ bool actorWinsFight(int skillAmt, int otherSkillAmt, Armor *armorWorn, Armor *ot
   return actorWins(skillAmt + armorBonus, otherSkillAmt + otherArmorBonus);
 }
 
- Given lists of skills for 2 actors, decide using RNG/relative skills who wins skill check 
+ Given lists of skills for 2 actors, decide using RNG/relative skills who wins skill check
  * by summing skills in each list, calling actorWins(); weight using multipliers when creating
  * the list in calling location
 bool multiSkillCheck(int *skills, int *otherSkills, int numberOfSkills)
@@ -151,30 +151,33 @@ void Actor::deleteItem(Item &item)
     m_inventory.shrink_to_fit();
 }
 
-void Actor::equipArmor(int index, Armor position)
+/* Place's inventory item into armor slot; checks if valid*/
+void Actor::equipArmor(int index, int position)
 {
   using index_t = std::vector<Item>::size_type;
-  if(static_cast<index_t>(index) >= m_inventory.size() || position >= ARMOR_MAX)
+  if(index < 0 || static_cast<index_t>(index) >= m_inventory.size()
+     || position >= ARMOR_MAX || position < 0 || m_inventory[index].isEquipped())
     return;
-  if(!m_armor[position])
-  {
-    m_armor[position] = &m_inventory[index];
-    m_inventory[index].setEquip(true);
-  }
+
+  if(m_armor[position])
+    //Deequip prior item if slot full
+    deequipArmor(position);
+  m_armor[position] = &m_inventory[index];
+  m_inventory[index].setEquip(true);
 }
 
-void Actor::deequipArmor(Armor position)
+/* Removes inventory item from armor slot; checks if valid*/
+void Actor::deequipArmor(int position)
 {
-  if(m_armor[position])
-  {
-    m_armor[position]->setEquip(false);
-    m_armor[position] = nullptr;
-  }
+  if(!m_armor[position] || position < 0 || position >= ARMOR_MAX)
+    return;
+  m_armor[position]->setEquip(false);
+  m_armor[position] = nullptr;
 }
 
 Item* Actor::getArmorAt(int index)
 {
-  if(index >= ARMOR_MAX)
+  if(index < 0 || index >= ARMOR_MAX)
     return nullptr;
   return m_armor[index];
 }
