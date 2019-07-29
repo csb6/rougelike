@@ -24,16 +24,32 @@ bool actorWins(int skillAmt, int otherSkillAmt)
   return randNumber < divider;
 }
 
-/* Given skill amounts/armor arrays for 2 actors, determine who wins the fight
- * using RNG based on their armor and the given skill amounts
-bool actorWinsFight(int skillAmt, int otherSkillAmt, Armor *armorWorn, Armor *otherArmorWorn)
+/* Given a skill amount and an array of armor worn, determines the total bonus
+ * of the armor worn based on type, accounting for each piece being worn */
+int getArmorBonus(int skillAmt, Item *armor)
 {
-  int armorBonus = getArmorBonus(skillAmt, armorWorn);
-  int otherArmorBonus = getArmorBonus(otherSkillAmt, otherArmorWorn);
+  int armorBonus = 0;
+  for(int i=0; i<ARMOR_MAX; ++i)
+  {
+    //Add to total bonus based on armor value (better armor -> more bonus)
+    armorBonus += armor[i].getArmor();
+  }
+  //Ensure total bonus doesn't overflow expected range of actorWins() RNG
+  if(skillAmt + armorBonus > RNGUpperLimit)
+    armorBonus = RNGUpperLimit - skillAmt;
+  return armorBonus;
+}
+
+/* Given skill amounts/armor arrays for 2 actors, determine who wins the fight
+ * using RNG based on their armor and the given skill amounts*/
+bool actorWinsFight(int skillAmt, int otherSkillAmt, Item *armor, Item *otherArmor)
+{
+  int armorBonus = getArmorBonus(skillAmt, armor);
+  int otherArmorBonus = getArmorBonus(otherSkillAmt, otherArmor);
   return actorWins(skillAmt + armorBonus, otherSkillAmt + otherArmorBonus);
 }
 
- Given lists of skills for 2 actors, decide using RNG/relative skills who wins skill check
+/* Given lists of skills for 2 actors, decide using RNG/relative skills who wins skill check
  * by summing skills in each list, calling actorWins(); weight using multipliers when creating
  * the list in calling location
 bool multiSkillCheck(int *skills, int *otherSkills, int numberOfSkills)
@@ -80,7 +96,7 @@ void Actor::move(int newX, int newY)
 bool Actor::attack(Actor &target)
 {
   --m_energy;
-  if(actorWins(m_strength, target.m_strength))
+  if(actorWinsFight(m_strength, target.m_strength, m_armor, target.m_armor))
   {
     target.addHealth(-5);
     m_levelProgress += 5;
