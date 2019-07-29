@@ -247,13 +247,12 @@ void GameBoard::showInventory(Actor &actor)
       Item& item = actor.getItemAt(i);
       m_screen.printText(0, row, " " + std::to_string(i+1) + ". " + item.getName()
 			 + " - Weight: " + std::to_string(item.getWeight())
-			 + ", Armor: " + std::to_string(item.getArmor())
-			 + (item.isEquipped() ? " E" : "  "), TB_CYAN);
+			 + ", Armor: " + std::to_string(item.getArmor()), TB_CYAN);
       ++row;
     }
   }
   else
-    m_screen.printText(2, row, "empty");
+    m_screen.printText(2, row, "Empty", TB_CYAN);
 }
 
 /*Prints character sheet for an Actor, showing main stats*/

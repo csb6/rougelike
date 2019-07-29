@@ -54,7 +54,7 @@ bool multiSkillCheck(int *skills, int *otherSkills, int numberOfSkills)
 /* Creates new Actor (a monster/player) at the given position with a name/on-screen
   character representation*/
 Actor::Actor(int x, int y, std::string name, char ch)
-  : m_xPos(x), m_yPos(y), m_energy(0), m_ch(ch), m_name(name), m_isTurn(false)
+  : m_xPos(x), m_yPos(y), m_energy(0), m_ch(ch), m_name(name), m_isTurn(false), m_armor{0, 0, 0, 0}
 {
   Item knife = Item(x, y, "Knife", 4);
   m_carryWeight += knife.getWeight();
@@ -156,30 +156,37 @@ void Actor::equipArmor(int index, int position)
 {
   using index_t = std::vector<Item>::size_type;
   if(index < 0 || static_cast<index_t>(index) >= m_inventory.size()
-     || position >= ARMOR_MAX || position < 0 || m_inventory[index].isEquipped())
+     || position >= ARMOR_MAX || position < 0)
     return;
 
-  if(m_armor[position])
-    //Deequip prior item if slot full
-    deequipArmor(position);
-  m_armor[position] = &m_inventory[index];
-  m_inventory[index].setEquip(true);
+  if(m_armor[position].isEquipped())
+  {
+    //If Item already in slot, put back in inventory
+    m_armor[position].setEquip(false);
+    m_inventory.push_back(m_armor[position]);
+  }
+  //After adding new Item to armor slot, delete from inventory
+  m_armor[position] = m_inventory[index];
+  m_armor[position].setEquip(true);
+  m_inventory.erase(m_inventory.begin()+index);
 }
 
 /* Removes inventory item from armor slot; checks if valid*/
 void Actor::deequipArmor(int position)
 {
-  if(!m_armor[position] || position < 0 || position >= ARMOR_MAX)
+  if(position < 0 || position >= ARMOR_MAX || !m_armor[position].isEquipped())
     return;
-  m_armor[position]->setEquip(false);
-  m_armor[position] = nullptr;
+  m_armor[position].setEquip(false);
+  m_inventory.push_back(m_armor[position]);
+  m_armor[position] = 0;
 }
 
 Item* Actor::getArmorAt(int index)
 {
-  if(index < 0 || index >= ARMOR_MAX)
+  //Ignore default placeholder Items in array
+  if(index < 0 || index >= ARMOR_MAX || !m_armor[index].isEquipped())
     return nullptr;
-  return m_armor[index];
+  return &m_armor[index];
 }
 
 /* Changes health points of Actor*/
