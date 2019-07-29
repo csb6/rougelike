@@ -116,6 +116,7 @@ bool GameBoard::processInput()
     //First, look at key combos
     switch(m_screen.getEventKey())
     {
+    case TB_KEY_CTRL_X:
     case TB_KEY_CTRL_C:
       //Stop program immediately
       m_running = false;
@@ -128,16 +129,28 @@ bool GameBoard::processInput()
       break;
       //Basic player movement
     case TB_KEY_ARROW_RIGHT:
-      translatePlayer(1, 0);
+      if(!m_screen.hasCursor())
+	translatePlayer(1, 0);
+      else
+	m_screen.translateCursor(1, 0);
       break;
     case TB_KEY_ARROW_LEFT:
-      translatePlayer(-1, 0);
+      if(!m_screen.hasCursor())
+	translatePlayer(-1, 0);
+      else
+	m_screen.translateCursor(-1, 0);
       break;
     case TB_KEY_ARROW_UP:
-      translatePlayer(0, -1);
+      if(!m_screen.hasCursor())
+	translatePlayer(0, -1);
+      else
+	m_screen.translateCursor(0, -1);
       break;
     case TB_KEY_ARROW_DOWN:
-      translatePlayer(0, 1);
+      if(!m_screen.hasCursor())
+	translatePlayer(0, 1);
+      else
+	m_screen.translateCursor(0, 1);
       break;
     default:
       //If not a key combo, look at individual keys
@@ -146,7 +159,7 @@ bool GameBoard::processInput()
       case 'i':
 	showInventory(player());
 	break;
-      case 'c':
+      case '@':
 	showStats(player());
 	break;
       case 'e':
@@ -171,18 +184,6 @@ bool GameBoard::processInput()
 	  }
 	}
       }
-	break;
-      case 'w':
-	m_screen.translateCursor(0, -1);
-	break;
-      case 's':
-	m_screen.translateCursor(0, 1);
-	break;
-      case 'a':
-	m_screen.translateCursor(-1, 0);
-	break;
-      case 'd':
-	m_screen.translateCursor(1, 0);
 	break;
       }
     }

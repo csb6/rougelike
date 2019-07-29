@@ -5,6 +5,8 @@
 
 //  Map should take up at least min screen space so min-size screen is always full
 static_assert(MapWidth >= MinDisplayWidth && MapHeight >= MinDisplayHeight, "Map too small");
+static_assert(GUIWidth <= MinDisplayWidth && GUIHeight <= MinDisplayHeight, "GUI too big");
+static_assert(MaxLogSize <= MinDisplayHeight, "Log too tall");
 
 /* Creates an object that manages access of/content in screen display, starting
    up termbox library, checking for errors/appropriate screen size*/
@@ -226,6 +228,8 @@ void Display::draw(Actor &player, Actor &currActor)
     {
       if(m_map[y][x])
 	putChar(x, y, m_map[y][x]);
+      else
+	putChar(x, y, '.');
     }
   }
   drawGUI(player, currActor);

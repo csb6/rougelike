@@ -11,18 +11,21 @@ all Unix-style terminal emulators supported by ![termbox](https://github.com/nsf
 
 - **arrow keys** Movement
 - **i** View inventory
-- **c** View character sheet (mostly empty for now)
+- **@** View character sheet (mostly empty for now)
+- **e** View equipped item slots (also mostly empty)
 - **ESC** Redraw screen. Use this to close inventory/character sheet/hide teleportation cursor
 - **t** Teleport the player. Pressing **t** will show a cursor on the player's position. After
 moving the cursor to the desired location (see below), press **t** again to teleport there
-- **wasd** Move teleportation cursor. After the cursor becomes shown, use these keys to move it
-to some location on the screen. You cannot teleport to a cell where a Monster/Wall is present.
+- **arrow keys** Move teleportation cursor. After the cursor becomes shown, use these keys to
+move it to some location on the screen. You cannot teleport to a cell where a Wall is present.
 However, if you set your cursor over an item (**i**) and teleport, it will be added to your
-inventory
+inventory. Teleporting to a Monster's position causes you to attack the monster.
+- **Ctrl-x** or **Ctrl-c** Exit game
 
 ## Features
 
 - A movable/teleportable player character ('@')
+- RNG combat
 - Viewable player inventory/character sheet
 - An event log
 - Monsters ('M')
