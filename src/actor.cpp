@@ -118,7 +118,7 @@ void Actor::setTurn(bool isTurn, int energy)
 }
 
 /* Checks if actor has enough inventory space left to carry an item of given weight */
-bool Actor::canCarry(int itemWeight)
+bool Actor::canCarry(int itemWeight) const
 {
   return (m_carryWeight + itemWeight) <= m_maxCarryWeight;
 }

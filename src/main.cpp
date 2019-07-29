@@ -20,7 +20,7 @@
 [X] Add more comprehensive way to view larger inventory
 [ ] Add better, safer, more comprehensive way to draw GUI
 [ ] Add better, faster way to get ref to Item from an (x, y) coordinate
-[ ] Add way to equip items/armor
+[X] Add way to equip items/armor
 [ ] Find way to gracefully exit; use it in loadMap()'s error branch
 */
 #include "include/gameboard.h"
@@ -247,6 +247,7 @@ void GameBoard::showInventory(Actor &actor)
       Item& item = actor.getItemAt(i);
       m_screen.printText(0, row, " " + std::to_string(i+1) + ". " + item.getName()
 			 + " - Weight: " + std::to_string(item.getWeight())
+			 + ", Armor: " + std::to_string(item.getArmor())
 			 + (item.isEquipped() ? " E" : "  "), TB_CYAN);
       ++row;
     }

@@ -25,7 +25,7 @@ public:
   bool attack(Actor &target);
   void update(GameBoard *board);
   void setTurn(bool isTurn, int energy = 3);
-  bool canCarry(int itemWeight);
+  bool canCarry(int itemWeight) const;
   Item& getItemAt(int index);
   void addItem(Item &item);
   void deleteItem(Item &item);
@@ -36,13 +36,13 @@ public:
   //Setters/Getters
   int getX() const { return m_xPos; }
   int getY() const { return m_yPos; }
-  int getEnergy() { return m_energy; }
-  int getHealth() { return m_health; }
-  char getCh() { return m_ch; }
-  std::string getName() { return m_name; }
-  bool isTurn() { return m_isTurn; }
-  bool isAlive() { return m_health > 0; }
-  int getInventorySize() { return m_inventory.size(); }
+  int getEnergy() const { return m_energy; }
+  int getHealth() const { return m_health; }
+  char getCh() const { return m_ch; }
+  std::string getName() const { return m_name; }
+  bool isTurn() const { return m_isTurn; }
+  bool isAlive() const { return m_health > 0; }
+  int getInventorySize() const { return m_inventory.size(); }
   std::int_least16_t m_carryWeight = 0; //Current weight of inventory
   std::int_least16_t m_maxCarryWeight = 20;
   std::int_least16_t m_level = 1; //General level; when upgraded, points available to boost stats
