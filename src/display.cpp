@@ -37,7 +37,7 @@ Display::~Display()
 
 /* Converts coordinates written in terms of game map (the 2d array maintained
    by the GameBoard) into the row/col coordinates used by termbox onscreen.
-   Most member functions use it, including putChar() */
+   Most member functions use it*/
 int Display::convertCoord(int coord, bool isX)
 {
   //Converts coord (x- or y-value) from coord on game map
@@ -87,20 +87,16 @@ void Display::hideCursor()
 }
 
 /* Replaces the character at a given point with a space character */
-void Display::clearChar(int x, int y)
+void Display::clearChar(int col, int row)
 {
-  int row = convertCoord(y, false);
-  int col = convertCoord(x, true);
-  tb_change_cell(col, row, EmptySpace, TB_WHITE, TB_BLACK);
+  putChar(col, row, EmptySpace);
 }
 
 /* Places a character at a given point with foreground/background colors.
    Default fg/bg colors in header */
-void Display::putChar(int x, int y, const char letter,
+void Display::putChar(int col, int row, const char letter,
 		      const uint16_t fg, const uint16_t bg)
 {
-  int row = convertCoord(y, false);
-  int col = convertCoord(x, true);
   tb_change_cell(col, row, static_cast<uint32_t>(letter), fg, bg);
 }
 
@@ -118,7 +114,7 @@ void Display::printText(int col, int row, const std::string text,
   int y = row;
   for(std::string::size_type i=0; i<text.length(); ++i)
   {
-    tb_change_cell(x, y, static_cast<uint32_t>(text[i]), fg, bg);
+    putChar(x, y, text[i], fg, bg);
     ++x;
     if(x >= tb_width())
     {
@@ -150,26 +146,25 @@ int Display::input(const std::string msg, int col, int row)
       case TB_KEY_ESC:
 	//Exit early
 	return -1;
+      case TB_KEY_BACKSPACE:
+      case TB_KEY_BACKSPACE2:
+	//Only backspace if there's something to delete
+	if(num.size() > 0)
+	{
+	  clearChar(--col, row);
+	  num.pop_back();
+	}
+	break;
       case TB_KEY_ENTER:
 	//Give number to caller
 	return std::stoi(num);
       default:
 	//If not a key combo, look at individual keys
-	switch(getEventChar())
+	char key = getEventChar();
+	if(key >= '0' && key <= '9')
 	{
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	case '0':
-	  num += getEventChar();
-	  printText(col, row, num);
-	  break;
+	  num += key;
+	  putChar(col++, row, key);
 	}
       }
       break;
@@ -278,10 +273,12 @@ void Display::draw(Actor &player, Actor &currActor)
   {
     for(int x=m_cornerX; x<(m_cornerX+m_screenWidth); ++x)
     {
+      int col = convertCoord(x, true);
+      int row = convertCoord(y, false);
       if(m_map[y][x])
-	putChar(x, y, m_map[y][x]);
+	putChar(col, row, m_map[y][x]);
       else
-	putChar(x, y, '.');
+	putChar(col, row, '.');
     }
   }
   drawGUI(player, currActor);

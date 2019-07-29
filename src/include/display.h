@@ -41,6 +41,9 @@ private:
   //boardWidth/Height are dimensions of current window bounded on sides by GUI
   inline int boardWidth() { return tb_width()-GUIWidth; }
   inline int boardHeight() { return tb_height()-GUIHeight; }
+  void clearChar(int col, int row);
+  void putChar(int col, int row, char letter,
+	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
 public:
   Display(LevelMap &map);
   ~Display();
@@ -53,9 +56,6 @@ public:
   void moveCursor(int x, int y);
   void translateCursor(int dx, int dy);
   void hideCursor();
-  void clearChar(int x, int y);
-  void putChar(int x, int y, char letter,
-	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
   void printText(int col, int row, const std::string text,
 		 const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
   int input(std::string msg, int col = 0, int row = 0);
