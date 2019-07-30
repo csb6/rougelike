@@ -79,7 +79,7 @@ Actor::Actor(int x, int y, std::string name, char ch)
 
 /* Since no 2 Actors can occupy the same space at once, Actors are uniquely
   identified by their coordinates*/
-bool Actor::operator==(const Actor &other)
+bool Actor::operator==(const Actor &other) const
 {
   return m_xPos == other.m_xPos && m_yPos == other.m_yPos;
 }

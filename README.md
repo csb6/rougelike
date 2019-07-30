@@ -15,6 +15,7 @@ all Unix-style terminal emulators supported by ![termbox](https://github.com/nsf
 - **e** View equipped item slots (also mostly empty)
 - **E** Equip an item (enter its inventory number, then its Armor slot number); any item
   can be equipped as armor, even a knife!
+- **D** Deequip an item (enter its Armor slot number, e.g. Head is slot 1, etc.)
 - **ESC** Redraw screen. Use this to close inventory/character sheet/hide teleportation cursor
 - **t** Teleport the player. Pressing **t** will show a cursor on the player's position. After
 moving the cursor to the desired location (see below), press **t** again to teleport there

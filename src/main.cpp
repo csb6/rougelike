@@ -1,31 +1,34 @@
 /*TODO:
 [ ] Profile to see what is causing memory leaks when resizing window
-[X] Add way to log messages to sidebar
 [ ] Add way to specify characteristics of monsters in text config files, which can
     then be loaded when the program starts
-[ ] Add way to save/load maps
-[X] Add Item, Chest classes, related code from old RPG project
-[X] Remove Chest class/functions; instead, just have loose Items on map
-[X] Add way to pick up map items (add to inventory) by walking on them
+[ ] Add way to save/load
 [ ] Add way to drop items onto map (remove from inventory)
-[X] Add inventory system
-[X] Add character sheet
-[X] Add basic attack system/related logging
 [ ] Remove bool returns for moveActor() when Monster AI in update() no longer
     needs it
 [ ] Add basic test suite for key functionality (see old RPG code)
 [X] Add RNG functionality (see old RPG code)
 [ ] Factor out input functionality into separate Input class which takes
     references to GameBoard, calls new resize() function on it
-[X] Add more comprehensive way to view larger inventory
 [ ] Add better, safer, more comprehensive way to draw GUI
 [ ] Add better, faster way to get ref to Item from an (x, y) coordinate
 [X] Add way to equip items/armor
+[ ] Tune combat/limit teleportation
+[ ] Adjust skills; maybe have teleport skill, use it to determine range?
 [ ] Find way to gracefully exit; use it in loadMap()'s error branch
+[ ] Add keybindings file loaded on start
+[ ] Add platform-specific way to find executable's current directory; see https://stackoverflow.com/q/143174
 */
 #include "include/gameboard.h"
 #include <fstream>
 #include <iostream>
+#include <cmath>
+
+/* Distance formula with truncated absolute value result*/
+int distanceFrom(int x1, int y1, int x2, int y2)
+{
+  return std::abs(std::sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2)));
+}
 
 /* Creates a new board linking to the termbox screen; opens/loads
    the given map, and sets up in-game GUI*/
@@ -318,6 +321,9 @@ void GameBoard::changePos(Actor &actor, int newX, int newY)
   //Note: screen doesn't visibly change until screen.present() called in main loop
   int oldX = actor.getX();
   int oldY = actor.getY();
+  //Check to make sure not walking/teleporting too far
+  if(distanceFrom(oldX, oldY, newX, newY) >= 5)
+    return;
   actor.move(newX, newY);
   m_map[oldY][oldX] = 0;
   m_map[newY][newX] = actor.getCh();

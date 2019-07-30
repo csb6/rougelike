@@ -20,7 +20,7 @@ private:
   std::vector<Item> m_inventory; //Contains items for player
 public:
   Actor(int x, int y, std::string name = "Monster", char ch = 'M');
-  bool operator==(const Actor &other);
+  bool operator==(const Actor &other) const;
   void move(int newX, int newY);
   bool attack(Actor &target);
   void update(GameBoard *board);
