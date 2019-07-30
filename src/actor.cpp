@@ -155,11 +155,12 @@ void Actor::addItem(Item &item)
   m_carryWeight += item.getWeight();
 }
 
-/* Removes an Item from inventory*/
+/* Removes an Item from inventory, adjusting carry weight as needed*/
 void Actor::deleteItem(Item &item)
 {
-  if(m_inventory.size() <= 0 || item.isEquipped())
+  if(m_inventory.size() <= 0)
     return;
+  m_carryWeight -= item.getWeight();
   std::swap(item, m_inventory.back());
   m_inventory.pop_back();
   //This may hurt performance, but is useful after chests with lots of items are emptied
@@ -167,7 +168,7 @@ void Actor::deleteItem(Item &item)
     m_inventory.shrink_to_fit();
 }
 
-/* Place's inventory item into armor slot; checks if valid*/
+/* Places inventory item into armor slot; checks if valid*/
 void Actor::equipArmor(int index, int position)
 {
   using index_t = std::vector<Item>::size_type;
@@ -177,23 +178,24 @@ void Actor::equipArmor(int index, int position)
 
   if(m_armor[position].isEquipped())
   {
-    //If Item already in slot, put back in inventory
+    //If another Item already in slot, put it back in inventory
     m_armor[position].setEquip(false);
-    m_inventory.push_back(m_armor[position]);
+    addItem(m_armor[position]);
   }
   //After adding new Item to armor slot, delete from inventory
   m_armor[position] = m_inventory[index];
   m_armor[position].setEquip(true);
-  m_inventory.erase(m_inventory.begin()+index);
+  deleteItem(m_inventory[index]);
 }
 
 /* Removes inventory item from armor slot; checks if valid*/
 void Actor::deequipArmor(int position)
 {
+  //Don't deequip default placeholder Items in array
   if(position < 0 || position >= ARMOR_MAX || !m_armor[position].isEquipped())
     return;
   m_armor[position].setEquip(false);
-  m_inventory.push_back(m_armor[position]);
+  addItem(m_armor[position]);
   m_armor[position] = 0;
 }
 
