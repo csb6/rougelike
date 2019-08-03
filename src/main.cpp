@@ -114,6 +114,28 @@ void GameBoard::loadMap(const std::string &path)
   }
 }
 
+/* Toggles cursor on/off; calls function pointer/disables cursor when called
+   and cursor active*/
+void GameBoard::bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, int, int))
+{
+  //Set-up action on first keypress
+  if(!m_screen.hasCursor())
+    m_screen.moveCursor(actor.getX(), actor.getY());
+  //Execute action, passing cursor position, on second keypress
+  else
+  {
+    int cursorX = m_screen.getCursorX();
+    int cursorY = m_screen.getCursorY();
+    if(isValid(cursorX, cursorY))
+    {
+      (this->*action)(actor, cursorX, cursorY);
+      m_screen.hideCursor();
+      m_screen.clear();
+      m_screen.draw(player(), currActor());
+    }
+  }
+}
+
 /* Checks with screen to see if any user input, then changes game state
    based on the event type (e.g. move player, resize screen) */
 bool GameBoard::processInput()
@@ -182,45 +204,12 @@ bool GameBoard::processInput()
       case 'D':
 	deequipItem(player());
 	break;
-      case 'r':
-      {
-	//Set-up ranged attack
-	if(!m_screen.hasCursor())
-	  m_screen.moveCursor(player().getX(), player().getY());
-	//Execute ranged attack
-	else
-	{
-	  int cursorX = m_screen.getCursorX();
-	  int cursorY = m_screen.getCursorY();
-	  if(isValid(cursorX, cursorY))
-	  {
-	    rangeAttack(player(), cursorX, cursorY);
-	    m_screen.hideCursor();
-	    m_screen.clear();
-	    m_screen.draw(player(), currActor());
-	  }
-	}
-      }
-	break;
 	//Controls for showing/moving cursor
+      case 'r':
+	bindCursorMode(player(), &GameBoard::rangeAttack);
+	break;
       case 't':
-      {
-	if(!m_screen.hasCursor())
-	  m_screen.moveCursor(player().getX(), player().getY());
-	else
-	{
-	  int cursorX = m_screen.getCursorX();
-	  int cursorY = m_screen.getCursorY();
-	  if(isValid(cursorX, cursorY))
-	  {
-	    log("Player teleported");
-	    moveActor(player(), cursorX, cursorY);
-	    m_screen.hideCursor();
-	    m_screen.clear();
-	    m_screen.draw(player(), currActor());
-	  }
-	}
-      }
+	bindCursorMode(player(), &GameBoard::moveActor);
 	break;
       }
     }
@@ -496,7 +485,7 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
   return false;
 }
 
-void GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
+bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
 {
   for(Actor &each : m_actors)
   {
@@ -507,7 +496,7 @@ void GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
       if(weapon == nullptr)
       {
 	log("No ranged weapon to use");
-	return;
+	return false;
       }
       if(weapon->isRanged())
       {
@@ -531,9 +520,11 @@ void GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
       }
       m_screen.clear();
       m_screen.draw(player(), currActor());
+      return true;
       break;
     }
   }
+  return false;
 }
 
 bool GameBoard::translateActor(Actor &actor, int dx, int dy)
