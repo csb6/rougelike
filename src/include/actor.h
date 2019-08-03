@@ -39,6 +39,7 @@ public:
   int getEnergy() const { return m_energy; }
   int getHealth() const { return m_health; }
   char getCh() const { return m_ch; }
+  void setCh(char ch) { m_ch = ch; }
   std::string getName() const { return m_name; }
   bool isTurn() const { return m_isTurn; }
   bool isAlive() const { return m_health > 0; }

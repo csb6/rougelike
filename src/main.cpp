@@ -14,7 +14,14 @@
 [ ] Add better, faster way to get ref to Item from an (x, y) coordinate
 [X] Add way to equip items/armor
 [ ] Tune combat/limit teleportation
-[ ] Adjust skills; maybe have teleport skill, use it to determine range?
+[ ] Adjust skills; maybe have teleport skill, use it to determine range? Maybe
+    use cunning skill?
+[ ] Reference melee skill and strength skill for attacking; factor in armor
+    and agility for defense
+[ ] Add player creation wizard with optional quickstart
+[ ] Add 'negotiate' option with monsters that generates funny dialogue
+    (e.g. low-negotiate skill player: "Hey, Commie bastard, want to surrender
+    so I can kill you somewhat quicker?")
 [ ] Find way to gracefully exit; use it in loadMap()'s error branch
 [ ] Add keybindings file loaded on start
 [ ] Add platform-specific way to find executable's current directory; see https://stackoverflow.com/q/143174
@@ -321,9 +328,6 @@ void GameBoard::changePos(Actor &actor, int newX, int newY)
   //Note: screen doesn't visibly change until screen.present() called in main loop
   int oldX = actor.getX();
   int oldY = actor.getY();
-  //Check to make sure not walking/teleporting too far
-  if(distanceFrom(oldX, oldY, newX, newY) >= 5)
-    return;
   actor.move(newX, newY);
   m_map[oldY][oldX] = 0;
   m_map[newY][newX] = actor.getCh();
@@ -446,8 +450,9 @@ void GameBoard::attack(Actor &attacker, int targetX, int targetY)
    pickup an Item at that position, or attack a Monster at that position*/
 bool GameBoard::moveActor(Actor &actor, int newX, int newY)
 {
-  //Check to make sure turn is respected/that position exists
-  if(!actor.isTurn() || !isValid(newX, newY))
+  //Check to make sure turn is respected/position exists/is within teleport range
+  if(!actor.isTurn() || !isValid(newX, newY)
+     || distanceFrom(actor.getX(), actor.getY(), newX, newY) >= 5)
     return false;
   //If tile is empty, move Actor to it
   if(m_map[newY][newX] == 0)
