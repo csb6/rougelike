@@ -36,7 +36,7 @@ public:
   void showEquipped(Actor &actor);
   void log(const std::string &text);
   void present();
-  bool isValid(int x, int y);
+  bool isValid(int x, int y) const;
   bool moveActor(Actor &actor, int newX, int newY);
   bool rangeAttack(Actor& attacker, int targetX, int targetY);
   bool translateActor(Actor &actor, int dx, int dy);

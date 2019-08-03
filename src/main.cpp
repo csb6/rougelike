@@ -18,7 +18,7 @@
     use cunning skill?
 [ ] Reference melee skill and strength skill for attacking; factor in armor
     and agility for defense
-[ ] Add ability to attack at range without teleport-meleeing
+[X] Add ability to attack at range without teleport-meleeing
 [ ] Add player creation wizard with optional quickstart
 [ ] Add 'negotiate' option with monsters that generates funny dialogue
     (e.g. low-negotiate skill player: "Hey, Commie bastard, want to surrender
@@ -325,7 +325,7 @@ void GameBoard::present()
 }
 
 /* Determines if a position is a valid one for an Actor to move into*/
-bool GameBoard::isValid(int x, int y)
+bool GameBoard::isValid(int x, int y) const
 {
   return x < MapWidth && x >= 0 && y < MapHeight && y >= 0;
 }
@@ -335,7 +335,6 @@ bool GameBoard::isValid(int x, int y)
    moveActor()*/
 void GameBoard::changePos(Actor &actor, int newX, int newY)
 {
-  //Move player, update map then screen buffer
   //Note: screen doesn't visibly change until screen.present() called in main loop
   int oldX = actor.getX();
   int oldY = actor.getY();
@@ -380,7 +379,7 @@ void GameBoard::deleteActor(Actor& actor)
     else if(pos == m_player_index)
       log("Player is dead/deleted");
     if(static_cast<vector_t>(m_turn_index) >= m_actors.size())
-      m_turn_index = m_actors.size() - 1;
+      m_turn_index = 0;
   }
 }
 
@@ -471,18 +470,19 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
   if(m_map[newY][newX] == 0)
   {
     changePos(actor, newX, newY);
-    return true;
   }
   //If an Item is in that position, try to pick it up
   else if(m_map[newY][newX] == 'i')
   {
     pickupItem(actor, newX, newY);
   }
-  else if(m_map[newY][newX] == 'M' && actor.getName() == "Player")
+  else if(m_map[newY][newX] == 'M' && actor == player())
   {
     melee(actor, newX, newY);
   }
-  return false;
+  else
+    return false;
+  return true;
 }
 
 bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
