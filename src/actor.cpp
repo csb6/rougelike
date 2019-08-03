@@ -70,7 +70,7 @@ bool multiSkillCheck(int *skills, int *otherSkills, int numberOfSkills)
 /* Creates new Actor (a monster/player) at the given position with a name/on-screen
   character representation*/
 Actor::Actor(int x, int y, std::string name, char ch)
-  : m_xPos(x), m_yPos(y), m_energy(0), m_ch(ch), m_name(name), m_isTurn(false), m_armor{0, 0, 0, 0}
+  : m_xPos(x), m_yPos(y), m_energy(0), m_ch(ch), m_name(name), m_isTurn(false), m_equipment{0, 0, 0, 0, 0, 0}
 {
   Item knife = Item(x, y, "Knife", 4);
   m_carryWeight += knife.getWeight();
@@ -96,7 +96,7 @@ void Actor::move(int newX, int newY)
 bool Actor::attack(Actor &target)
 {
   --m_energy;
-  if(actorWinsFight(m_strength, target.m_strength, m_armor, target.m_armor))
+  if(actorWinsFight(m_strength, target.m_strength, m_equipment, target.m_equipment))
   {
     target.addHealth(-5);
     m_levelProgress += 5;
@@ -168,43 +168,43 @@ void Actor::deleteItem(Item &item)
     m_inventory.shrink_to_fit();
 }
 
-/* Places inventory item into armor slot; checks if valid*/
-void Actor::equipArmor(int index, int position)
+/* Places inventory item into equip slot; checks if valid*/
+void Actor::equipItem(int index, int position)
 {
   using index_t = std::vector<Item>::size_type;
   if(index < 0 || static_cast<index_t>(index) >= m_inventory.size()
-     || position >= ARMOR_MAX || position < 0)
+     || position >= EQUIP_MAX || position < 0)
     return;
 
-  if(m_armor[position].isEquipped())
+  if(m_equipment[position].isEquipped())
   {
     //If another Item already in slot, put it back in inventory
-    m_armor[position].setEquip(false);
-    addItem(m_armor[position]);
+    m_equipment[position].setEquip(false);
+    addItem(m_equipment[position]);
   }
-  //After adding new Item to armor slot, delete from inventory
-  m_armor[position] = m_inventory[index];
-  m_armor[position].setEquip(true);
+  //After adding new Item to equip slot, delete from inventory
+  m_equipment[position] = m_inventory[index];
+  m_equipment[position].setEquip(true);
   deleteItem(m_inventory[index]);
 }
 
-/* Removes inventory item from armor slot; checks if valid*/
-void Actor::deequipArmor(int position)
+/* Removes inventory item from equip slot; checks if valid*/
+void Actor::deequipItem(int position)
 {
   //Don't deequip default placeholder Items in array
-  if(position < 0 || position >= ARMOR_MAX || !m_armor[position].isEquipped())
+  if(position < 0 || position >= EQUIP_MAX || !m_equipment[position].isEquipped())
     return;
-  m_armor[position].setEquip(false);
-  addItem(m_armor[position]);
-  m_armor[position] = 0;
+  m_equipment[position].setEquip(false);
+  addItem(m_equipment[position]);
+  m_equipment[position] = 0;
 }
 
-Item* Actor::getArmorAt(int index)
+Item* Actor::getEquipped(int index)
 {
   //Ignore default placeholder Items in array
-  if(index < 0 || index >= ARMOR_MAX || !m_armor[index].isEquipped())
+  if(index < 0 || index >= EQUIP_MAX || !m_equipment[index].isEquipped())
     return nullptr;
-  return &m_armor[index];
+  return &m_equipment[index];
 }
 
 /* Changes health points of Actor*/

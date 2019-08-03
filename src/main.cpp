@@ -18,6 +18,7 @@
     use cunning skill?
 [ ] Reference melee skill and strength skill for attacking; factor in armor
     and agility for defense
+[ ] Add ability to attack at range without teleport-meleeing
 [ ] Add player creation wizard with optional quickstart
 [ ] Add 'negotiate' option with monsters that generates funny dialogue
     (e.g. low-negotiate skill player: "Hey, Commie bastard, want to surrender
@@ -181,6 +182,26 @@ bool GameBoard::processInput()
       case 'D':
 	deequipItem(player());
 	break;
+      case 'r':
+      {
+	//Set-up ranged attack
+	if(!m_screen.hasCursor())
+	  m_screen.moveCursor(player().getX(), player().getY());
+	//Execute ranged attack
+	else
+	{
+	  int cursorX = m_screen.getCursorX();
+	  int cursorY = m_screen.getCursorY();
+	  if(isValid(cursorX, cursorY))
+	  {
+	    rangeAttack(player(), cursorX, cursorY);
+	    m_screen.hideCursor();
+	    m_screen.clear();
+	    m_screen.draw(player(), currActor());
+	  }
+	}
+      }
+	break;
 	//Controls for showing/moving cursor
       case 't':
       {
@@ -289,11 +310,12 @@ void GameBoard::showStats(Actor &actor)
 
 void GameBoard::showEquipped(Actor &actor)
 {
-  std::string labels[ARMOR_MAX] = {". Head: ", ". Chest: ", ". Legs: ", ". Feet: "};
+  std::string labels[EQUIP_MAX] = {". Head: ", ". Chest: ", ". Legs: ", ". Feet: ",
+				   ". Melee: ", ". Ranged: "};
   m_screen.printText(0, 0, actor.getName() + "'s Equipped Items: (ESC to exit)", TB_YELLOW);
-  for(int i=0; i<ARMOR_MAX; ++i)
+  for(int i=0; i<EQUIP_MAX; ++i)
   {
-    Item *item = actor.getArmorAt(i);
+    Item *item = actor.getEquipped(i);
     if(!item)
       m_screen.printText(0, i+1, std::to_string(i+1) + labels[i] + "Empty", TB_CYAN);
     else
@@ -373,12 +395,13 @@ void GameBoard::deleteActor(Actor& actor)
   }
 }
 
-/* Equips item in inventory into an Actor's armor slot*/
+/* Equips item in inventory into an Actor's equip slots*/
 void GameBoard::equipItem(Actor &actor)
 {
   int index = m_screen.input("Enter item #: ") - 1;
-  int pos = m_screen.input("Enter armor position [1-4]: ", 0, 1) - 1;
-  actor.equipArmor(index, pos);
+  int pos = m_screen.input("Enter equip position [1-"
+			   + std::to_string(EQUIP_MAX) + "]: ", 0, 1) - 1;
+  actor.equipItem(index, pos);
 
   m_screen.clear();
   m_screen.draw(player(), currActor());
@@ -387,8 +410,9 @@ void GameBoard::equipItem(Actor &actor)
 /* Deequips item from Actor's armor slot*/
 void GameBoard::deequipItem(Actor &actor)
 {
-  int pos = m_screen.input("Enter armor position [1-4]: ", 0, 1) - 1;
-  actor.deequipArmor(pos);
+  int pos = m_screen.input("Enter equip position [1-"
+			   + std::to_string(EQUIP_MAX) + "]: ", 0, 1) - 1;
+  actor.deequipItem(pos);
 
   m_screen.clear();
   m_screen.draw(player(), currActor());
@@ -422,7 +446,7 @@ void GameBoard::pickupItem(Actor &actor, int x, int y)
 /* Have given Actor attack an Actor at another position. If no Actor
    at that position, do nothing; private function, only to be called
    by moveActor()*/
-void GameBoard::attack(Actor &attacker, int targetX, int targetY)
+void GameBoard::melee(Actor &attacker, int targetX, int targetY)
 {
   for(Actor &each : m_actors)
   {
@@ -467,9 +491,49 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
   }
   else if(m_map[newY][newX] == 'M' && actor.getName() == "Player")
   {
-    attack(actor, newX, newY);
+    melee(actor, newX, newY);
   }
   return false;
+}
+
+void GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
+{
+  for(Actor &each : m_actors)
+  {
+    if(each.getX() == targetX && each.getY() == targetY)
+    {
+      //Figure out whether to throw/fire projectile
+      Item *weapon = attacker.getEquipped(RANGE_WEAPON);
+      if(weapon == nullptr)
+      {
+	log("No ranged weapon to use");
+	return;
+      }
+      if(weapon->isRanged())
+      {
+	//Fire projectile
+	//Attacker attempts to attack; print result (success/fail)
+	if(attacker.attack(each))
+	  log(attacker.getName() + " range attacked " + each.getName());
+	else
+	  log(each.getName() + " range attacked " + attacker.getName());
+      }
+      else
+      {
+	//Throw item
+	log("Item thrown");
+      }
+
+      if(!each.isAlive())
+      {
+	m_map[targetY][targetX] = 0;
+	deleteActor(each);
+      }
+      m_screen.clear();
+      m_screen.draw(player(), currActor());
+      break;
+    }
+  }
 }
 
 bool GameBoard::translateActor(Actor &actor, int dx, int dy)

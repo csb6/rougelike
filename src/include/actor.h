@@ -16,7 +16,7 @@ private:
 
   //Current Status - stats that change moment-to-moment from environment
   std::int_least16_t m_health = 15;
-  Item m_armor[ARMOR_MAX]; //Array of armor being worn; helmet, shirt, pants, boots
+  Item m_equipment[EQUIP_MAX]; //Items being worn; helmet, shirt, pants, boots, weapons
   std::vector<Item> m_inventory; //Contains items for player
 public:
   Actor(int x, int y, std::string name = "Monster", char ch = 'M');
@@ -29,9 +29,9 @@ public:
   Item& getItemAt(int index);
   void addItem(Item &item);
   void deleteItem(Item &item);
-  void equipArmor(int index, int position);
-  void deequipArmor(int position);
-  Item* getArmorAt(int index);
+  void equipItem(int index, int position);
+  void deequipItem(int position);
+  Item* getEquipped(int index);
   void addHealth(int amount);
   //Setters/Getters
   int getX() const { return m_xPos; }

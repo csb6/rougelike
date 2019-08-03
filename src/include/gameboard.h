@@ -24,7 +24,7 @@ private:
   void deequipItem(Actor &actor);
   void changePos(Actor &actor, int newX, int newY);
   void pickupItem(Actor &actor, int x, int y);
-  void attack(Actor &attacker, int targetX, int targetY);
+  void melee(Actor &attacker, int targetX, int targetY);
 public:
   GameBoard(bool &running, const std::string &mapPath);
   void loadMap(const std::string &path);
@@ -37,6 +37,7 @@ public:
   void present();
   bool isValid(int x, int y);
   bool moveActor(Actor &actor, int newX, int newY);
+  void rangeAttack(Actor& attacker, int targetX, int targetY);
   bool translateActor(Actor &actor, int dx, int dy);
   void movePlayer(int newX, int newY);
   void translatePlayer(int dx, int dy);
