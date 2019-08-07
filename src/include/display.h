@@ -22,9 +22,8 @@ typedef char LevelMap[MapWidth][MapHeight];
 
 class Actor;
 
-class Display
+class Display {
 //Purpose: Puts/manages content onscreen using termbox library
-{
 private:
   LevelMap &m_map;
   //m_screenWidth/Height are dimensions of onscreen area to contain tiles

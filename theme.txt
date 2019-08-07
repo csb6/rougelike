@@ -1,5 +1,7 @@
 Rougelike Theme
 
+Title: Tele-Comrade
+
 You are an "elite" foot soldier of the United States of America. It is your duty as your nation's (ahem) finest warrior to descend into a dungeon of Communist abominations and assassinate General Secretary Pinko, the devious and genius scientist behind the terrifying monsters you encounter.
 
 Monsters include:

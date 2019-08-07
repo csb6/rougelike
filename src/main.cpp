@@ -4,8 +4,6 @@
     then be loaded when the program starts
 [ ] Add way to save/load
 [ ] Add way to drop items onto map (remove from inventory)
-[ ] Remove bool returns for moveActor() when Monster AI in update() no longer
-    needs it
 [ ] Add basic test suite for key functionality (see old RPG code)
 [X] Add RNG functionality (see old RPG code)
 [ ] Factor out input functionality into separate Input class which takes
@@ -19,7 +17,7 @@
 [ ] Reference melee skill and strength skill for attacking; factor in armor
     and agility for defense
 [X] Add ability to attack at range without teleport-meleeing
-[ ] Add player creation wizard with optional quickstart
+[X] Add player creation wizard with optional quickstart
 [ ] Add 'negotiate' option with monsters that generates funny dialogue
     (e.g. low-negotiate skill player: "Hey, Commie bastard, want to surrender
     so I can kill you somewhat quicker?")
@@ -40,14 +38,16 @@ int distanceFrom(int x1, int y1, int x2, int y2)
 
 /* Creates a new board linking to the termbox screen; opens/loads
    the given map, and sets up in-game GUI*/
-GameBoard::GameBoard(bool &running, const std::string &mapPath)
+GameBoard::GameBoard(bool &running, Actor playerCh, const std::string &mapPath)
   : m_running(running), m_map{}, m_screen(m_map), m_player_index(0), m_turn_index(0)
 {
+  m_actors.push_back(playerCh);
+  m_player_index = 0;
+  m_turn_index = m_player_index;
   loadMap(mapPath);
   //When doing turns, will start iterating through m_actors backward
   //so deletions of Actors are easy/safe; however, 1st turn should be the
   //player's
-  m_turn_index = m_player_index;
   player().setTurn(true);
   //Show initial map, centered at player's current position
   m_screen.draw(player(), currActor());
@@ -58,16 +58,13 @@ GameBoard::GameBoard(bool &running, const std::string &mapPath)
 void GameBoard::loadMap(const std::string &path)
 {
   //First, make all tiles empty tiles
-  for(int row=0; row<MapHeight; ++row)
-  {
-    for(int col=0; col<MapWidth; ++col)
-    {
+  for(int row=0; row<MapHeight; ++row) {
+    for(int col=0; col<MapWidth; ++col) {
       m_map[row][col] = 0;
     }
   }
   std::ifstream mapFile(path);
-  if(!mapFile)
-  {
+  if(!mapFile) {
     std::cerr << "Error: could not load map file\n";
     exit(1);
   }
@@ -79,31 +76,26 @@ void GameBoard::loadMap(const std::string &path)
     std::string line;
     std::getline(mapFile, line);
     int col = 0;
-    for(std::string::size_type pos=0; pos<line.size(); ++pos)
-    {
+    for(std::string::size_type pos=0; pos<line.size(); ++pos) {
       if(col >= MapWidth)
 	break;
       if(line[pos] == ',' || line[pos] == '\n' || line[pos] == '\r')
 	continue;
       else if(line[pos] == '0')
 	++col;
-      else
-      {
+      else {
 	//All Actors need to be in m_actors list/have char in m_map
 	m_map[row][col] = line[pos];
-	if(line[pos] == '@')
-	{
-	  //Need to have accurate index for player object
-	  m_player_index = m_actors.size();
-	  m_actors.push_back(Actor(col, row, "Player", '@'));
+	if(line[pos] == '@') {
+	  //Need to have accurate positioning for player object
+	  player().move(col, row);
+	  player().setCh('@');
 	}
-	else if(line[pos] == 'M')
-	{
+	else if(line[pos] == 'M') {
 	  //Add Monster to Actor list
 	  m_actors.push_back(Actor(col, row));
 	}
-	else if(line[pos] == 'i')
-	{
+	else if(line[pos] == 'i') {
 	  //Add Item to Item list
 	  m_items.push_back(Item(col, row));
 	}
@@ -122,12 +114,10 @@ void GameBoard::bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, i
   if(!m_screen.hasCursor())
     m_screen.moveCursor(actor.getX(), actor.getY());
   //Execute action, passing cursor position, on second keypress
-  else
-  {
+  else {
     int cursorX = m_screen.getCursorX();
     int cursorY = m_screen.getCursorY();
-    if(isValid(cursorX, cursorY))
-    {
+    if(isValid(cursorX, cursorY)) {
       (this->*action)(actor, cursorX, cursorY);
       m_screen.hideCursor();
       m_screen.clear();
@@ -219,8 +209,7 @@ bool GameBoard::processInput()
     m_screen.clear();
     if(!m_screen.largeEnough())
       m_screen.printText(1, 1, "Error: screen not large enough");
-    else
-    {
+    else {
       //Redraw as much of map as possible
       m_screen.draw(player(), currActor());
     }
@@ -235,8 +224,7 @@ void GameBoard::updateActors()
 {
   //Check if actor with current turn is done;
   //if so, move turn to next actor, update screen
-  if(!currActor().isTurn())
-  {
+  if(!currActor().isTurn()) {
     if(--m_turn_index == -1)
       m_turn_index = m_actors.size() - 1;
     currActor().setTurn(true);
@@ -245,8 +233,7 @@ void GameBoard::updateActors()
   }
 
   int i = m_turn_index;
-  do
-  {
+  do {
     m_actors[i].update(this);
     if(--i == -1)
       i = m_actors.size() - 1;
@@ -260,10 +247,8 @@ void GameBoard::showInventory(Actor &actor)
   m_screen.printText(0, 1, "E) Equip item, D) Deequip item", TB_YELLOW);
   int size = actor.getInventorySize();
   int row = 2;
-  if(size > 0)
-  {
-    for(int i=0; i<size; ++i)
-    {
+  if(size > 0) {
+    for(int i=0; i<size; ++i) {
       Item& item = actor.getItemAt(i);
       m_screen.printText(0, row, " " + std::to_string(i+1) + ". " + item.getName()
 			 + " - Weight: " + std::to_string(item.getWeight())
@@ -302,10 +287,9 @@ void GameBoard::showEquipped(Actor &actor)
   std::string labels[EQUIP_MAX] = {". Head: ", ". Chest: ", ". Legs: ", ". Feet: ",
 				   ". Melee: ", ". Ranged: "};
   m_screen.printText(0, 0, actor.getName() + "'s Equipped Items: (ESC to exit)", TB_YELLOW);
-  for(int i=0; i<EQUIP_MAX; ++i)
-  {
+  for(int i=0; i<EQUIP_MAX; ++i) {
     Item *item = actor.getEquipped(i);
-    if(!item)
+    if(item == nullptr)
       m_screen.printText(0, i+1, std::to_string(i+1) + labels[i] + "Empty", TB_CYAN);
     else
       m_screen.printText(0, i+1, std::to_string(i+1) + labels[i] + item->getName(), TB_CYAN);
@@ -349,8 +333,7 @@ void GameBoard::changePos(Actor &actor, int newX, int newY)
 /* Removes given Item from m_items*/
 void GameBoard::deleteItem(Item& item)
 {
-  if(m_items.size() > 0)
-  {
+  if(m_items.size() > 0) {
     std::swap(item, m_items.back());
     m_items.pop_back();
   }
@@ -359,13 +342,11 @@ void GameBoard::deleteItem(Item& item)
 /* Removes given Actor from m_actors*/
 void GameBoard::deleteActor(Actor& actor)
 {
-  if(m_actors.size() > 0)
-  {
+  if(m_actors.size() > 0) {
     using vector_t = std::vector<Actor>::size_type;
     //Find the Actor's position in m_actors of Actor for erase()
     auto pos = std::find(m_actors.begin(), m_actors.end(), actor) - m_actors.begin();
-    if(static_cast<vector_t>(pos) >= m_actors.size())
-    {
+    if(static_cast<vector_t>(pos) >= m_actors.size()) {
       log("Error: no Actor at" + std::to_string(actor.getX()) + ", "
 	  + std::to_string(actor.getY()));
       return;
@@ -410,13 +391,10 @@ void GameBoard::deequipItem(Actor &actor)
    position; private function, only to be called by moveActor()*/
 void GameBoard::pickupItem(Actor &actor, int x, int y)
 {
-  for(Item& each : m_items)
-  {
+  for(Item& each : m_items) {
     //Find existing Item at the given position
-    if(each.getX() == x && each.getY() == y)
-    {
-      if(actor.canCarry(each.getWeight()))
-      {
+    if(each.getX() == x && each.getY() == y) {
+      if(actor.canCarry(each.getWeight())) {
 	actor.addItem(each);
 	//Item now in Actor inventory, not on map, so stop tracking
 	deleteItem(each);
@@ -436,18 +414,15 @@ void GameBoard::pickupItem(Actor &actor, int x, int y)
    by moveActor()*/
 void GameBoard::melee(Actor &attacker, int targetX, int targetY)
 {
-  for(Actor &each : m_actors)
-  {
-    if(each.getX() == targetX && each.getY() == targetY)
-    {
+  for(Actor &each : m_actors) {
+    if(each.getX() == targetX && each.getY() == targetY) {
       //Attacker attempts to attack; print result (success/fail)
       if(attacker.attack(each))
 	log(attacker.getName() + " attacked " + each.getName());
       else
 	log(each.getName() + " attacked " + attacker.getName());
 
-      if(!each.isAlive())
-      {
+      if(!each.isAlive()) {
 	m_map[targetY][targetX] = 0;
 	deleteActor(each);
       }
@@ -467,17 +442,14 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
      || distanceFrom(actor.getX(), actor.getY(), newX, newY) >= 5)
     return false;
   //If tile is empty, move Actor to it
-  if(m_map[newY][newX] == 0)
-  {
+  if(m_map[newY][newX] == 0) {
     changePos(actor, newX, newY);
   }
   //If an Item is in that position, try to pick it up
-  else if(m_map[newY][newX] == 'i')
-  {
+  else if(m_map[newY][newX] == 'i') {
     pickupItem(actor, newX, newY);
   }
-  else if(m_map[newY][newX] == 'M' && actor == player())
-  {
+  else if(m_map[newY][newX] == 'M' && actor == player()) {
     melee(actor, newX, newY);
   }
   else
@@ -487,19 +459,15 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
 
 bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
 {
-  for(Actor &each : m_actors)
-  {
-    if(each.getX() == targetX && each.getY() == targetY)
-    {
+  for(Actor &each : m_actors) {
+    if(each.getX() == targetX && each.getY() == targetY) {
       //Figure out whether to throw/fire projectile
       Item *weapon = attacker.getEquipped(RANGE_WEAPON);
-      if(weapon == nullptr)
-      {
+      if(weapon == nullptr) {
 	log("No ranged weapon to use");
 	return false;
       }
-      if(weapon->isRanged())
-      {
+      if(weapon->isRanged()) {
 	//Fire projectile
 	//Attacker attempts to attack; print result (success/fail)
 	if(attacker.attack(each))
@@ -507,14 +475,12 @@ bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
 	else
 	  log(each.getName() + " range attacked " + attacker.getName());
       }
-      else
-      {
+      else {
 	//Throw item
 	log("Item thrown");
       }
 
-      if(!each.isAlive())
-      {
+      if(!each.isAlive()) {
 	m_map[targetY][targetX] = 0;
 	deleteActor(each);
       }
@@ -545,13 +511,104 @@ void GameBoard::translatePlayer(int dx, int dy)
   translateActor(player(), dx, dy);
 }
 
+
+int inputSkill(int index, const std::string &message)
+{
+  std::cout << index+1 << ". "<< message;
+  int skillValue;
+  std::cin >> skillValue;
+  return skillValue;
+}
+
+void inputAllSkills(std::string messages[], int responses[], int messagesLen, int maxPoints)
+{
+  int usedPoints(0);
+  int newPoints(0);
+  std::cout << "You have " << maxPoints << " points to use for the next "
+            << messagesLen << " categories.\n";
+  for(int i=0; i < messagesLen; ++i) {
+    do {
+      newPoints = inputSkill(i, messages[i]);
+      if(usedPoints + newPoints > maxPoints)
+	std::cout << "You don't have enough points to do that.\n";
+      else {
+	responses[i] = newPoints;
+	if(usedPoints + newPoints == maxPoints) {
+	  std::cout << "No more points available!\n\n";
+	  return;
+	}
+	usedPoints += newPoints;
+	std::cout << "\tPoints used: " << usedPoints << "\tPoints left: " << maxPoints-usedPoints
+		  << "\n";
+	break;
+      }
+    } while(true);
+  }
+}
+
+void assignSkills(Actor &actor, int skills[])
+{
+  actor.m_strength = skills[0];
+  actor.m_cunning = skills[1];
+  actor.m_agility = skills[2];
+  actor.m_education = skills[3];
+  actor.m_sidearmSkill = skills[4];
+  actor.m_longarmSkill = skills[5];
+  actor.m_meleeSkill = skills[6];
+  actor.m_vehicleSkill = skills[7];
+  actor.m_barterSkill = skills[8];
+  actor.m_negotiateSkill = skills[9];
+  actor.m_trapSkill = skills[10];
+}
+
+void skillSelection(Actor &actor)
+{
+  //Player character creation
+  int skills[SkillAmount];
+  std::string prompts[SkillAmount] = { "Enter strength: ", "Enter cunning: ",
+				       "Enter agility: ","Enter education: ",
+				       "Enter sidearmSkill: ", "Enter longarmSkill: ",
+				       "Enter meleeSkill: ", "Enter vehicleSkill: ",
+				       "Enter barterSkill: ", "Enter negotiateSkill: ",
+				       "Enter trapSkill: "};
+  while(true) {
+    std::fill(std::begin(skills), std::end(skills), 0);
+    std::cout << "Welcome to the game! Enter 'q' to quickstart or enter any other key for character creation:\n\n";
+    char response;
+    std::cin >> response;
+    if(response == 'q' or response == 'Q')
+      break;
+
+    //Custom character creation
+    std::cout << "Enter your name: ";
+    std::string name;
+    std::cin >> name;
+    inputAllSkills(prompts, skills, SkillAmount, MaxInitPoints);
+    std::cout << "Enter your name: " << name << "\n";
+    for(int i=0; i<SkillAmount; ++i) {
+      std::cout << prompts[i] << skills[i] << "\n";
+    }
+    std::cout << "\nIs the above how you want your character to look? [Y/n] ";
+    char choice;
+    std::cin >> choice;
+    if(choice == 'y' || choice == 'Y') {
+      actor.setName(name);
+      assignSkills(actor, skills);
+      break;
+    }
+  }
+}
+
 int main()
 {
+  Actor player(0, 0, "Player", '@');
+  skillSelection(player);
+
   bool running = true;
-  GameBoard board(running, "test-map1.csv");
+  GameBoard board(running, player, "test-map1.csv");
+
   //Start main game loop
-  while(running && board.processInput())
-  {
+  while(running && board.processInput()) {
     board.updateActors();
     board.present();
   }

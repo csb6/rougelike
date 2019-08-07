@@ -5,9 +5,10 @@
 class GameBoard;
 
 const int RNGUpperLimit = 100;
+const int SkillAmount = 11; //Number of skills (e.g. strengh, agility, etc.)
+const int MaxInitPoints = 25; //Total pts doled out at character creation
 
-class Actor
-{
+class Actor {
 private:
   int /*m_id,*/ m_xPos, m_yPos, m_energy;
   char m_ch; //character representing this Actor on board
@@ -19,7 +20,7 @@ private:
   Item m_equipment[EQUIP_MAX]; //Items being worn; helmet, shirt, pants, boots, weapons
   std::vector<Item> m_inventory; //Contains items for player
 public:
-  Actor(int x, int y, std::string name = "Monster", char ch = 'M');
+  Actor(int x = 0, int y = 0, std::string name = "Monster", char ch = 'M');
   bool operator==(const Actor &other) const;
   void move(int newX, int newY);
   bool attack(Actor &target);
@@ -40,6 +41,7 @@ public:
   int getHealth() const { return m_health; }
   char getCh() const { return m_ch; }
   void setCh(char ch) { m_ch = ch; }
+  void setName(std::string name) { m_name = name; }
   std::string getName() const { return m_name; }
   bool isTurn() const { return m_isTurn; }
   bool isAlive() const { return m_health > 0; }

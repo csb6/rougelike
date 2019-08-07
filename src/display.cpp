@@ -18,8 +18,7 @@ Display::Display(LevelMap &map)
   int errorStatus = tb_init();
   if(errorStatus < 0)
     std::cout << "Error: Couldn't start termbox; code " << errorStatus << "\n";
-  if(!largeEnough())
-  {
+  if(!largeEnough()) {
     clear();
     printText(1, 1, "Error: screen not large enough");
   }
@@ -71,8 +70,7 @@ void Display::moveCursor(int x, int y)
 
 void Display::translateCursor(int dx, int dy)
 {
-  if(m_cursorX != -1 && m_cursorY != -1)
-  {
+  if(m_cursorX != -1 && m_cursorY != -1) {
     m_cursorY += dy;
     m_cursorX += dx;
     tb_set_cursor(m_cursorX, m_cursorY);
@@ -112,12 +110,10 @@ void Display::printText(int col, int row, const std::string text,
     return;
   int x = col;
   int y = row;
-  for(std::string::size_type i=0; i<text.length(); ++i)
-  {
+  for(std::string::size_type i=0; i<text.length(); ++i) {
     putChar(x, y, text[i], fg, bg);
     ++x;
-    if(x >= tb_width())
-    {
+    if(x >= tb_width()) {
       x = col;
       ++y;
     }
@@ -134,8 +130,7 @@ int Display::input(const std::string msg, int col, int row)
   col += msg.size();
 
   std::string num;
-  while(getInput())
-  {
+  while(getInput()) {
     switch(getEventType())
     {
       //Respond to user key presses
@@ -149,8 +144,7 @@ int Display::input(const std::string msg, int col, int row)
       case TB_KEY_BACKSPACE:
       case TB_KEY_BACKSPACE2:
 	//Only backspace if there's something to delete
-	if(num.size() > 0)
-	{
+	if(num.size() > 0) {
 	  clearChar(--col, row);
 	  num.pop_back();
 	}
@@ -161,8 +155,7 @@ int Display::input(const std::string msg, int col, int row)
       default:
 	//If not a key combo, look at individual keys
 	char key = getEventChar();
-	if(key >= '0' && key <= '9')
-	{
+	if(key >= '0' && key <= '9') {
 	  num += key;
 	  putChar(col++, row, key);
 	}
@@ -179,13 +172,11 @@ int Display::input(const std::string msg, int col, int row)
    events as they occur*/
 void Display::log(const std::string &text)
 {
-  if(m_logRow >= MaxLogSize)
-  {
+  if(m_logRow >= MaxLogSize) {
     std::rotate(begin(m_log), begin(m_log)+1, end(m_log));
     m_log[MaxLogSize-1] = text;
   }
-  else
-  {
+  else {
     m_log[m_logRow] = text;
     ++m_logRow;
   }
@@ -199,15 +190,13 @@ void Display::printTextCol(int gridCol, const std::string text,
 {
   if(gridCol < m_textCol)
     return;
-  else if(gridCol == m_textCol)
-  {
+  else if(gridCol == m_textCol) {
     printText(m_textX, boardHeight()+m_textY, text, fg, bg);
     if(static_cast<int>(text.size()) > m_textMaxWidth)
       m_textMaxWidth = text.size();
     ++m_textY;
   }
-  else
-  {
+  else {
     m_textCol = gridCol;
     //Offset next column by some amount of space
     m_textX += (m_textMaxWidth + 2);
@@ -246,8 +235,7 @@ void Display::drawGUI(Actor &player, Actor &currActor)
 
   //Draw event log
   int row = 0;
-  while(row < tb_height() && row < m_logRow)
-  {
+  while(row < tb_height() && row < m_logRow) {
     printText(m_screenWidth, row, m_log[row]);
     ++row;
   }
@@ -269,10 +257,8 @@ void Display::draw(Actor &player, Actor &currActor)
   //Calculate where to start drawing from so player stays centered (if possible)
   m_cornerX = getCameraCoord(player.getX(), true);
   m_cornerY = getCameraCoord(player.getY(), false);
-  for(int y=m_cornerY; y<(m_cornerY+m_screenHeight); ++y)
-  {
-    for(int x=m_cornerX; x<(m_cornerX+m_screenWidth); ++x)
-    {
+  for(int y=m_cornerY; y<(m_cornerY+m_screenHeight); ++y) {
+    for(int x=m_cornerX; x<(m_cornerX+m_screenWidth); ++x) {
       int col = convertCoord(x, true);
       int row = convertCoord(y, false);
       if(m_map[y][x])

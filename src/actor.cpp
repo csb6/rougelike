@@ -29,8 +29,7 @@ bool actorWins(int skillAmt, int otherSkillAmt)
 int getArmorBonus(int skillAmt, Item *armor)
 {
   int armorBonus = 0;
-  for(int i=0; i<ARMOR_MAX; ++i)
-  {
+  for(int i=0; i<ARMOR_MAX; ++i) {
     //Add to total bonus based on armor value (better armor -> more bonus)
     armorBonus += armor[i].getArmor();
   }
@@ -96,14 +95,12 @@ void Actor::move(int newX, int newY)
 bool Actor::attack(Actor &target)
 {
   --m_energy;
-  if(actorWinsFight(m_strength, target.m_strength, m_equipment, target.m_equipment))
-  {
+  if(actorWinsFight(m_strength, target.m_strength, m_equipment, target.m_equipment)) {
     target.addHealth(-5);
     m_levelProgress += 5;
     return true;
   }
-  else
-  {
+  else {
     addHealth(-5);
     return false;
   }
@@ -115,8 +112,7 @@ void Actor::update(GameBoard *board)
 {
   //Simple, dumb AI that just moves right until hitting wall/running out
   //of energy; ending turn
-  if(m_isTurn && m_name != "Player")
-  {
+  if(m_isTurn && m_name != "Player") {
     bool moved = board->translateActor(*this, 1, 0);
     if(!moved)
       m_isTurn = false;
@@ -176,8 +172,7 @@ void Actor::equipItem(int index, int position)
      || position >= EQUIP_MAX || position < 0)
     return;
 
-  if(m_equipment[position].isEquipped())
-  {
+  if(m_equipment[position].isEquipped()) {
     //If another Item already in slot, put it back in inventory
     m_equipment[position].setEquip(false);
     addItem(m_equipment[position]);

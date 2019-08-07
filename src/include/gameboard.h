@@ -2,10 +2,9 @@
 #define GAMEBOARD_H
 #include "display.h"
 #include "actor.h"
-class GameBoard
+class GameBoard {
 //Purpose: To represent the game map/the actors/pieces on it, as well as to
 //    handle user input for controlling the player
-{
 private:
   bool &m_running;
   LevelMap m_map;
@@ -27,7 +26,7 @@ private:
   void melee(Actor &attacker, int targetX, int targetY);
   void bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, int, int));
 public:
-  GameBoard(bool &running, const std::string &mapPath);
+  GameBoard(bool &running, Actor playerCh, const std::string &mapPath);
   void loadMap(const std::string &path);
   bool processInput();
   void updateActors();

@@ -3,8 +3,7 @@
 #include <string>
 #include <vector>
 
-enum Equipment
-{
+enum Equipment {
  ARMOR_HELMET,
  ARMOR_CHEST,
  ARMOR_PANTS,
@@ -16,8 +15,7 @@ enum Equipment
 
 const int ARMOR_MAX = ARMOR_BOOTS + 1;
 
-class Item
-{
+class Item {
 private:
   int m_xPos, m_yPos, m_id, m_weight;
   std::string m_name;
