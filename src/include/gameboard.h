@@ -6,34 +6,33 @@ class GameBoard {
 //Purpose: To represent the game map/the actors/pieces on it, as well as to
 //    handle user input for controlling the player
 private:
-  bool &m_running;
   LevelMap m_map;
-  Display m_screen;
+  Display &m_screen;
   //m_player_index is always location of player object in m_actors
   int m_player_index;
   //m_turn_index is always location of object whose turn it is in m_actors
   int m_turn_index;
   std::vector<Item> m_items;
   std::vector<Actor> m_actors;
-  inline Actor& player() { return m_actors[m_player_index]; }
-  inline Actor& currActor() { return m_actors[m_turn_index]; }
   void deleteItem(Item &item);
   void deleteActor(Actor &actor);
-  void equipItem(Actor &actor);
-  void deequipItem(Actor &actor);
   void changePos(Actor &actor, int newX, int newY);
   void pickupItem(Actor &actor, int x, int y);
   void melee(Actor &attacker, int targetX, int targetY);
-  void bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, int, int));
 public:
-  GameBoard(bool &running, Actor playerCh, const std::string &mapPath);
+  GameBoard(Display &screen, Actor playerCh, const std::string &mapPath);
+  inline Actor& player() { return m_actors[m_player_index]; }
+  inline Actor& currActor() { return m_actors[m_turn_index]; }
   void loadMap(const std::string &path);
-  bool processInput();
+  void bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, int, int));
   void updateActors();
   void showInventory(Actor &actor);
   void showStats(Actor &actor);
   void showEquipped(Actor &actor);
+  void equipItem(Actor &actor);
+  void deequipItem(Actor &actor);
   void log(const std::string &text);
+  void redraw();
   void present();
   bool isValid(int x, int y) const;
   bool moveActor(Actor &actor, int newX, int newY);

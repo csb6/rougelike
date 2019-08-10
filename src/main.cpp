@@ -26,6 +26,7 @@
 [ ] Add platform-specific way to find executable's current directory; see https://stackoverflow.com/q/143174
 */
 #include "include/gameboard.h"
+#include "include/input.h"
 #include <fstream>
 #include <iostream>
 #include <cmath>
@@ -38,8 +39,8 @@ int distanceFrom(int x1, int y1, int x2, int y2)
 
 /* Creates a new board linking to the termbox screen; opens/loads
    the given map, and sets up in-game GUI*/
-GameBoard::GameBoard(bool &running, Actor playerCh, const std::string &mapPath)
-  : m_running(running), m_map{}, m_screen(m_map), m_player_index(0), m_turn_index(0)
+GameBoard::GameBoard(Display &screen, Actor playerCh, const std::string &mapPath)
+  : m_map{}, m_screen(screen), m_player_index(0), m_turn_index(0)
 {
   m_actors.push_back(playerCh);
   m_player_index = 0;
@@ -50,7 +51,7 @@ GameBoard::GameBoard(bool &running, Actor playerCh, const std::string &mapPath)
   //player's
   player().setTurn(true);
   //Show initial map, centered at player's current position
-  m_screen.draw(player(), currActor());
+  m_screen.draw(m_map, player(), currActor());
 }
 
 /* Fills 2d array with tiles from given map file, instantiating
@@ -121,101 +122,9 @@ void GameBoard::bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, i
       (this->*action)(actor, cursorX, cursorY);
       m_screen.hideCursor();
       m_screen.clear();
-      m_screen.draw(player(), currActor());
+      m_screen.draw(m_map, player(), currActor());
     }
   }
-}
-
-/* Checks with screen to see if any user input, then changes game state
-   based on the event type (e.g. move player, resize screen) */
-bool GameBoard::processInput()
-{
-  if(!m_screen.getInput())
-    return false;
-  switch(m_screen.getEventType())
-  {
-  //Respond to user key presses
-  case TB_EVENT_KEY:
-    //First, look at key combos
-    switch(m_screen.getEventKey())
-    {
-    case TB_KEY_CTRL_X:
-    case TB_KEY_CTRL_C:
-      //Stop program immediately
-      m_running = false;
-      break;
-    case TB_KEY_ESC:
-      //Redraws whole screen (useful for exiting inventory subscreen, etc.)
-      m_screen.clear();
-      m_screen.hideCursor();
-      m_screen.draw(player(), currActor());
-      break;
-      //Basic player movement
-    case TB_KEY_ARROW_RIGHT:
-      if(!m_screen.hasCursor())
-	translatePlayer(1, 0);
-      else
-	m_screen.translateCursor(1, 0);
-      break;
-    case TB_KEY_ARROW_LEFT:
-      if(!m_screen.hasCursor())
-	translatePlayer(-1, 0);
-      else
-	m_screen.translateCursor(-1, 0);
-      break;
-    case TB_KEY_ARROW_UP:
-      if(!m_screen.hasCursor())
-	translatePlayer(0, -1);
-      else
-	m_screen.translateCursor(0, -1);
-      break;
-    case TB_KEY_ARROW_DOWN:
-      if(!m_screen.hasCursor())
-	translatePlayer(0, 1);
-      else
-	m_screen.translateCursor(0, 1);
-      break;
-    default:
-      //If not a key combo, look at individual keys
-      switch(m_screen.getEventChar())
-      {
-      case 'i':
-	showInventory(player());
-	break;
-      case '@':
-	showStats(player());
-	break;
-      case 'e':
-	showEquipped(player());
-	break;
-      case 'E':
-	equipItem(player());
-	break;
-      case 'D':
-	deequipItem(player());
-	break;
-	//Controls for showing/moving cursor
-      case 'r':
-	bindCursorMode(player(), &GameBoard::rangeAttack);
-	break;
-      case 't':
-	bindCursorMode(player(), &GameBoard::moveActor);
-	break;
-      }
-    }
-    break;
-  //Adjust screen if window is resized
-  case TB_EVENT_RESIZE:
-    m_screen.clear();
-    if(!m_screen.largeEnough())
-      m_screen.printText(1, 1, "Error: screen not large enough");
-    else {
-      //Redraw as much of map as possible
-      m_screen.draw(player(), currActor());
-    }
-    break;
-  }
-  return true;
 }
 
 /* Calls update functions on all actors currently on the board,
@@ -229,7 +138,7 @@ void GameBoard::updateActors()
       m_turn_index = m_actors.size() - 1;
     currActor().setTurn(true);
     m_screen.clear();
-    m_screen.draw(player(), currActor());
+    m_screen.draw(m_map, player(), currActor());
   }
 
   int i = m_turn_index;
@@ -303,6 +212,14 @@ void GameBoard::log(const std::string &text)
   m_screen.log(text);
 }
 
+void GameBoard::redraw()
+{
+  //Redraws whole screen (useful for exiting inventory subscreen, etc.)
+  m_screen.clear();
+  m_screen.hideCursor();
+  m_screen.draw(m_map, player(), currActor());
+}
+
 void GameBoard::present()
 {
   m_screen.present();
@@ -327,7 +244,7 @@ void GameBoard::changePos(Actor &actor, int newX, int newY)
   m_map[newY][newX] = actor.getCh();
 
   m_screen.clear();
-  m_screen.draw(player(), currActor());
+  m_screen.draw(m_map, player(), currActor());
 }
 
 /* Removes given Item from m_items*/
@@ -373,7 +290,7 @@ void GameBoard::equipItem(Actor &actor)
   actor.equipItem(index, pos);
 
   m_screen.clear();
-  m_screen.draw(player(), currActor());
+  m_screen.draw(m_map, player(), currActor());
 }
 
 /* Deequips item from Actor's armor slot*/
@@ -384,7 +301,7 @@ void GameBoard::deequipItem(Actor &actor)
   actor.deequipItem(pos);
 
   m_screen.clear();
-  m_screen.draw(player(), currActor());
+  m_screen.draw(m_map, player(), currActor());
 }
 
 /* Picks up an Item at given coords if one can be found at that
@@ -402,7 +319,7 @@ void GameBoard::pickupItem(Actor &actor, int x, int y)
 	log(actor.getName() + " picked up " + each.getName());
 
 	m_screen.clear();
-	m_screen.draw(player(), currActor());
+	m_screen.draw(m_map, player(), currActor());
       }
       break;
     }
@@ -427,7 +344,7 @@ void GameBoard::melee(Actor &attacker, int targetX, int targetY)
 	deleteActor(each);
       }
       m_screen.clear();
-      m_screen.draw(player(), currActor());
+      m_screen.draw(m_map, player(), currActor());
       break;
     }
   }
@@ -485,7 +402,7 @@ bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
 	deleteActor(each);
       }
       m_screen.clear();
-      m_screen.draw(player(), currActor());
+      m_screen.draw(m_map, player(), currActor());
       return true;
       break;
     }
@@ -605,10 +522,12 @@ int main()
   skillSelection(player);
 
   bool running = true;
-  GameBoard board(running, player, "test-map1.csv");
+  Display screen;
+  GameBoard board(screen, player, "test-map1.csv");
+  Input device(running, screen, board);
 
   //Start main game loop
-  while(running && board.processInput()) {
+  while(running && device.process()) {
     board.updateActors();
     board.present();
   }

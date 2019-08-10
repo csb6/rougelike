@@ -10,8 +10,8 @@ static_assert(MaxLogSize <= MinDisplayHeight, "Log too tall");
 
 /* Creates an object that manages access of/content in screen display, starting
    up termbox library, checking for errors/appropriate screen size*/
-Display::Display(LevelMap &map)
-  : m_map(map), m_cursorX(-1), m_cursorY(-1), m_cornerX(0), m_cornerY(0),
+Display::Display()
+  : m_cursorX(-1), m_cursorY(-1), m_cornerX(0), m_cornerY(0),
     m_event{0, 0, 0, 0, 0, 0, 0, 0}, m_textCol(0), m_textX(0), m_textY(0),
     m_textMaxWidth(0), m_log{}, m_logRow(0)
 {
@@ -249,7 +249,7 @@ void Display::drawGUI(Actor &player, Actor &currActor)
 
 /* Places all non-empty tiles centered around the player into the screen buffer,
    stopping when there is no more room. Respects area left for GUI */
-void Display::draw(Actor &player, Actor &currActor)
+void Display::draw(LevelMap &map, Actor &player, Actor &currActor)
 {
   //Screen may be smaller than map, so display as much as possible
   m_screenWidth = std::min(boardWidth(), MapWidth);
@@ -261,8 +261,8 @@ void Display::draw(Actor &player, Actor &currActor)
     for(int x=m_cornerX; x<(m_cornerX+m_screenWidth); ++x) {
       int col = convertCoord(x, true);
       int row = convertCoord(y, false);
-      if(m_map[y][x])
-	putChar(col, row, m_map[y][x]);
+      if(map[y][x])
+	putChar(col, row, map[y][x]);
       else
 	putChar(col, row, '.');
     }

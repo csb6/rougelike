@@ -25,7 +25,6 @@ class Actor;
 class Display {
 //Purpose: Puts/manages content onscreen using termbox library
 private:
-  LevelMap &m_map;
   //m_screenWidth/Height are dimensions of onscreen area to contain tiles
   int m_cursorX, m_cursorY;
   int m_screenWidth, m_screenHeight, m_cornerX, m_cornerY;
@@ -44,7 +43,7 @@ private:
   void putChar(int col, int row, char letter,
 	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
 public:
-  Display(LevelMap &map);
+  Display();
   ~Display();
   inline int convertCoord(int coord, bool isX);
   bool getInput();
@@ -64,7 +63,7 @@ public:
   int getCameraCoord(int playerCoord, bool isX);
   //Note: draw functions alter screen buffer; must call present() to push to display
   void drawGUI(Actor &player, Actor &currActor);
-  void draw(Actor &player, Actor &currActor);
+  void draw(LevelMap &map, Actor &player, Actor &currActor);
   //Setters/Getters
   void clear() { tb_clear(); }
   void present() { tb_present(); }
