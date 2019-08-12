@@ -1,7 +1,6 @@
 #include "include/item.h"
 
-///Global ID generator - should be included in all .cpp files
-int generateId()
+static int generateId()
 {
   static int id = -1;
   ++id;

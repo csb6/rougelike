@@ -42,10 +42,12 @@ private:
   void clearChar(int col, int row);
   void putChar(int col, int row, char letter,
 	       const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
+  int getCameraCoord(int playerCoord, bool isX);
+  void drawGUI(Actor &player, Actor &currActor);
+  inline int convertCoord(int coord, bool isX);
 public:
   Display();
   ~Display();
-  inline int convertCoord(int coord, bool isX);
   bool getInput();
   //x and y = coords in terms of game map, not display
   //col and row = coords in terms of display, not game map
@@ -60,9 +62,7 @@ public:
   void log(const std::string &text);
   void printTextCol(int gridCol, const std::string text,
 		    const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
-  int getCameraCoord(int playerCoord, bool isX);
   //Note: draw functions alter screen buffer; must call present() to push to display
-  void drawGUI(Actor &player, Actor &currActor);
   void draw(LevelMap &map, Actor &player, Actor &currActor);
   //Setters/Getters
   void clear() { tb_clear(); }

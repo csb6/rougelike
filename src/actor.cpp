@@ -5,7 +5,7 @@
 
 //RNG
 /* Gets random integer on range [min, max]*/
-int getRandomNumber(int min, int max)
+static int getRandomNumber(int min, int max)
 {
   static std::mt19937 generator(static_cast<unsigned int>(std::time(nullptr)));
   std::uniform_int_distribution<int> distribution(min, max);

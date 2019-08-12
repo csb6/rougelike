@@ -29,7 +29,7 @@
 #include "include/input.h"
 #include <iostream>
 
-int inputSkill(int index, const std::string &message)
+static int inputSkill(int index, const std::string &message)
 {
   std::cout << index+1 << ". "<< message;
   int skillValue;
@@ -37,7 +37,7 @@ int inputSkill(int index, const std::string &message)
   return skillValue;
 }
 
-void inputAllSkills(std::string messages[], int responses[], int messagesLen, int maxPoints)
+static void inputAllSkills(std::string messages[], int responses[], int messagesLen, int maxPoints)
 {
   int usedPoints(0);
   int newPoints(0);
@@ -63,7 +63,7 @@ void inputAllSkills(std::string messages[], int responses[], int messagesLen, in
   }
 }
 
-void assignSkills(Actor &actor, int skills[])
+static void assignSkills(Actor &actor, int skills[])
 {
   actor.m_strength = skills[0];
   actor.m_cunning = skills[1];
@@ -78,7 +78,7 @@ void assignSkills(Actor &actor, int skills[])
   actor.m_trapSkill = skills[10];
 }
 
-void skillSelection(Actor &actor)
+static void skillSelection(Actor &actor)
 {
   //Player character creation
   int skills[SkillAmount];
