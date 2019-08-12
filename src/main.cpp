@@ -6,7 +6,7 @@
 [ ] Add way to drop items onto map (remove from inventory)
 [ ] Add basic test suite for key functionality (see old RPG code)
 [X] Add RNG functionality (see old RPG code)
-[ ] Factor out input functionality into separate Input class which takes
+[X] Factor out input functionality into separate Input class which takes
     references to GameBoard, calls new resize() function on it
 [ ] Add better, safer, more comprehensive way to draw GUI
 [ ] Add better, faster way to get ref to Item from an (x, y) coordinate
@@ -425,7 +425,10 @@ void GameBoard::movePlayer(int newX, int newY)
 /* Shortcut for moving player through change in current position*/
 void GameBoard::translatePlayer(int dx, int dy)
 {
-  translateActor(player(), dx, dy);
+  if(!m_screen.hasCursor())
+    translateActor(player(), dx, dy);
+  else
+    m_screen.translateCursor(dx, dy);
 }
 
 

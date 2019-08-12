@@ -3,7 +3,7 @@
 Input::Input(bool &running, Display &screen, GameBoard &board)
   : m_running(running), m_screen(screen), m_board(board)
 {
-  
+
 }
 
 /* Checks with screen to see if any user input, then changes game state
@@ -12,6 +12,7 @@ bool Input::process()
 {
   if(!m_screen.getInput())
     return false;
+
   switch(m_screen.getEventType())
   {
   //Respond to user key presses
@@ -28,30 +29,18 @@ bool Input::process()
       //Redraws whole screen (useful for exiting inventory subscreen, etc.)
       m_board.redraw();
       break;
-      //Basic player movement
+    //Basic player movement
     case TB_KEY_ARROW_RIGHT:
-      if(!m_screen.hasCursor())
-	m_board.translatePlayer(1, 0);
-      else
-	m_screen.translateCursor(1, 0);
+      m_board.translatePlayer(1, 0);
       break;
     case TB_KEY_ARROW_LEFT:
-      if(!m_screen.hasCursor())
-	m_board.translatePlayer(-1, 0);
-      else
-	m_screen.translateCursor(-1, 0);
+      m_board.translatePlayer(-1, 0);
       break;
     case TB_KEY_ARROW_UP:
-      if(!m_screen.hasCursor())
-	m_board.translatePlayer(0, -1);
-      else
-	m_screen.translateCursor(0, -1);
+      m_board.translatePlayer(0, -1);
       break;
     case TB_KEY_ARROW_DOWN:
-      if(!m_screen.hasCursor())
-	m_board.translatePlayer(0, 1);
-      else
-	m_screen.translateCursor(0, 1);
+      m_board.translatePlayer(0, 1);
       break;
     default:
       //If not a key combo, look at individual keys
@@ -72,7 +61,7 @@ bool Input::process()
       case 'D':
 	m_board.deequipItem(m_board.player());
 	break;
-	//Controls for showing/moving cursor
+      //Controls for showing/moving cursor
       case 'r':
 	m_board.bindCursorMode(m_board.player(), &GameBoard::rangeAttack);
 	break;
@@ -94,5 +83,6 @@ bool Input::process()
     }
     break;
   }
+
   return true;
 }
