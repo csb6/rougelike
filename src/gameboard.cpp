@@ -348,6 +348,9 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
 
 bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
 {
+  //Can't attack yourself
+  if(attacker.getX() == targetX && attacker.getY() == targetY)
+    return false;
   for(Actor &each : m_actors) {
     if(each.getX() == targetX && each.getY() == targetY) {
       //Figure out whether to throw/fire projectile

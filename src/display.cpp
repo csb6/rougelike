@@ -6,7 +6,7 @@
 //  Map should take up at least min screen space so min-size screen is always full
 static_assert(MapWidth >= MinDisplayWidth && MapHeight >= MinDisplayHeight, "Map too small");
 static_assert(GUIWidth <= MinDisplayWidth && GUIHeight <= MinDisplayHeight, "GUI too big");
-static_assert(MaxLogSize <= MinDisplayHeight, "Log too tall");
+static_assert(MaxLogSize <= MinDisplayHeight && MaxLogSize > 0, "Log too tall");
 
 /* Creates an object that manages access of/content in screen display, starting
    up termbox library, checking for errors/appropriate screen size*/
@@ -223,7 +223,7 @@ int Display::getCameraCoord(int playerCoord, bool isX)
 
 /* Adds labels/information shown to player in sidebars onscreen to screen
    buffer, respecting the area used to draw the area around the player */
-void Display::drawGUI(Actor &player, Actor &currActor)
+void Display::drawGUI(const Actor &player, const Actor &currActor)
 {
   //Draw player/current Actor's info
   printTextCol(0, "Turn:", TB_YELLOW);
@@ -249,7 +249,7 @@ void Display::drawGUI(Actor &player, Actor &currActor)
 
 /* Places all non-empty tiles centered around the player into the screen buffer,
    stopping when there is no more room. Respects area left for GUI */
-void Display::draw(LevelMap &map, Actor &player, Actor &currActor)
+void Display::draw(const LevelMap &map, const Actor &player, const Actor &currActor)
 {
   //Screen may be smaller than map, so display as much as possible
   m_screenWidth = std::min(boardWidth(), MapWidth);

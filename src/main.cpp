@@ -23,11 +23,47 @@
     so I can kill you somewhat quicker?")
 [ ] Find way to gracefully exit; use it in loadMap()'s error branch
 [ ] Add keybindings file loaded on start
-[ ] Add platform-specific way to find executable's current directory; see https://stackoverflow.com/q/143174
+[ ] Test map file loading code on Windows (possibly using Wine?)
 */
 #include "include/gameboard.h"
 #include "include/input.h"
 #include <iostream>
+#include <stdio.h> //for FILENAME_MAX
+#ifdef _WIN32
+  #include <libloaderapi.h>
+#elif __APPLE__
+  #include <mach-o/dyld.h>
+  #include <stdlib.h>
+#endif
+
+static std::string getExePath()
+{
+  #ifdef WINDOWS
+    LPSTR path[FILENAME_MAX];
+    if(GetModuleFileNameA(NULL, path, static_cast<DWORD>(sizeof(path))) == 0)
+    {
+      std::cerr << "Error: Map file name could not be retrieved\n";
+      exit(1);
+    }
+    std::string strPath(path);
+    return strPath.substr(0, strPath.size()-4);
+  #else
+    char path[FILENAME_MAX];
+    uint32_t size = sizeof(path);
+    //Check if path too big
+    if(_NSGetExecutablePath(path, &size) != 0)
+    {
+      std::cerr << "Error: Map file name too long\n";
+      exit(1);
+    }
+    char realPath[FILENAME_MAX];
+    //Remove ., .. from path
+    realpath(path, realPath);
+    std::string strPath(realPath);
+    //Strip off executable name from end ("/rpg2")
+    return strPath.substr(0, strPath.size()-4);
+  #endif
+}
 
 static int inputSkill(int index, const std::string &message)
 {
@@ -123,7 +159,7 @@ int main()
 
   bool running = true;
   Display screen;
-  GameBoard board(screen, player, "test-map1.csv");
+  GameBoard board(screen, player, getExePath() + "/test-map1.csv");
   Input device(running, screen, board);
 
   //Start main game loop
