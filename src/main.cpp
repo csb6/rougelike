@@ -37,7 +37,7 @@
 #endif
 
 /* Get absolute path to the directory that the executable is in*/
-static std::string getLocalDir()
+std::string getLocalDir()
 {
   #ifdef WINDOWS
     LPSTR path[FILENAME_MAX];

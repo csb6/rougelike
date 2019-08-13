@@ -2,6 +2,58 @@
 #include <fstream>
 #include <cmath>
 
+std::string getLocalDir();
+
+static std::string::size_type findSplit(const std::string line)
+{
+  std::string::size_type split(0);
+  for(std::string::size_type i=0; i<line.size(); ++i) {
+    if(line[i] == '=') {
+      split = i;
+      break;
+    }
+  }
+  return split;
+}
+
+static char parseChar(std::string value, char defaultVal = 'A')
+{
+  if(value.size() < 1 || value == "default")
+    return defaultVal;
+  return value[0];
+}
+
+static std::int_least16_t parseInt(std::string value, std::int_least16_t defaultVal = 0)
+{
+  if(value.size() < 1 || value == "default")
+    return defaultVal;
+  return std::stoi(value);
+}
+
+static void applyIniPair(Actor &actor, std::string key, std::string value)
+{
+  if(key == "char") actor.setCh(parseChar(value));
+  else if(key == "name") actor.setName(value);
+  else if(key == "energy") actor.setEnergy(parseInt(value));
+  else if(key == "health") actor.addHealth(parseInt(value, 100));
+  else if(key == "carryWeight") actor.m_carryWeight = parseInt(value);
+  else if(key == "carryWeight") actor.m_carryWeight = parseInt(value);
+  else if(key == "maxCarryWeight") actor.m_maxCarryWeight = parseInt(value, 10);
+  else if(key == "level") actor.m_level = parseInt(value);
+  else if(key == "levelProgress") actor.m_levelProgress = parseInt(value);
+  else if(key == "strength") actor.m_strength = parseInt(value);
+  else if(key == "cunning") actor.m_cunning = parseInt(value);
+  else if(key == "agility") actor.m_agility = parseInt(value);
+  else if(key == "education") actor.m_education = parseInt(value);
+  else if(key == "sidearmSkill") actor.m_sidearmSkill = parseInt(value);
+  else if(key == "longarmSkill") actor.m_longarmSkill = parseInt(value);
+  else if(key == "meleeSkill") actor.m_meleeSkill = parseInt(value);
+  else if(key == "vehicleSkill") actor.m_vehicleSkill = parseInt(value);
+  else if(key == "barterSkill") actor.m_barterSkill = parseInt(value);
+  else if(key == "negotiateSkill") actor.m_negotiateSkill = parseInt(value);
+  else if(key == "trapSkill") actor.m_trapSkill = parseInt(value);
+}
+
 /* Distance formula with truncated absolute value result*/
 static int distanceFrom(int x1, int y1, int x2, int y2)
 {
@@ -15,6 +67,9 @@ GameBoard::GameBoard(Display &screen, Actor playerCh, const std::string &mapPath
 {
   m_actors.push_back(playerCh);
   m_turn_index = m_player_index;
+
+  loadMonsterTemplates(getLocalDir() + "src/monsters.ini");
+
   loadMap(mapPath);
   //When doing turns, will start iterating through m_actors backward
   //so deletions of Actors are easy/safe; however, 1st turn should be the
@@ -22,6 +77,38 @@ GameBoard::GameBoard(Display &screen, Actor playerCh, const std::string &mapPath
   player().setTurn(true);
   //Show initial map, centered at player's current position
   m_screen.draw(m_map, player(), currActor());
+}
+
+void GameBoard::loadMonsterTemplates(const std::string &&path)
+{
+  std::ifstream monsterFile(path);
+  if(!monsterFile) {
+    m_screen.printText(0, 0, "Error: could not load monster file: " + path + "\n");
+    m_screen.input("Press Enter to exit", 0, 1);
+    exit(1);
+  }
+
+  Actor newTemplate;
+  while(monsterFile) {
+    std::string line;
+    std::getline(monsterFile, line);
+    //Skip comments
+    if(line[0] == '#')
+      continue;
+    //Finalize/add template when at blank line (end of section)
+    else if(line == "") {
+      m_templates[newTemplate.getCh()] = newTemplate;
+      newTemplate = Actor();
+      continue;
+    }
+    //Find out where '=' is; it's the division between key/value
+    auto split = findSplit(line);
+    //Ignore erroneously formatted lines
+    if(split == 0 || split == (line.size() - 1))
+      continue;
+
+    applyIniPair(newTemplate, line.substr(0, split), line.substr(split+1));
+  }
 }
 
 /* Fills 2d array with tiles from given map file, instantiating
@@ -63,13 +150,14 @@ void GameBoard::loadMap(const std::string &path)
 	  player().move(col, row);
 	  player().setCh('@');
 	}
-	else if(line[pos] == 'M') {
-	  //Add Monster to Actor list
-	  m_actors.push_back(Actor(col, row));
-	}
 	else if(line[pos] == 'i') {
 	  //Add Item to Item list
 	  m_items.push_back(Item(col, row));
+	}
+	else if(m_templates.find(line[pos]) != m_templates.end()) {
+	  Actor monster = m_templates[line[pos]];
+	  monster.move(col, row);
+	  m_actors.push_back(monster);
 	}
 	++col;
       }
@@ -337,7 +425,7 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
   else if(m_map[newY][newX] == 'i') {
     pickupItem(actor, newX, newY);
   }
-  else if(m_map[newY][newX] == 'M' && actor == player()) {
+  else if(m_map[newY][newX] != '1' && actor == player()) {
     melee(actor, newX, newY);
   }
   else

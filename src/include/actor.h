@@ -37,6 +37,7 @@ public:
   //Setters/Getters
   int getX() const { return m_xPos; }
   int getY() const { return m_yPos; }
+  void setEnergy(std::int_least16_t amount) { m_energy = amount; }
   int getEnergy() const { return m_energy; }
   int getHealth() const { return m_health; }
   char getCh() const { return m_ch; }

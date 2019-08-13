@@ -2,6 +2,7 @@
 #define GAMEBOARD_H
 #include "display.h"
 #include "actor.h"
+#include <map>
 class GameBoard {
 //Purpose: To represent the game map/the actors/pieces on it, as well as to
 //    handle user input for controlling the player
@@ -14,11 +15,13 @@ private:
   int m_turn_index;
   std::vector<Item> m_items;
   std::vector<Actor> m_actors;
+  std::map<char,Actor> m_templates;
   void deleteItem(Item &item);
   void deleteActor(Actor &actor);
   void changePos(Actor &actor, int newX, int newY);
   void pickupItem(Actor &actor, int x, int y);
   void melee(Actor &attacker, int targetX, int targetY);
+  void loadMonsterTemplates(const std::string &&path);
 public:
   GameBoard(Display &screen, Actor playerCh, const std::string &mapPath);
   inline Actor& player() { return m_actors[m_player_index]; }
