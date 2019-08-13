@@ -36,35 +36,34 @@
   #include <stdlib.h>
 #endif
 
-static std::string getExePath()
+/* Get absolute path to the directory that the executable is in*/
+static std::string getLocalDir()
 {
   #ifdef WINDOWS
     LPSTR path[FILENAME_MAX];
-    if(GetModuleFileNameA(NULL, path, static_cast<DWORD>(sizeof(path))) == 0)
-    {
+    if(GetModuleFileNameA(NULL, path, static_cast<DWORD>(sizeof(path))) == 0) {
       std::cerr << "Error: Map file name could not be retrieved\n";
       exit(1);
     }
-    std::string strPath(path);
-    return strPath.substr(0, strPath.size()-4);
-  #else
+    std::string dirPath(path);
+  #elif __APPLE__
     char path[FILENAME_MAX];
     uint32_t size = sizeof(path);
-    //Check if path too big
-    if(_NSGetExecutablePath(path, &size) != 0)
-    {
+    //Get path to executable
+    if(_NSGetExecutablePath(path, &size) != 0) {
       std::cerr << "Error: Map file name too long\n";
       exit(1);
     }
     char realPath[FILENAME_MAX];
     //Remove ., .. from path
     realpath(path, realPath);
-    std::string strPath(realPath);
-    //Strip off executable name from end ("/rpg2")
-    return strPath.substr(0, strPath.size()-4);
+    std::string dirPath(realPath);
   #endif
+  //Strip off executable name from end ("/rpg2")
+  return dirPath.substr(0, dirPath.size()-4);
 }
 
+/* Prompts user for integer value using given message*/
 static int inputSkill(int index, const std::string &message)
 {
   std::cout << index+1 << ". "<< message;
@@ -73,6 +72,9 @@ static int inputSkill(int index, const std::string &message)
   return skillValue;
 }
 
+/* Prompts for integer values for each of given messages, saving the responses.
+   Each prompt will loop until the user enters a point value less than their
+   remaining points, which are tracked over all prompts*/
 static void inputAllSkills(std::string messages[], int responses[], int messagesLen, int maxPoints)
 {
   int usedPoints(0);
@@ -91,14 +93,15 @@ static void inputAllSkills(std::string messages[], int responses[], int messages
 	  return;
 	}
 	usedPoints += newPoints;
-	std::cout << "\tPoints used: " << usedPoints << "\tPoints left: " << maxPoints-usedPoints
-		  << "\n";
+	std::cout << "\tPoints used: " << usedPoints << "\tPoints left: "
+		  << maxPoints-usedPoints << "\n";
 	break;
       }
     } while(true);
   }
 }
 
+/* Creates an actor with the give traits*/
 static void assignSkills(Actor &actor, int skills[])
 {
   actor.m_strength = skills[0];
@@ -114,6 +117,8 @@ static void assignSkills(Actor &actor, int skills[])
   actor.m_trapSkill = skills[10];
 }
 
+/* Runs player character creation, giving option for quickstart or to redo
+   creation if not satisified with stats*/
 static void skillSelection(Actor &actor)
 {
   //Player character creation
@@ -137,6 +142,8 @@ static void skillSelection(Actor &actor)
     std::string name;
     std::cin >> name;
     inputAllSkills(prompts, skills, SkillAmount, MaxInitPoints);
+
+    //Confirm the user's choices
     std::cout << "Enter your name: " << name << "\n";
     for(int i=0; i<SkillAmount; ++i) {
       std::cout << prompts[i] << skills[i] << "\n";
@@ -145,6 +152,7 @@ static void skillSelection(Actor &actor)
     char choice;
     std::cin >> choice;
     if(choice == 'y' || choice == 'Y') {
+      //Create player character based on choices
       actor.setName(name);
       assignSkills(actor, skills);
       break;
@@ -159,7 +167,7 @@ int main()
 
   bool running = true;
   Display screen;
-  GameBoard board(screen, player, getExePath() + "/test-map1.csv");
+  GameBoard board(screen, player, getLocalDir() + "test-map1.csv");
   Input device(running, screen, board);
 
   //Start main game loop

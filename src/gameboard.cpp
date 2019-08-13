@@ -14,7 +14,6 @@ GameBoard::GameBoard(Display &screen, Actor playerCh, const std::string &mapPath
   : m_map{}, m_screen(screen), m_player_index(0), m_turn_index(0)
 {
   m_actors.push_back(playerCh);
-  m_player_index = 0;
   m_turn_index = m_player_index;
   loadMap(mapPath);
   //When doing turns, will start iterating through m_actors backward
@@ -37,7 +36,7 @@ void GameBoard::loadMap(const std::string &path)
   }
   std::ifstream mapFile(path);
   if(!mapFile) {
-    m_screen.printText(0, 0, "Error: could not load map file\n");
+    m_screen.printText(0, 0, "Error: could not load map file: " + path + "\n");
     m_screen.input("Press Enter to exit", 0, 1);
     exit(1);
   }
