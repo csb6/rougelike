@@ -1,7 +1,5 @@
 /*TODO:
 [ ] Profile to see what is causing memory leaks when resizing window
-[ ] Add way to specify characteristics of monsters in text config files, which can
-    then be loaded when the program starts
 [ ] Add way to save/load
 [ ] Add way to drop items onto map (remove from inventory)
 [ ] Add basic test suite for key functionality (see old RPG code)
@@ -16,7 +14,6 @@
     use cunning skill?
 [ ] Reference melee skill and strength skill for attacking; factor in armor
     and agility for defense
-[X] Add ability to attack at range without teleport-meleeing
 [X] Add player creation wizard with optional quickstart
 [ ] Add 'negotiate' option with monsters that generates funny dialogue
     (e.g. low-negotiate skill player: "Hey, Commie bastard, want to surrender
