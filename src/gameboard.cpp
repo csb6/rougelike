@@ -390,6 +390,9 @@ void GameBoard::pickupItem(Actor &actor, int x, int y)
    by moveActor()*/
 void GameBoard::melee(Actor &attacker, int targetX, int targetY)
 {
+  //Can't attack yourself
+  if(attacker.getX() == targetX && attacker.getY() == targetY)
+    return;
   for(Actor &each : m_actors) {
     if(each.getX() == targetX && each.getY() == targetY) {
       //Attacker attempts to attack; print result (success/fail)
@@ -433,6 +436,9 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
   return true;
 }
 
+/* Attacks another player over a distance using a ranged weapon if equipped
+   (otherwise, throws equipped item if it's not ranged or notifies user
+   if no item equipped at all)*/
 bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
 {
   //Can't attack yourself

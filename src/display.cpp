@@ -11,21 +11,23 @@ static_assert(MaxLogSize <= MinDisplayHeight && MaxLogSize > 0, "Log too tall");
 /* Creates an object that manages access of/content in screen display, starting
    up termbox library, checking for errors/appropriate screen size*/
 Display::Display()
-  : m_cursorX(-1), m_cursorY(-1), m_cornerX(0), m_cornerY(0),
-    m_event{0, 0, 0, 0, 0, 0, 0, 0}, m_textCol(0), m_textX(0), m_textY(0),
-    m_textMaxWidth(0), m_log{}, m_logRow(0)
+  : m_cursorX(-1), m_cursorY(-1), m_screenWidth(0), m_screenHeight(0),
+    m_cornerX(0), m_cornerY(0), m_event{0, 0, 0, 0, 0, 0, 0, 0},
+    m_textCol(0), m_textX(0), m_textY(0), m_textMaxWidth(0),
+    m_log{}, m_logRow(0)
 {
   int errorStatus = tb_init();
-  if(errorStatus < 0)
+  if(errorStatus < 0) {
     std::cout << "Error: Couldn't start termbox; code " << errorStatus << "\n";
+  }
   if(!largeEnough()) {
     clear();
     printText(1, 1, "Error: screen not large enough");
   }
   //Screen may be smaller than map, so display as much as possible
+  //Initially, screen's top left corner is (0, 0) on the map (see member init list)
   m_screenWidth = std::min(boardWidth(), MapWidth);
   m_screenHeight = std::min(boardHeight(), MapHeight);
-  //Initially, screen's top left corner is (0, 0) on the map (see member init list)
 }
 
 Display::~Display()
@@ -261,7 +263,7 @@ void Display::draw(const LevelMap &map, const Actor &player, const Actor &currAc
     for(int x=m_cornerX; x<(m_cornerX+m_screenWidth); ++x) {
       int col = convertCoord(x, true);
       int row = convertCoord(y, false);
-      if(map[y][x])
+      if(map[y][x] != 0)
 	putChar(col, row, map[y][x]);
       else
 	putChar(col, row, '.');

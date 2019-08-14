@@ -25,12 +25,12 @@
 #include "include/gameboard.h"
 #include "include/input.h"
 #include <iostream>
-#include <stdio.h> //for FILENAME_MAX
+#include <cstdio> //for FILENAME_MAX
 #ifdef _WIN32
   #include <libloaderapi.h>
 #elif __APPLE__
   #include <mach-o/dyld.h>
-  #include <stdlib.h>
+  #include <cstdlib>
 #endif
 
 /* Get absolute path to the directory that the executable is in*/
@@ -72,7 +72,7 @@ static int inputSkill(int index, const std::string &message)
 /* Prompts for integer values for each of given messages, saving the responses.
    Each prompt will loop until the user enters a point value less than their
    remaining points, which are tracked over all prompts*/
-static void inputAllSkills(std::string messages[], int responses[], int messagesLen, int maxPoints)
+static void inputAllSkills(const std::string messages[], int responses[], int messagesLen, int maxPoints)
 {
   int usedPoints(0);
   int newPoints(0);
@@ -81,8 +81,9 @@ static void inputAllSkills(std::string messages[], int responses[], int messages
   for(int i=0; i < messagesLen; ++i) {
     do {
       newPoints = inputSkill(i, messages[i]);
-      if(usedPoints + newPoints > maxPoints)
+      if(usedPoints + newPoints > maxPoints) {
 	std::cout << "You don't have enough points to do that.\n";
+      }
       else {
 	responses[i] = newPoints;
 	if(usedPoints + newPoints == maxPoints) {
@@ -99,7 +100,7 @@ static void inputAllSkills(std::string messages[], int responses[], int messages
 }
 
 /* Creates an actor with the give traits*/
-static void assignSkills(Actor &actor, int skills[])
+static void assignSkills(Actor &actor, const int skills[])
 {
   actor.m_strength = skills[0];
   actor.m_cunning = skills[1];
@@ -131,9 +132,10 @@ static void skillSelection(Actor &actor)
     std::cout << "Welcome to the game! Enter 'q' to quickstart or enter any other key for character creation:\n\n";
     char response;
     std::cin >> response;
-    if(response == 'q' or response == 'Q')
+    if(response == 'q' or response == 'Q') {
       break;
-
+    }
+      
     //Custom character creation
     std::cout << "Enter your name: ";
     std::string name;

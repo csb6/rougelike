@@ -70,7 +70,7 @@ public:
   bool largeEnough();
   int getEventType() { return m_event.type; };
   int getEventKey() { return m_event.key; }
-  int getEventChar() { return m_event.ch; }
+  char getEventChar() { return m_event.ch; }
   //To get board x/y, have to add back cornerX/Y (see convertCoord)
   int getCursorX() { return m_cursorX + m_cornerX; }
   int getCursorY() { return m_cursorY + m_cornerY; }
