@@ -10,7 +10,10 @@ const int MinDisplayHeight = 16;
 const int GUIHeight = 10;
 const int GUIWidth = 10;
 const int InputTimeout = 10; //in milliseconds
-const char EmptySpace = 32;
+const char EmptySpace = '.';
+const char WallTile = '#';
+const char PlayerTile = '@';
+const char ItemTile = 'i';
 const int MaxLogSize = 4; //in number of messages
 
 //Map Constants

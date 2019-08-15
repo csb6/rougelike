@@ -108,8 +108,9 @@ void Display::printText(int col, int row, const std::string text,
 			const uint16_t fg, const uint16_t bg)
 {
   //Validate coordinates
-  if(col < 0 || col > tb_width() || row < 0 || row > tb_height())
+  if(col < 0 || col > tb_width() || row < 0 || row > tb_height()) {
     return;
+  }
   int x = col;
   int y = row;
   for(std::string::size_type i=0; i<text.length(); ++i) {
@@ -190,12 +191,14 @@ void Display::log(const std::string &text)
 void Display::printTextCol(int gridCol, const std::string text,
 			   const uint16_t fg, const uint16_t bg)
 {
-  if(gridCol < m_textCol)
+  if(gridCol < m_textCol) {
     return;
+  }
   else if(gridCol == m_textCol) {
     printText(m_textX, boardHeight()+m_textY, text, fg, bg);
-    if(static_cast<int>(text.size()) > m_textMaxWidth)
+    if(static_cast<int>(text.size()) > m_textMaxWidth) {
       m_textMaxWidth = text.size();
+    }
     ++m_textY;
   }
   else {
@@ -215,12 +218,15 @@ int Display::getCameraCoord(int playerCoord, bool isX)
 {
   int screenSize = isX ? m_screenWidth : m_screenHeight;
   int mapSize = isX ? MapWidth : MapHeight;
-  if(playerCoord < screenSize / 2)
+  if(playerCoord < screenSize / 2) {
     return 0;
-  else if(playerCoord >= mapSize - screenSize / 2)
+  }
+  else if(playerCoord >= mapSize - screenSize / 2) {
     return mapSize - screenSize;
-  else
+  }
+  else {
     return playerCoord - screenSize / 2;
+  }
 }
 
 /* Adds labels/information shown to player in sidebars onscreen to screen
@@ -263,10 +269,12 @@ void Display::draw(const LevelMap &map, const Actor &player, const Actor &currAc
     for(int x=m_cornerX; x<(m_cornerX+m_screenWidth); ++x) {
       int col = convertCoord(x, true);
       int row = convertCoord(y, false);
-      if(map[y][x] != 0)
+      if(map[y][x] != 0) {
 	putChar(col, row, map[y][x]);
-      else
-	putChar(col, row, '.');
+      }
+      else {
+	putChar(col, row, EmptySpace);
+      }
     }
   }
   drawGUI(player, currActor);

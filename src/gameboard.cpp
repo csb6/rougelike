@@ -18,15 +18,17 @@ static std::string::size_type findSplit(const std::string line)
 
 static char parseChar(std::string value, char defaultVal = 'A')
 {
-  if(value.size() < 1 || value == "default")
+  if(value.size() < 1 || value == "default") {
     return defaultVal;
+  }
   return value[0];
 }
 
 static std::int_least16_t parseInt(std::string value, std::int_least16_t defaultVal = 0)
 {
-  if(value.size() < 1 || value == "default")
+  if(value.size() < 1 || value == "default") {
     return defaultVal;
+  }
   return std::stoi(value);
 }
 
@@ -104,8 +106,9 @@ void GameBoard::loadMonsterTemplates(const std::string &&path)
     //Find out where '=' is; it's the division between key/value
     auto split = findSplit(line);
     //Ignore erroneously formatted lines
-    if(split == 0 || split == (line.size() - 1))
+    if(split == 0 || split == (line.size() - 1)) {
       continue;
+    }
 
     applyIniPair(newTemplate, line.substr(0, split), line.substr(split+1));
   }
@@ -136,25 +139,29 @@ void GameBoard::loadMap(const std::string &path)
     std::getline(mapFile, line);
     int col = 0;
     for(std::string::size_type pos=0; pos<line.size(); ++pos) {
-      if(col >= MapWidth)
+      if(col >= MapWidth) {
 	break;
-      if(line[pos] == ',' || line[pos] == '\n' || line[pos] == '\r')
+      }
+      if(line[pos] == ',' || line[pos] == '\n' || line[pos] == '\r') {
 	continue;
-      else if(line[pos] == '0')
+      }
+      else if(line[pos] == '0') {
 	++col;
+      }
       else {
 	//All Actors need to be in m_actors list/have char in m_map
 	m_map[row][col] = line[pos];
-	if(line[pos] == '@') {
+	if(line[pos] == PlayerTile) {
 	  //Need to have accurate positioning for player object
 	  player().move(col, row);
-	  player().setCh('@');
+	  player().setCh(PlayerTile);
 	}
-	else if(line[pos] == 'i') {
+	else if(line[pos] == ItemTile) {
 	  //Add Item to Item list
 	  m_items.push_back(Item(col, row));
 	}
 	else if(m_templates.find(line[pos]) != m_templates.end()) {
+	  //If in template list, create monster mapped from given char
 	  Actor monster = m_templates[line[pos]];
 	  monster.move(col, row);
 	  m_actors.push_back(monster);
@@ -171,8 +178,9 @@ void GameBoard::loadMap(const std::string &path)
 void GameBoard::bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, int, int))
 {
   //Set-up action on first keypress
-  if(!m_screen.hasCursor())
+  if(!m_screen.hasCursor()) {
     m_screen.moveCursor(actor.getX(), actor.getY());
+  }
   //Execute action, passing cursor position, on second keypress
   else {
     int cursorX = m_screen.getCursorX();
@@ -193,8 +201,9 @@ void GameBoard::updateActors()
   //Check if actor with current turn is done;
   //if so, move turn to next actor, update screen
   if(!currActor().isTurn()) {
-    if(--m_turn_index == -1)
+    if(--m_turn_index == -1) {
       m_turn_index = m_actors.size() - 1;
+    }
     currActor().setTurn(true);
     m_screen.clear();
     m_screen.draw(m_map, player(), currActor());
@@ -203,8 +212,9 @@ void GameBoard::updateActors()
   int i = m_turn_index;
   do {
     m_actors[i].update(this);
-    if(--i == -1)
+    if(--i == -1) {
       i = m_actors.size() - 1;
+    }
   } while(i != m_turn_index);
 }
 
@@ -224,8 +234,9 @@ void GameBoard::showInventory(Actor &actor)
       ++row;
     }
   }
-  else
+  else {
     m_screen.printText(2, row, "Empty", TB_CYAN);
+  }
 }
 
 /*Prints character sheet for an Actor, showing main stats*/
@@ -257,10 +268,12 @@ void GameBoard::showEquipped(Actor &actor)
   m_screen.printText(0, 0, actor.getName() + "'s Equipped Items: (ESC to exit)", TB_YELLOW);
   for(int i=0; i<EQUIP_MAX; ++i) {
     Item *item = actor.getEquipped(i);
-    if(item == nullptr)
+    if(item == nullptr) {
       m_screen.printText(0, i+1, std::to_string(i+1) + labels[i] + "Empty", TB_CYAN);
-    else
+    }
+    else {
       m_screen.printText(0, i+1, std::to_string(i+1) + labels[i] + item->getName(), TB_CYAN);
+    }
   }
 }
 
@@ -331,12 +344,16 @@ void GameBoard::deleteActor(Actor& actor)
     log(actor.getName() + " died");
     m_actors.erase(m_actors.begin()+pos);
     //Need to update player/turn indexes to account for deletion
-    if(pos < m_player_index)
+    if(pos < m_player_index) {
       --m_player_index;
-    else if(pos == m_player_index)
+    }
+    else if(pos == m_player_index) {
       log("Player is dead/deleted");
-    if(static_cast<vector_t>(m_turn_index) >= m_actors.size())
+    }
+
+    if(static_cast<vector_t>(m_turn_index) >= m_actors.size()) {
       m_turn_index = 0;
+    }
   }
 }
 
@@ -390,16 +407,15 @@ void GameBoard::pickupItem(Actor &actor, int x, int y)
    by moveActor()*/
 void GameBoard::melee(Actor &attacker, int targetX, int targetY)
 {
-  //Can't attack yourself
-  if(attacker.getX() == targetX && attacker.getY() == targetY)
-    return;
   for(Actor &each : m_actors) {
     if(each.getX() == targetX && each.getY() == targetY) {
       //Attacker attempts to attack; print result (success/fail)
-      if(attacker.attack(each))
+      if(attacker.attack(each)) {
 	log(attacker.getName() + " attacked " + each.getName());
-      else
+      }
+      else {
 	log(each.getName() + " attacked " + attacker.getName());
+      }
 
       if(!each.isAlive()) {
 	m_map[targetY][targetX] = 0;
@@ -417,22 +433,26 @@ void GameBoard::melee(Actor &attacker, int targetX, int targetY)
 bool GameBoard::moveActor(Actor &actor, int newX, int newY)
 {
   //Check to make sure turn is respected/position exists/is within teleport range
+  //and not attacking self
   if(!actor.isTurn() || !isValid(newX, newY)
-     || distanceFrom(actor.getX(), actor.getY(), newX, newY) >= 5)
+     || distanceFrom(actor.getX(), actor.getY(), newX, newY) >= 5
+     || (actor.getX() == newX && actor.getY() == newY)) {
     return false;
+  }
   //If tile is empty, move Actor to it
   if(m_map[newY][newX] == 0) {
     changePos(actor, newX, newY);
   }
   //If an Item is in that position, try to pick it up
-  else if(m_map[newY][newX] == 'i') {
+  else if(m_map[newY][newX] == ItemTile) {
     pickupItem(actor, newX, newY);
   }
-  else if(m_map[newY][newX] != '1' && actor == player()) {
+  else if(m_map[newY][newX] != WallTile && actor == player()) {
     melee(actor, newX, newY);
   }
-  else
+  else {
     return false;
+  }
   return true;
 }
 
@@ -442,8 +462,9 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
 bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
 {
   //Can't attack yourself
-  if(attacker.getX() == targetX && attacker.getY() == targetY)
+  if(attacker.getX() == targetX && attacker.getY() == targetY) {
     return false;
+  }
   for(Actor &each : m_actors) {
     if(each.getX() == targetX && each.getY() == targetY) {
       //Figure out whether to throw/fire projectile
@@ -493,8 +514,10 @@ void GameBoard::movePlayer(int newX, int newY)
 /* Shortcut for moving player through change in current position*/
 void GameBoard::translatePlayer(int dx, int dy)
 {
-  if(!m_screen.hasCursor())
+  if(!m_screen.hasCursor()) {
     translateActor(player(), dx, dy);
-  else
+  }
+  else {
     m_screen.translateCursor(dx, dy);
+  }
 }

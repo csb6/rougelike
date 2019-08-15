@@ -161,7 +161,7 @@ static void skillSelection(Actor &actor)
 
 int main()
 {
-  Actor player(0, 0, "Player", '@');
+  Actor player(0, 0, "Player", PlayerTile);
   skillSelection(player);
 
   bool running = true;

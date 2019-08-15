@@ -10,8 +10,9 @@ Input::Input(bool &running, Display &screen, GameBoard &board)
    based on the event type (e.g. move player, resize screen) */
 bool Input::process()
 {
-  if(!m_screen.getInput())
+  if(!m_screen.getInput()) {
     return false;
+  }
 
   switch(m_screen.getEventType())
   {

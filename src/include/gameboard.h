@@ -3,6 +3,7 @@
 #include "display.h"
 #include "actor.h"
 #include <map>
+
 class GameBoard {
 //Purpose: To represent the game map/the actors/pieces on it, as well as to
 //    handle user input for controlling the player

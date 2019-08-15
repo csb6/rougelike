@@ -18,9 +18,10 @@ bool actorWins(int skillAmt, int otherSkillAmt)
   int randNumber = getRandomNumber(0, RNGUpperLimit);
   int difference = skillAmt - otherSkillAmt;
   int divider = RNGUpperLimit / 2;
-  if(difference != 0)
+  if(difference != 0) {
     //Scales linearly; actor with 12 better wins ~98% of time ((50 + 48) / 100)
     divider += (difference * 4);
+  }
   return randNumber < divider;
 }
 
@@ -34,8 +35,9 @@ int getArmorBonus(int skillAmt, Item *armor)
     armorBonus += armor[i].getArmor();
   }
   //Ensure total bonus doesn't overflow expected range of actorWins() RNG
-  if(skillAmt + armorBonus > RNGUpperLimit)
+  if(skillAmt + armorBonus > RNGUpperLimit) {
     armorBonus = RNGUpperLimit - skillAmt;
+  }
   return armorBonus;
 }
 
@@ -69,7 +71,8 @@ bool multiSkillCheck(int *skills, int *otherSkills, int numberOfSkills)
 /* Creates new Actor (a monster/player) at the given position with a name/on-screen
   character representation*/
 Actor::Actor(int x, int y, std::string name, char ch)
-  : m_xPos(x), m_yPos(y), m_energy(0), m_ch(ch), m_name(name), m_isTurn(false), m_equipment{0, 0, 0, 0, 0, 0}
+  : m_xPos(x), m_yPos(y), m_energy(0), m_ch(ch), m_name(name),
+    m_isTurn(false), m_equipment{0, 0, 0, 0, 0, 0}
 {
   Item knife = Item(x, y, "Knife", 4);
   m_carryWeight += knife.getWeight();
@@ -114,12 +117,14 @@ void Actor::update(GameBoard *board)
   //of energy; ending turn
   if(m_isTurn && m_name != "Player") {
     bool moved = board->translateActor(*this, 1, 0);
-    if(!moved)
+    if(!moved) {
       m_isTurn = false;
+    }
   }
   //End turn once Actor can make no more moves; should be in all update()'s
-  if(m_energy <= 0)
+  if(m_energy <= 0) {
     m_isTurn = false;
+  }
 }
 
 /* Changes if turn/not, how much energy for the turn*/
@@ -154,14 +159,16 @@ void Actor::addItem(Item &item)
 /* Removes an Item from inventory, adjusting carry weight as needed*/
 void Actor::deleteItem(Item &item)
 {
-  if(m_inventory.size() <= 0)
+  if(m_inventory.size() <= 0) {
     return;
+  }
   m_carryWeight -= item.getWeight();
   std::swap(item, m_inventory.back());
   m_inventory.pop_back();
   //This may hurt performance, but is useful after chests with lots of items are emptied
-  if(m_inventory.size() == 0)
+  if(m_inventory.size() == 0) {
     m_inventory.shrink_to_fit();
+  }
 }
 
 /* Places inventory item into equip slot; checks if valid*/
@@ -169,8 +176,9 @@ void Actor::equipItem(int index, int position)
 {
   using index_t = std::vector<Item>::size_type;
   if(index < 0 || static_cast<index_t>(index) >= m_inventory.size()
-     || position >= EQUIP_MAX || position < 0)
+     || position >= EQUIP_MAX || position < 0) {
     return;
+  }
 
   if(m_equipment[position].isEquipped()) {
     //If another Item already in slot, put it back in inventory
@@ -187,8 +195,9 @@ void Actor::equipItem(int index, int position)
 void Actor::deequipItem(int position)
 {
   //Don't deequip default placeholder Items in array
-  if(position < 0 || position >= EQUIP_MAX || !m_equipment[position].isEquipped())
+  if(position < 0 || position >= EQUIP_MAX || !m_equipment[position].isEquipped()) {
     return;
+  }
   m_equipment[position].setEquip(false);
   addItem(m_equipment[position]);
   m_equipment[position] = 0;
@@ -197,8 +206,9 @@ void Actor::deequipItem(int position)
 Item* Actor::getEquipped(int index)
 {
   //Ignore default placeholder Items in array
-  if(index < 0 || index >= EQUIP_MAX || !m_equipment[index].isEquipped())
+  if(index < 0 || index >= EQUIP_MAX || !m_equipment[index].isEquipped()) {
     return nullptr;
+  }
   return &m_equipment[index];
 }
 
