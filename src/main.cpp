@@ -3,9 +3,6 @@
 [ ] Add way to save/load
 [ ] Add way to drop items onto map (remove from inventory)
 [ ] Add basic test suite for key functionality (see old RPG code)
-[X] Add RNG functionality (see old RPG code)
-[X] Factor out input functionality into separate Input class which takes
-    references to GameBoard, calls new resize() function on it
 [ ] Add better, safer, more comprehensive way to draw GUI
 [ ] Add better, faster way to get ref to Item from an (x, y) coordinate
 [X] Add way to equip items/armor
@@ -14,7 +11,6 @@
     use cunning skill?
 [ ] Reference melee skill and strength skill for attacking; factor in armor
     and agility for defense
-[X] Add player creation wizard with optional quickstart
 [ ] Add 'negotiate' option with monsters that generates funny dialogue
     (e.g. low-negotiate skill player: "Hey, Commie bastard, want to surrender
     so I can kill you somewhat quicker?")

@@ -74,9 +74,11 @@ Actor::Actor(int x, int y, std::string name, char ch)
   : m_xPos(x), m_yPos(y), m_energy(0), m_ch(ch), m_name(name),
     m_isTurn(false), m_equipment{0, 0, 0, 0, 0, 0}
 {
-  Item knife = Item(x, y, "Knife", 4);
-  m_carryWeight += knife.getWeight();
-  m_inventory.push_back(knife);
+  if(name == "Player") {
+    Item knife = Item(x, y, "Knife", 4);
+    m_carryWeight += knife.getWeight();
+    m_inventory.push_back(knife);
+  }
 }
 
 /* Since no 2 Actors can occupy the same space at once, Actors are uniquely
