@@ -14,13 +14,15 @@ private:
   char m_ch; //character representing this Actor on board
   std::string m_name;
   bool m_isTurn;
+  bool m_isPlayer;
 
   //Current Status - stats that change moment-to-moment from environment
   std::int_least16_t m_health = 15;
   Item m_equipment[EQUIP_MAX]; //Items being worn; helmet, shirt, pants, boots, weapons
   std::vector<Item> m_inventory; //Contains items for player
 public:
-  Actor(int x = 0, int y = 0, std::string name = "Monster", char ch = 'M');
+  Actor(int x = 0, int y = 0, std::string name = "Monster", char ch = 'M',
+	bool isPlayer = false);
   bool operator==(const Actor &other) const;
   void move(int newX, int newY);
   bool attack(Actor &target);
@@ -42,9 +44,10 @@ public:
   int getHealth() const { return m_health; }
   char getCh() const { return m_ch; }
   void setCh(char ch) { m_ch = ch; }
-  void setName(std::string name) { m_name = name; }
+  void setName(const std::string name) { m_name = name; }
   std::string getName() const { return m_name; }
   bool isTurn() const { return m_isTurn; }
+  bool isPlayer() const { return m_isPlayer; }
   bool isAlive() const { return m_health > 0; }
   int getInventorySize() const { return m_inventory.size(); }
   std::int_least16_t m_carryWeight = 0; //Current weight of inventory

@@ -70,11 +70,11 @@ bool multiSkillCheck(int *skills, int *otherSkills, int numberOfSkills)
 
 /* Creates new Actor (a monster/player) at the given position with a name/on-screen
   character representation*/
-Actor::Actor(int x, int y, std::string name, char ch)
+Actor::Actor(int x, int y, std::string name, char ch, bool isPlayer)
   : m_xPos(x), m_yPos(y), m_energy(0), m_ch(ch), m_name(name),
-    m_isTurn(false), m_equipment{0, 0, 0, 0, 0, 0}
+    m_isTurn(false), m_isPlayer(isPlayer), m_equipment{0, 0, 0, 0, 0, 0}
 {
-  if(name == "Player") {
+  if(m_isPlayer) {
     Item knife = Item(x, y, "Knife", 4);
     m_carryWeight += knife.getWeight();
     m_inventory.push_back(knife);
@@ -117,7 +117,7 @@ void Actor::update(GameBoard *board)
 {
   //Simple, dumb AI that just moves right until hitting wall/running out
   //of energy; ending turn
-  if(m_isTurn && m_name != "Player") {
+  if(m_isTurn && !m_isPlayer) {
     bool moved = board->translateActor(*this, 1, 0);
     if(!moved) {
       m_isTurn = false;

@@ -5,7 +5,7 @@
 [ ] Add basic test suite for key functionality (see old RPG code)
 [ ] Add better, safer, more comprehensive way to draw GUI
 [ ] Add better, faster way to get ref to Item from an (x, y) coordinate
-[ ] Add isPlayer flag to Actor class to clearly differentiate player from
+[X] Add isPlayer flag to Actor class to clearly differentiate player from
     monsters without having to do dynamic dispatch/inheritance stuff
 [X] Add way to equip items/armor
 [ ] Tune combat/limit teleportation
@@ -130,10 +130,10 @@ static void skillSelection(Actor &actor)
     std::cout << "Welcome to the game! Enter 'q' to quickstart or enter any other key for character creation:\n\n";
     char response;
     std::cin >> response;
-    if(response == 'q' or response == 'Q') {
+    if(response == 'q' || response == 'Q') {
       break;
     }
-      
+
     //Custom character creation
     std::cout << "Enter your name: ";
     std::string name;
@@ -159,7 +159,7 @@ static void skillSelection(Actor &actor)
 
 int main()
 {
-  Actor player(0, 0, "Player", PlayerTile);
+  Actor player(0, 0, "Player", PlayerTile, true);
   skillSelection(player);
 
   bool running = true;
