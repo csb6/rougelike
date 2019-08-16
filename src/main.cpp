@@ -36,7 +36,8 @@ std::string getLocalDir()
 {
   #ifdef WINDOWS
     LPSTR path[FILENAME_MAX];
-    if(GetModuleFileNameA(NULL, path, static_cast<DWORD>(sizeof(path))) == 0) {
+    DWORD size = sizeof(path);
+    if(GetModuleFileNameA(NULL, path, size) == 0) {
       std::cerr << "Error: Map file name could not be retrieved\n";
       exit(1);
     }

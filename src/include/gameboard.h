@@ -19,9 +19,9 @@ private:
   std::map<char,Actor> m_templates;
   void deleteItem(Item &item);
   void deleteActor(Actor &actor);
-  void changePos(Actor &actor, int newX, int newY);
-  void pickupItem(Actor &actor, int x, int y);
-  void melee(Actor &attacker, int targetX, int targetY);
+  bool changePos(Actor &actor, int newX, int newY);
+  bool pickupItem(Actor &actor, int x, int y);
+  bool melee(Actor &attacker, int targetX, int targetY);
   void loadMonsterTemplates(const std::string &&path);
 public:
   GameBoard(Display &screen, Actor playerCh, const std::string &mapPath);

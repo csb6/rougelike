@@ -75,6 +75,7 @@ Actor::Actor(int x, int y, std::string name, char ch, bool isPlayer)
     m_isTurn(false), m_isPlayer(isPlayer), m_equipment{0, 0, 0, 0, 0, 0}
 {
   if(m_isPlayer) {
+    m_faction = Faction::PLAYER;
     Item knife = Item(x, y, "Knife", 4);
     m_carryWeight += knife.getWeight();
     m_inventory.push_back(knife);
@@ -115,17 +116,43 @@ bool Actor::attack(Actor &target)
   effects, or anything else that needs to happen regularly*/
 void Actor::update(GameBoard *board)
 {
-  //Simple, dumb AI that just moves right until hitting wall/running out
-  //of energy; ending turn
-  if(m_isTurn && !m_isPlayer) {
-    bool moved = board->translateActor(*this, 1, 0);
-    if(!moved) {
-      m_isTurn = false;
-    }
-  }
   //End turn once Actor can make no more moves; should be in all update()'s
   if(m_energy <= 0) {
     m_isTurn = false;
+    return;
+  }
+
+  //Monster AI
+  if(m_isTurn && !m_isPlayer) {
+    int playerX = board->player().getX();
+    int playerY = board->player().getY();
+    int move[2] = { 0, 0 };
+    bool moved = false;
+    //Try to move towards the player
+    if(m_xPos - playerX > 0) move[0] = -1;
+    else if(m_xPos - playerX < 0) move[0] = 1;
+
+    if(m_yPos - playerY > 0) move[1] = -1;
+    else if(m_yPos - playerY < 0) move[1] = 1;
+
+    moved = board->translateActor(*this, move[0], move[1]);
+    if(moved) {
+      return;
+    }
+    //Attempt 2
+    int priorX = move[0];
+    move[0] = 0;
+    moved = board->translateActor(*this, move[0], move[1]);
+    if(moved) {
+      return;
+    }
+    //Attempt 3
+    move[0] = priorX;
+    move[1] = 0;
+    moved = board->translateActor(*this, move[0], move[1]);
+    if(!moved) {
+      m_isTurn = false;
+    }
   }
 }
 

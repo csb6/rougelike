@@ -2,6 +2,11 @@
 #define ACTOR_H
 #include "item.h"
 
+enum class Faction {
+  PLAYER,
+  MONSTER
+};
+
 class GameBoard;
 
 const int RNGUpperLimit = 100;
@@ -15,6 +20,7 @@ private:
   std::string m_name;
   bool m_isTurn;
   bool m_isPlayer;
+  Faction m_faction = Faction::MONSTER;
 
   //Current Status - stats that change moment-to-moment from environment
   std::int_least16_t m_health = 15;
@@ -39,6 +45,7 @@ public:
   //Setters/Getters
   int getX() const { return m_xPos; }
   int getY() const { return m_yPos; }
+  Faction getFaction() const { return m_faction; }
   void setEnergy(std::int_least16_t amount) { m_energy = amount; }
   int getEnergy() const { return m_energy; }
   int getHealth() const { return m_health; }

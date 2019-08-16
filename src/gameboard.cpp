@@ -305,22 +305,6 @@ bool GameBoard::isValid(int x, int y) const
   return x < MapWidth && x >= 0 && y < MapHeight && y >= 0;
 }
 
-/* Moves actor from current position to another, redrawing screen
-   buffer to show change. Private function, only to be called by
-   moveActor()*/
-void GameBoard::changePos(Actor &actor, int newX, int newY)
-{
-  //Note: screen doesn't visibly change until screen.present() called in main loop
-  int oldX = actor.getX();
-  int oldY = actor.getY();
-  actor.move(newX, newY);
-  m_map[oldY][oldX] = 0;
-  m_map[newY][newX] = actor.getCh();
-
-  m_screen.clear();
-  m_screen.draw(m_map, player(), currActor());
-}
-
 /* Removes given Item from m_items*/
 void GameBoard::deleteItem(Item& item)
 {
@@ -391,9 +375,26 @@ void GameBoard::deequipItem(Actor &actor)
   m_screen.draw(m_map, player(), currActor());
 }
 
+/* Moves actor from current position to another, redrawing screen
+   buffer to show change. Private function, only to be called by
+   moveActor()*/
+bool GameBoard::changePos(Actor &actor, int newX, int newY)
+{
+  //Note: screen doesn't visibly change until screen.present() called in main loop
+  int oldX = actor.getX();
+  int oldY = actor.getY();
+  actor.move(newX, newY);
+  m_map[oldY][oldX] = 0;
+  m_map[newY][newX] = actor.getCh();
+
+  m_screen.clear();
+  m_screen.draw(m_map, player(), currActor());
+  return true;
+}
+
 /* Picks up an Item at given coords if one can be found at that
    position; private function, only to be called by moveActor()*/
-void GameBoard::pickupItem(Actor &actor, int x, int y)
+bool GameBoard::pickupItem(Actor &actor, int x, int y)
 {
   for(Item& each : m_items) {
     //Find existing Item at the given position
@@ -408,18 +409,20 @@ void GameBoard::pickupItem(Actor &actor, int x, int y)
 	m_screen.clear();
 	m_screen.draw(m_map, player(), currActor());
       }
-      break;
+      return true;
     }
   }
+  return false;
 }
 
 /* Have given Actor attack an Actor at another position. If no Actor
    at that position, do nothing; private function, only to be called
    by moveActor()*/
-void GameBoard::melee(Actor &attacker, int targetX, int targetY)
+bool GameBoard::melee(Actor &attacker, int targetX, int targetY)
 {
   for(Actor &each : m_actors) {
-    if(each.getX() == targetX && each.getY() == targetY) {
+    if(each.getX() == targetX && each.getY() == targetY
+       && each.getFaction() != attacker.getFaction()) {
       //Attacker attempts to attack; print result (success/fail)
       if(attacker.attack(each)) {
 	log(attacker.getName() + " attacked " + each.getName());
@@ -435,9 +438,10 @@ void GameBoard::melee(Actor &attacker, int targetX, int targetY)
 
       m_screen.clear();
       m_screen.draw(m_map, player(), currActor());
-      break;
+      return true;
     }
   }
+  return false;
 }
 
 /* Performs action on given position; will move Actor there if possible,
@@ -453,17 +457,14 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
   }
   //If tile is empty, move Actor to it
   if(m_map[newY][newX] == 0) {
-    changePos(actor, newX, newY);
-    return true;
+    return changePos(actor, newX, newY);
   }
   //If an Item is in that position, try to pick it up
   else if(m_map[newY][newX] == ItemTile) {
-    pickupItem(actor, newX, newY);
-    return true;
+    return pickupItem(actor, newX, newY);
   }
-  else if(m_map[newY][newX] != WallTile && actor == player()) {
-    melee(actor, newX, newY);
-    return true;
+  else if(m_map[newY][newX] != WallTile) {
+    return melee(actor, newX, newY);
   }
   return false;
 }
