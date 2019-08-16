@@ -1,8 +1,10 @@
 *~
 #.*
+.#*
 src/*~
 src/*#
 src/.#*
 src/include/*~
 src/include/*#
 rpg2
+test

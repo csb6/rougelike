@@ -103,6 +103,7 @@ static void testItems()
   std::cout << "All item tests passed\n";
 }
 
+
 static void testActors()
 {
   //Getter/constructor
@@ -117,7 +118,7 @@ static void testActors()
     assert(a.getInventorySize() == 0 && a.m_carryWeight == 0 &&
 	   "Actor should start out with empty inventory");
   }
-  //Setters/creating multiple objects
+  //Setters
   {
     Actor a(1, 2, "Joe", 'J');
     assert(a.getName() == "Joe" && "Actor name not set");
@@ -134,7 +135,33 @@ static void testActors()
     assert(a.m_maxCarryWeight == 20 && a.canCarry(19) && !a.canCarry(21)
 	   && "Carry weight not being respected");
   }
-  
+  //Interactions between multiple objects
+  {
+    Actor a(0, 6, "Jimmy-Two-Shoes", 'T');
+    Actor b(4, 5, "Timmy-Gym-Sock", 'G');
+    assert(!(a == b) && "Actors operator== not working");
+    auto prevHealthA = a.getHealth();
+    auto prevHealthB = b.getHealth();
+    assert(prevHealthA == prevHealthB && "Actors not starting out with same health");
+    a.attack(b);
+    assert((b.getHealth() < prevHealthB || a.getHealth() < prevHealthA)
+	   && "Attacks not causing damage");
+
+    Item i(0, 0, "Knife", 5, 2);
+    Actor c;
+    assert(c.canCarry(i.getWeight()) && "Item weight not matching with carry capacity");
+    c.addItem(i);
+    assert(c.getInventorySize() == 1 && c.getItemAt(0) == i
+	   && "Item not added to Actor inventory");
+    c.equipItem(0, MELEE_WEAPON);
+    assert(c.getEquipped(MELEE_WEAPON) != nullptr && *c.getEquipped(MELEE_WEAPON) == i
+	   && "Item not being equipped into slot");
+    assert(c.getInventorySize() == 0 && "Inventory not emptied when Item equipped");
+    c.deequipItem(MELEE_WEAPON);
+    assert(c.getInventorySize() == 1 && c.getEquipped(MELEE_WEAPON) == nullptr
+	   && "Item not deequipping properly");
+  }
+
   std::cout << "All actor tests passed\n";
 }
 

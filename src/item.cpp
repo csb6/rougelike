@@ -18,3 +18,8 @@ Item::Item(int x, int y, std::string name, int weight, int armor)
 {
 
 }
+
+bool Item::operator==(const Item &other) const
+{
+  return m_id == other.m_id;
+}

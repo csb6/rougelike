@@ -25,6 +25,7 @@ private:
   std::int_least16_t m_armor;
 public:
   Item(int x = 0, int y = 0, std::string name = "Item", int weight = 0, int armor = 0);
+  bool operator==(const Item &other) const;
   int getX() const { return m_xPos; }
   int getY() const { return m_yPos; }
   int getId() const { return m_id; }
