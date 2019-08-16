@@ -151,7 +151,7 @@ static void testActors()
     Actor c;
     assert(c.canCarry(i.getWeight()) && "Item weight not matching with carry capacity");
     c.addItem(i);
-    assert(c.getInventorySize() == 1 && c.getItemAt(0) == i
+    assert(c.getInventorySize() == 1 && *c.getItemAt(0) == i
 	   && "Item not added to Actor inventory");
     c.equipItem(0, MELEE_WEAPON);
     assert(c.getEquipped(MELEE_WEAPON) != nullptr && *c.getEquipped(MELEE_WEAPON) == i

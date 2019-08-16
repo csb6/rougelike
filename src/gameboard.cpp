@@ -177,7 +177,7 @@ void GameBoard::loadMap(const std::string &path)
    and cursor active*/
 void GameBoard::bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, int, int))
 {
-  //Set-up action on first keypress
+  //Put cursor at player position on first keypress
   if(!m_screen.hasCursor()) {
     m_screen.moveCursor(actor.getX(), actor.getY());
   }
@@ -225,17 +225,17 @@ void GameBoard::showInventory(Actor &actor)
   m_screen.printText(0, 1, "E) Equip item, D) Deequip item", TB_YELLOW);
   int size = actor.getInventorySize();
   int row = 2;
-  if(size > 0) {
-    for(int i=0; i<size; ++i) {
-      Item& item = actor.getItemAt(i);
-      m_screen.printText(0, row, " " + std::to_string(i+1) + ". " + item.getName()
-			 + " - Weight: " + std::to_string(item.getWeight())
-			 + ", Armor: " + std::to_string(item.getArmor()), TB_CYAN);
-      ++row;
-    }
-  }
-  else {
+  if(size <= 0) {
     m_screen.printText(2, row, "Empty", TB_CYAN);
+    return;
+  }
+  for(int i=0; i<size; ++i) {
+    Item* item = actor.getItemAt(i);
+    if(item == nullptr) continue;
+    m_screen.printText(0, row, " " + std::to_string(i+1) + ". " + item->getName()
+		       + " - Weight: " + std::to_string(item->getWeight())
+		       + ", Armor: " + std::to_string(item->getArmor()), TB_CYAN);
+    ++row;
   }
 }
 
@@ -261,6 +261,8 @@ void GameBoard::showStats(Actor &actor)
   m_screen.printText(0, 16, "Trap: " + std::to_string(actor.m_trapSkill), TB_CYAN);
 }
 
+/* Show list of equipment slots, showing which items in which slots/which
+   slots are empty*/
 void GameBoard::showEquipped(Actor &actor)
 {
   std::string labels[EQUIP_MAX] = {". Head: ", ". Chest: ", ". Legs: ", ". Feet: ",
@@ -322,38 +324,47 @@ void GameBoard::changePos(Actor &actor, int newX, int newY)
 /* Removes given Item from m_items*/
 void GameBoard::deleteItem(Item& item)
 {
-  if(m_items.size() > 0) {
-    std::swap(item, m_items.back());
-    m_items.pop_back();
+  if(m_items.size() <= 0) {
+    return;
   }
+
+  using vector_t = std::vector<Item>::size_type;
+  auto pos = std::find(m_items.begin(), m_items.end(), item) - m_items.begin();
+  if(static_cast<vector_t>(pos) >= m_items.size()) {
+    log("Error: no Item with name " + item.getName());
+  }
+
+  m_items.erase(m_items.begin()+pos);
 }
 
 /* Removes given Actor from m_actors*/
 void GameBoard::deleteActor(Actor& actor)
 {
-  if(m_actors.size() > 0) {
-    using vector_t = std::vector<Actor>::size_type;
-    //Find the Actor's position in m_actors of Actor for erase()
-    auto pos = std::find(m_actors.begin(), m_actors.end(), actor) - m_actors.begin();
-    if(static_cast<vector_t>(pos) >= m_actors.size()) {
-      log("Error: no Actor at" + std::to_string(actor.getX()) + ", "
-	  + std::to_string(actor.getY()));
-      return;
-    }
+  if(m_actors.size() <= 0) {
+    return;
+  }
 
-    log(actor.getName() + " died");
-    m_actors.erase(m_actors.begin()+pos);
-    //Need to update player/turn indexes to account for deletion
-    if(pos < m_player_index) {
-      --m_player_index;
-    }
-    else if(pos == m_player_index) {
-      log("Player is dead/deleted");
-    }
+  using vector_t = std::vector<Actor>::size_type;
+  //Find the Actor's position in m_actors of Actor for erase()
+  auto pos = std::find(m_actors.begin(), m_actors.end(), actor) - m_actors.begin();
+  if(static_cast<vector_t>(pos) >= m_actors.size()) {
+    log("Error: no Actor at" + std::to_string(actor.getX()) + ", "
+	+ std::to_string(actor.getY()));
+    return;
+  }
 
-    if(static_cast<vector_t>(m_turn_index) >= m_actors.size()) {
-      m_turn_index = 0;
-    }
+  log(actor.getName() + " died");
+  m_actors.erase(m_actors.begin()+pos);
+  //Need to update player/turn indexes to account for deletion
+  if(pos < m_player_index) {
+    --m_player_index;
+  }
+  else if(pos == m_player_index) {
+    log("Player is dead/deleted");
+  }
+
+  if(static_cast<vector_t>(m_turn_index) >= m_actors.size()) {
+    m_turn_index = 0;
   }
 }
 
@@ -421,6 +432,7 @@ void GameBoard::melee(Actor &attacker, int targetX, int targetY)
 	m_map[targetY][targetX] = 0;
 	deleteActor(each);
       }
+
       m_screen.clear();
       m_screen.draw(m_map, player(), currActor());
       break;
@@ -442,18 +454,18 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
   //If tile is empty, move Actor to it
   if(m_map[newY][newX] == 0) {
     changePos(actor, newX, newY);
+    return true;
   }
   //If an Item is in that position, try to pick it up
   else if(m_map[newY][newX] == ItemTile) {
     pickupItem(actor, newX, newY);
+    return true;
   }
   else if(m_map[newY][newX] != WallTile && actor == player()) {
     melee(actor, newX, newY);
+    return true;
   }
-  else {
-    return false;
-  }
-  return true;
+  return false;
 }
 
 /* Attacks another player over a distance using a ranged weapon if equipped
@@ -465,6 +477,7 @@ bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
   if(attacker.getX() == targetX && attacker.getY() == targetY) {
     return false;
   }
+
   for(Actor &each : m_actors) {
     if(each.getX() == targetX && each.getY() == targetY) {
       //Figure out whether to throw/fire projectile
@@ -493,7 +506,6 @@ bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
       m_screen.clear();
       m_screen.draw(m_map, player(), currActor());
       return true;
-      break;
     }
   }
   return false;

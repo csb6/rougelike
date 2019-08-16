@@ -5,6 +5,8 @@
 [ ] Add basic test suite for key functionality (see old RPG code)
 [ ] Add better, safer, more comprehensive way to draw GUI
 [ ] Add better, faster way to get ref to Item from an (x, y) coordinate
+[ ] Add isPlayer flag to Actor class to clearly differentiate player from
+    monsters without having to do dynamic dispatch/inheritance stuff
 [X] Add way to equip items/armor
 [ ] Tune combat/limit teleportation
 [ ] Adjust skills; maybe have teleport skill, use it to determine range? Maybe

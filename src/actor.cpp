@@ -142,13 +142,13 @@ bool Actor::canCarry(int itemWeight) const
   return (m_carryWeight + itemWeight) <= m_maxCarryWeight;
 }
 
-/* Gives reference to item in inventory*/
-Item& Actor::getItemAt(int index)
+/* Gives pointer to item in inventory*/
+Item* Actor::getItemAt(int index)
 {
-  using index_t = std::vector<Item>::size_type;
-  //Potentially dangerous, but don't think any chest will have enough items to cause overflow
-  index_t v_index = static_cast<index_t>(index);
-  return m_inventory.at(v_index);
+  using vector_t = std::vector<Item>::size_type;
+  if(static_cast<vector_t>(index) >= m_inventory.size())
+    return nullptr;
+  return &m_inventory[index];
 }
 
 /* Adds a new Item to inventory*/

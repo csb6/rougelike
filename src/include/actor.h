@@ -27,7 +27,7 @@ public:
   void update(GameBoard *board);
   void setTurn(bool isTurn, int energy = 3);
   bool canCarry(int itemWeight) const;
-  Item& getItemAt(int index);
+  Item* getItemAt(int index);
   void addItem(Item &item);
   void deleteItem(Item &item);
   void equipItem(int index, int position);
