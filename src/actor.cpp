@@ -76,7 +76,7 @@ Actor::Actor(int x, int y, std::string name, char ch, bool isPlayer)
 {
   if(m_isPlayer) {
     m_faction = Faction::PLAYER;
-    Item knife = Item(x, y, "Knife", 4);
+    Item knife(x, y, "Knife", 4);
     m_carryWeight += knife.getWeight();
     m_inventory.push_back(knife);
   }

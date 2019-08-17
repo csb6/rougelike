@@ -7,6 +7,33 @@ visible and even teleport items into your inventory!
 **Note:** There is currently no support for platforms other than macOS. This should expand in the future to include
 all Unix-style terminal emulators supported by ![termbox](https://github.com/nsf/termbox).
 
+## Building
+
+### Requirements
+
+- macOS (tested on 10.14.5, but should work on 10.13 or earlier)
+- clang Apple LLVM version 10.0.1 (clang-1001.0.46.4)
+- Python >= 2.5 (any Python 3 version will also work) (runs waf build script)
+
+### Builds
+
+There are three different build scripts:
+
+- `build-full.sh` (run this right after cloning or after updating termbox submodule)
+- `build.sh` (incremental build; run this for to recompile after any changes made to source)
+- `run-tests.sh` (builds/runs test suite; cleans up after itself)
+
+After cloning, run `build-full.sh` to build the included termbox code and the game's code. 
+After running `build-full.sh` once, run `build.sh`, which will compile/link only the game's code 
+from scratch, staticly linking to `src/libtermbox.a` instead of recompiling termbox. This makes
+compile times shorter, since termbox's code never changes when modifying game code.
+
+`run-tests.sh` builds/runs a modified build centered around `test-suite.cpp`, which automatically runs several functionality tests. Note that this script won't produce a new executable.
+
+## Playing
+
+run `./rpg` or optionally click on `rpg2` from the Finder.
+
 ## Controls
 
 - **arrow keys** Movement; running directly into monsters will melee attack them, with damage to you and

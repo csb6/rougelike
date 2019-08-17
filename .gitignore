@@ -6,5 +6,6 @@ src/*#
 src/.#*
 src/include/*~
 src/include/*#
+src/libtermbox.a
 rpg2
 test
