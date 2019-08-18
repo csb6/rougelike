@@ -34,7 +34,7 @@
 /* Get absolute path to the directory that the executable is in*/
 std::string getLocalDir()
 {
-  #ifdef WINDOWS
+  #ifdef _WIN32
     LPSTR path[FILENAME_MAX];
     DWORD size = sizeof(path);
     if(GetModuleFileNameA(NULL, path, size) == 0) {
@@ -128,7 +128,7 @@ static void skillSelection(Actor &actor)
 				       "Enter trapSkill: "};
   while(true) {
     std::fill(std::begin(skills), std::end(skills), 0);
-    std::cout << "Welcome to the game! Enter 'q' to quickstart or enter any other key for character creation:\n\n";
+    std::cout << "Welcome to the game! Enter 'q' to quickstart or enter any other letter for character creation:\n\n";
     char response;
     std::cin >> response;
     if(response == 'q' || response == 'Q') {

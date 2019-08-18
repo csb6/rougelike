@@ -1,38 +1,35 @@
 # rougelike
 
 A fairly basic rougelike game written using C++ and termbox. You are the '@' and explore the map in order
-to pick up items ('i') and kill monsters ('M') by running into them repeatedly. You can also teleport to anywhere
+to pick up items and kill monsters by running into them repeatedly. You can also teleport to anywhere
 visible and even teleport items into your inventory!
 
 **Note:** There is currently no support for platforms other than macOS. This should expand in the future to include
-all Unix-style terminal emulators supported by ![termbox](https://github.com/nsf/termbox).
+all terminal emulators supported by ![termbox](https://github.com/nsf/termbox), regardless of platform.
 
 ## Building
 
 ### Requirements
 
-- macOS (tested on 10.14.5, but should work on 10.13 or earlier)
-- clang Apple LLVM version 10.0.1 (clang-1001.0.46.4)
+- macOS (tested on 10.14.5, but should work on 10.13 and earlier)
+- C++11 compiler (tested on clang Apple LLVM version 10.0.1 (clang-1001.0.46.4), but any other C++11 compiler should work)
 - Python >= 2.5 (any Python 3 version will also work) (runs waf build script)
+- *Optional:* Ruby (any version; tested on 2.5.1) (for running linter tool)
+- *Optional:* clang-tidy (LLVM linting tool)
 
-### Builds
+### Scripts
 
 There are three different build scripts:
 
-- `build-full.sh` (run this right after cloning or after updating termbox submodule)
-- `build.sh` (incremental build; run this for to recompile after any changes made to source)
-- `run-tests.sh` (builds/runs test suite; cleans up after itself)
+- `./build-full.sh` (run this right after cloning or after updating termbox submodule; subsequent builds use `./build.sh`)
+- `./build.sh` (incremental build; run this to recompile after any changes made to game code)
+- `./run-tests.sh` (builds/runs test suite; cleans up after itself)
 
-After cloning, run `build-full.sh` to build the included termbox code and the game's code. 
-After running `build-full.sh` once, run `build.sh`, which will compile/link only the game's code 
-from scratch, staticly linking to `src/libtermbox.a` instead of recompiling termbox. This makes
-compile times shorter, since termbox's code never changes when modifying game code.
-
-`run-tests.sh` builds/runs a modified build centered around `test-suite.cpp`, which automatically runs several functionality tests. Note that this script won't produce a new executable.
+`./run-tests.sh` builds/runs a modified build centered around `test-suite.cpp`, which automatically runs several functionality tests. Note that this script won't produce a new executable.
 
 ## Playing
 
-run `./rpg` or optionally click on `rpg2` from the Finder.
+run `./rpg2` or optionally double-click `rpg2` from the Finder.
 
 ## Controls
 
@@ -52,20 +49,23 @@ it will be thrown at the monster). Also, you can't attack items/walls.
 - **t** Teleport the player. Pressing **t** will show a cursor on the player's position. After
 moving the cursor to the desired location (see below), press **t** again to teleport there. You cannot
 teleport to a cell where a Wall is present. However, if you set your cursor over an item (**i**) and
-teleport, it will be added to your inventory. Teleporting to a Monster's position causes you to attack the monster.
+teleport, it will be added to your inventory. Teleporting to a Monster's position causes you to melee the monster
+without moving to its position.
 - **arrow keys** Move teleportation/ranged attack cursor once it is shown
 - **Ctrl-x** or **Ctrl-c** Exit game
 
 ## Features
 
+- Custom character creation or quickstart
 - A movable/teleportable player character ('@')
 - RNG melee/ranged combat
 - Viewable player inventory/character sheet
 - An event log
 - Equippable items
-- Monsters ('M')
+- Several monster types including Mutant Bears, Marxist Marmots, and Red Imps
+- Monsters attempt to find/kill the player
 - Items ('i'), which can be picked up
-- Walls ('1')
+- Walls ('#')
 - Dynamic screen resizing/camera tracking
 - Gorgeous ASCII graphics
 
