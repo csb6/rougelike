@@ -27,18 +27,24 @@ private:
 public:
   Item(int x = 0, int y = 0, std::string name = "Item", int weight = 0,
        std::int_least16_t armor = 0, std::int_least16_t attack = 0);
+  void setName(std::string value) { m_name = value; }
   bool operator==(const Item &other) const;
+  void move(int newX, int newY);
   int getX() const { return m_xPos; }
   int getY() const { return m_yPos; }
   int getId() const { return m_id; }
+  void setWeight(int value) { m_weight = value; }
   int getWeight() const { return m_weight; }
   std::int_least16_t getArmor() const { return m_armor; }
   std::int_least16_t getAttack() const { return m_attack; }
+  void setArmor(std::int_least16_t value) { m_armor = value; }
+  void setAttack(std::int_least16_t value) { m_attack = value; }
   std::string getName() const { return m_name; }
   bool isEquipped() const { return m_isEquipped; }
   bool isRanged() const { return m_isRanged; }
   bool isMelee() const { return m_isMelee; }
   void setEquip(bool isEquipped) { m_isEquipped = isEquipped; }
   void setRanged(bool isRanged) { m_isRanged = isRanged; }
+  void setMelee(bool isMelee) { m_isMelee = isMelee; }
 };
 #endif

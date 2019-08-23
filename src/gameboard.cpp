@@ -32,6 +32,13 @@ static std::int_least16_t parseInt(std::string value, std::int_least16_t default
   return std::stoi(value);
 }
 
+static bool parseBool(std::string value, bool defaultVal = false)
+{
+  if(value == "true") return true;
+  else if(value == "false") return false;
+  else return defaultVal;
+}
+
 static void applyIniPair(Actor &actor, std::string key, std::string value)
 {
   if(key == "char") actor.setCh(parseChar(value));
@@ -56,6 +63,16 @@ static void applyIniPair(Actor &actor, std::string key, std::string value)
   else if(key == "trapSkill") actor.m_trapSkill = parseInt(value);
 }
 
+static void applyIniPair(Item &item, std::string key, std::string value)
+{
+  if(key == "name") item.setName(value);
+  else if(key == "weight") item.setWeight(parseInt(value));
+  else if(key == "attack") item.setAttack(parseInt(value));
+  else if(key == "armor") item.setArmor(parseInt(value));
+  else if(key == "isMelee") item.setMelee(parseBool(value));
+  else if(key == "isRanged") item.setRanged(parseBool(value));
+}
+
 /* Distance formula with truncated absolute value result*/
 static int distanceFrom(int x1, int y1, int x2, int y2)
 {
@@ -71,6 +88,9 @@ GameBoard::GameBoard(Display &screen, Actor playerCh, const std::string &mapPath
   m_turn_index = m_player_index;
 
   loadMonsterTemplates(getLocalDir() + "src/monsters.ini");
+  //Be careful that no Monsters/Items have same char representing
+  //them in .ini files; an Item/Monster will be added in the same location
+  loadItemTemplates(getLocalDir() + "src/items.ini");
 
   loadMap(mapPath);
   //When doing turns, will start iterating through m_actors backward
@@ -79,6 +99,49 @@ GameBoard::GameBoard(Display &screen, Actor playerCh, const std::string &mapPath
   player().setTurn(true);
   //Show initial map, centered at player's current position
   m_screen.draw(m_map, player(), currActor());
+}
+
+void GameBoard::loadItemTemplates(const std::string &&path)
+{
+  std::ifstream itemFile(path);
+  if(!itemFile) {
+    m_screen.printText(0, 0, "Error: could not load item file: " + path + "\n");
+    m_screen.input("Press Enter to exit", 0, 1);
+    exit(1);
+  }
+
+  char ch = 0;
+  bool hasCh = false;
+  Item newTemplate;
+  while(itemFile) {
+    std::string line;
+    std::getline(itemFile, line);
+    //Skip comments
+    if(line[0] == '#')
+      continue;
+    //Finalize/add template when at blank line (end of section)
+    else if(line == "" && hasCh) {
+      m_itemTemplates[ch] = newTemplate;
+      newTemplate = Item();
+      hasCh = false;
+      continue;
+    }
+    //Find out where '=' is; it's the division between key/value
+    auto split = findSplit(line);
+    //Ignore erroneously formatted lines
+    if(split == 0 || split == (line.size() - 1)) {
+      continue;
+    }
+
+    if(line.substr(0, split) == "char") {
+      //All items represented by a char in map files, but not onscreen,
+      //so char not part of the Item objects themselves
+      ch = parseChar(line.substr(split+1), '-');
+      hasCh = true;
+    }
+
+    applyIniPair(newTemplate, line.substr(0, split), line.substr(split+1));
+  }
 }
 
 void GameBoard::loadMonsterTemplates(const std::string &&path)
@@ -156,9 +219,11 @@ void GameBoard::loadMap(const std::string &path)
 	  player().move(col, row);
 	  player().setCh(PlayerTile);
 	}
-	else if(line[pos] == ItemTile) {
+	else if(m_itemTemplates.find(line[pos]) != m_itemTemplates.end()) {
+	  Item item = m_itemTemplates[line[pos]];
+	  item.move(col, row);
 	  //Add Item to Item list
-	  m_items.push_back(Item(col, row));
+	  m_items.push_back(item);
 	}
 	else if(m_templates.find(line[pos]) != m_templates.end()) {
 	  //If in template list, create monster mapped from given char

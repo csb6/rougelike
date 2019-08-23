@@ -24,3 +24,9 @@ bool Item::operator==(const Item &other) const
 {
   return m_id == other.m_id;
 }
+
+void Item::move(int newX, int newY)
+{
+  m_xPos = newX;
+  m_yPos = newY;
+}

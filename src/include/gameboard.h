@@ -17,12 +17,14 @@ private:
   std::vector<Item> m_items;
   std::vector<Actor> m_actors;
   std::map<char,Actor> m_templates;
+  std::map<char,Item> m_itemTemplates;
   void deleteItem(Item &item);
   void deleteActor(Actor &actor);
   bool changePos(Actor &actor, int newX, int newY);
   bool pickupItem(Actor &actor, int x, int y);
   bool melee(Actor &attacker, int targetX, int targetY);
   void loadMonsterTemplates(const std::string &&path);
+  void loadItemTemplates(const std::string &&path);
 public:
   GameBoard(Display &screen, Actor playerCh, const std::string &mapPath);
   inline Actor& player() { return m_actors[m_player_index]; }
