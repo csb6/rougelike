@@ -424,11 +424,15 @@ bool GameBoard::melee(Actor &attacker, int targetX, int targetY)
     if(each.getX() == targetX && each.getY() == targetY
        && each.getFaction() != attacker.getFaction()) {
       //Attacker attempts to attack; print result (success/fail)
+      int eachHealth = each.getHealth();
+      int attackerHealth = attacker.getHealth();
       if(attacker.attack(each)) {
 	log(attacker.getName() + " attacked " + each.getName());
+	log("Damage: " + std::to_string(each.getHealth() - eachHealth));
       }
       else {
 	log(each.getName() + " attacked " + attacker.getName());
+	log("Damage: " + std::to_string(attacker.getHealth() - attackerHealth));
       }
 
       if(!each.isAlive()) {

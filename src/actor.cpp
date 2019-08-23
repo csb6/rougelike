@@ -50,6 +50,16 @@ bool actorWinsFight(int skillAmt, int otherSkillAmt, Item *armor, Item *otherArm
   return actorWins(skillAmt + armorBonus, otherSkillAmt + otherArmorBonus);
 }
 
+int findDamage(int armorBonus, int attackerWeaponBonus)
+{
+  if(armorBonus > attackerWeaponBonus) {
+    return getRandomNumber(0, attackerWeaponBonus / 2);
+  }
+  else {
+    return getRandomNumber(0, attackerWeaponBonus + attackerWeaponBonus - armorBonus);
+  }
+}
+
 /* Given lists of skills for 2 actors, decide using RNG/relative skills who wins skill check
  * by summing skills in each list, calling actorWins(); weight using multipliers when creating
  * the list in calling location
@@ -102,12 +112,24 @@ bool Actor::attack(Actor &target)
 {
   --m_energy;
   if(actorWinsFight(m_strength, target.m_strength, m_equipment, target.m_equipment)) {
-    target.addHealth(-5);
-    m_levelProgress += 5;
+    Item *weapon = getEquipped(MELEE_WEAPON);
+    int damage = 1;
+    if(weapon != nullptr && weapon->isMelee()) {
+      damage = findDamage(getArmorBonus(target.m_strength, target.m_equipment),
+			  weapon->getAttack());
+    }
+    target.addHealth(-damage);
+    m_levelProgress += damage;
     return true;
   }
   else {
-    addHealth(-5);
+    Item *weapon = target.getEquipped(MELEE_WEAPON);
+    int damage = 1;
+    if(weapon != nullptr && weapon->isMelee()) {
+      damage = findDamage(getArmorBonus(m_strength, m_equipment),
+			  weapon->getAttack());
+    }
+    addHealth(-damage);
     return false;
   }
 }

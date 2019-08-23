@@ -8,9 +8,13 @@
 [X] Add isPlayer flag to Actor class to clearly differentiate player from
     monsters without having to do dynamic dispatch/inheritance stuff
 [X] Add way to equip items/armor
+[ ] Add armor/weapon items that improve defense/attack
+[ ] Add way to specify items in .ini files
+[ ] Add variable damage
 [ ] Tune combat/limit teleportation
 [ ] Adjust skills; maybe have teleport skill, use it to determine range? Maybe
     use cunning skill?
+[ ] Delete skills that aren't useful/usable
 [ ] Reference melee skill and strength skill for attacking; factor in armor
     and agility for defense
 [ ] Add 'negotiate' option with monsters that generates funny dialogue
@@ -28,7 +32,6 @@
   #include <libloaderapi.h>
 #elif __APPLE__
   #include <mach-o/dyld.h>
-  #include <cstdlib>
 #endif
 
 /* Get absolute path to the directory that the executable is in*/
