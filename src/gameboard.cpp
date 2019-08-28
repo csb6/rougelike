@@ -4,6 +4,9 @@
 
 std::string getLocalDir();
 
+const int ItemVecDefaultSize = 5;
+const int ActorVecDefaultSize = 10;
+
 static std::string::size_type findSplit(const std::string line)
 {
   std::string::size_type split(0);
@@ -29,7 +32,12 @@ static std::int_least16_t parseInt(std::string value, std::int_least16_t default
   if(value.size() < 1 || value == "default") {
     return defaultVal;
   }
-  return std::stoi(value);
+  try {
+    return std::stoi(value);
+  }
+  catch(const std::out_of_range& e) {
+    return defaultVal;
+  }
 }
 
 static bool parseBool(std::string value, bool defaultVal = false)
@@ -84,6 +92,9 @@ static int distanceFrom(int x1, int y1, int x2, int y2)
 GameBoard::GameBoard(Display &screen, Actor playerCh, const std::string &mapPath)
   : m_map{}, m_screen(screen), m_player_index(0), m_turn_index(0)
 {
+  m_items.reserve(ItemVecDefaultSize);
+  m_actors.reserve(ActorVecDefaultSize);
+
   m_actors.push_back(playerCh);
   m_turn_index = m_player_index;
 

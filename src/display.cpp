@@ -154,7 +154,13 @@ int Display::input(const std::string msg, int col, int row)
 	break;
       case TB_KEY_ENTER:
 	//Give number to caller
-	return std::stoi(num);
+	try {
+	  return std::stoi(num);
+	}
+	catch(const std::out_of_range& e) {
+	  //Exit early
+	  return -1;
+	}
       default:
 	//If not a key combo, look at individual keys
 	char key = getEventChar();
