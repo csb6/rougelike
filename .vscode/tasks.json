@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Build with Clang",
+        "type": "shell",
+        "command": "clang++",
+        "args": [
+            "--debug",
+            "-std=c++11",
+            "-Wall","-Wextra", 
+            "-pedantic-errors", 
+            "-o rpg2", 
+            "src/main.cpp".
+            "src/libtermbox.a",
+            "src/display.cpp", "src/actor.cpp",
+            "src/item.cpp",
+            "src/input.cpp",
+            "src/gameboard.cpp"
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      }
+    ]
+  }

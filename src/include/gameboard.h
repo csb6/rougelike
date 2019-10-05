@@ -18,8 +18,8 @@ private:
   std::vector<Actor> m_actors;
   std::map<char,Actor> m_templates;
   std::map<char,Item> m_itemTemplates;
-  void deleteItem(Item &item);
-  void deleteActor(Actor &actor);
+  void deleteItem(int x, int y);
+  void deleteActor(int x, int y);
   bool changePos(Actor &actor, int newX, int newY);
   bool pickupItem(Actor &actor, int x, int y);
   bool melee(Actor &attacker, int targetX, int targetY);

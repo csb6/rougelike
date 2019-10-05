@@ -382,39 +382,44 @@ bool GameBoard::isValid(int x, int y) const
 }
 
 /* Removes given Item from m_items*/
-void GameBoard::deleteItem(Item& item)
+void GameBoard::deleteItem(int x, int y)
 {
   if(m_items.size() <= 0) {
     return;
   }
 
-  using vector_t = std::vector<Item>::size_type;
-  auto pos = std::find(m_items.begin(), m_items.end(), item) - m_items.begin();
-  if(static_cast<vector_t>(pos) >= m_items.size()) {
-    log("Error: no Item with name " + item.getName());
+  for(unsigned int i=0; i<m_items.size(); ++i) {
+    if(m_items[i].getX() == x && m_items[i].getY() == y) {
+      m_items.erase(m_items.begin()+i);
+      return;
+    }
   }
-
-  m_items.erase(m_items.begin()+pos);
+  log("Error: Couldn't find item");
 }
 
 /* Removes given Actor from m_actors*/
-void GameBoard::deleteActor(Actor& actor)
+void GameBoard::deleteActor(int x, int y)
 {
   if(m_actors.size() <= 0) {
     return;
   }
-
   using vector_t = std::vector<Actor>::size_type;
-  //Find the Actor's position in m_actors of Actor for erase()
-  auto pos = std::find(m_actors.begin(), m_actors.end(), actor) - m_actors.begin();
-  if(static_cast<vector_t>(pos) >= m_actors.size()) {
-    log("Error: no Actor at" + std::to_string(actor.getX()) + ", "
-	+ std::to_string(actor.getY()));
+
+  bool foundActor = false;
+  int pos = 0;
+  for(vector_t i=0; i<m_actors.size(); ++i) {
+    if(m_actors[i].getX() == x && m_actors[i].getY() == y) {
+      log(m_actors[i].getName() + " died");
+      m_actors.erase(m_actors.begin()+i);
+      foundActor = true;
+      pos = i;
+      break;
+    }
+  }
+  if(!foundActor) {
+    log("Error: actor not found");
     return;
   }
-
-  log(actor.getName() + " died");
-  m_actors.erase(m_actors.begin()+pos);
   //Need to update player/turn indexes to account for deletion
   if(pos < m_player_index) {
     --m_player_index;
@@ -478,7 +483,7 @@ bool GameBoard::pickupItem(Actor &actor, int x, int y)
       if(actor.canCarry(each.getWeight())) {
 	actor.addItem(each);
 	//Item now in Actor inventory, not on map, so stop tracking
-	deleteItem(each);
+	deleteItem(x, y);
 	m_map[y][x] = 0;
 	log(actor.getName() + " picked up " + each.getName());
 
@@ -488,6 +493,7 @@ bool GameBoard::pickupItem(Actor &actor, int x, int y)
       return true;
     }
   }
+  log("Can't find item");
   return false;
 }
 
@@ -513,7 +519,7 @@ bool GameBoard::melee(Actor &attacker, int targetX, int targetY)
 
       if(!each.isAlive()) {
 	m_map[targetY][targetX] = 0;
-	deleteActor(each);
+	deleteActor(targetX, targetY);
       }
 
       m_screen.clear();
@@ -582,7 +588,7 @@ bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
 
       if(!each.isAlive()) {
 	m_map[targetY][targetX] = 0;
-	deleteActor(each);
+	deleteActor(targetX, targetY);
       }
       m_screen.clear();
       m_screen.draw(m_map, player(), currActor());
