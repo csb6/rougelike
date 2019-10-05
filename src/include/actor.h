@@ -9,9 +9,9 @@ enum class Faction {
 
 class GameBoard;
 
-const int RNGUpperLimit = 100;
-const int SkillAmount = 11; //Number of skills (e.g. strengh, agility, etc.)
-const int MaxInitPoints = 25; //Total pts doled out at character creation
+constexpr int RNGUpperLimit = 100;
+constexpr int SkillAmount = 9; //Number of skills (e.g. strengh, agility, etc.)
+constexpr int MaxInitPoints = 25; //Total pts doled out at character creation
 
 class Actor {
 private:
@@ -72,9 +72,7 @@ public:
   std::int_least16_t m_sidearmSkill = 0;   // 0 - Skill with small guns
   std::int_least16_t m_longarmSkill = 0;   // 1 - Skill with big guns
   std::int_least16_t m_meleeSkill = 0;     // 2 - Skill with melee weapons
-  std::int_least16_t m_vehicleSkill = 0;   // 3 - Skill with vehicular weapons
-  std::int_least16_t m_barterSkill = 0;    // 4 - Skill affecting cost of items
-  std::int_least16_t m_negotiateSkill = 0; // 5 - Skill affecting chance of successful negotiations
-  std::int_least16_t m_trapSkill = 0;      // 6 - Skill affecting chance of traps working
+  std::int_least16_t m_barterSkill = 0;    // 3 - Skill affecting cost of items
+  std::int_least16_t m_negotiateSkill = 0; // 4 - Skill affecting chance of successful negotiations
 };
 #endif

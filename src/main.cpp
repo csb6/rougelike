@@ -2,19 +2,19 @@
 [ ] Profile to see what is causing memory leaks when resizing window
 [ ] Add way to save/load
 [ ] Add way to drop items onto map (remove from inventory)
-[ ] Add basic test suite for key functionality (see old RPG code)
+[X] Add basic test suite for key functionality (see old RPG code)
 [ ] Add better, safer, more comprehensive way to draw GUI
 [ ] Add better, faster way to get ref to Item from an (x, y) coordinate
 [X] Add isPlayer flag to Actor class to clearly differentiate player from
     monsters without having to do dynamic dispatch/inheritance stuff
 [X] Add way to equip items/armor
 [ ] Add armor/weapon items that improve defense/attack
-[ ] Add way to specify items in .ini files
-[ ] Add variable damage
+[X] Add way to specify items in .ini files
+[X] Add variable damage
 [ ] Tune combat/limit teleportation
 [ ] Adjust skills; maybe have teleport skill, use it to determine range? Maybe
     use cunning skill?
-[ ] Delete skills that aren't useful/usable
+[X] Delete skills that aren't useful/usable
 [ ] Reference melee skill and strength skill for attacking; factor in armor
     and agility for defense
 [ ] Add 'negotiate' option with monsters that generates funny dialogue
@@ -111,10 +111,8 @@ static void assignSkills(Actor &actor, const int skills[])
   actor.m_sidearmSkill = skills[4];
   actor.m_longarmSkill = skills[5];
   actor.m_meleeSkill = skills[6];
-  actor.m_vehicleSkill = skills[7];
-  actor.m_barterSkill = skills[8];
-  actor.m_negotiateSkill = skills[9];
-  actor.m_trapSkill = skills[10];
+  actor.m_barterSkill = skills[7];
+  actor.m_negotiateSkill = skills[8];
 }
 
 /* Runs player character creation, giving option for quickstart or to redo
@@ -126,9 +124,8 @@ static void skillSelection(Actor &actor)
   std::string prompts[SkillAmount] = { "Enter strength: ", "Enter cunning: ",
 				       "Enter agility: ","Enter education: ",
 				       "Enter sidearmSkill: ", "Enter longarmSkill: ",
-				       "Enter meleeSkill: ", "Enter vehicleSkill: ",
-				       "Enter barterSkill: ", "Enter negotiateSkill: ",
-				       "Enter trapSkill: "};
+				       "Enter meleeSkill: ", "Enter barterSkill: ",
+				       "Enter negotiateSkill: "};
   while(true) {
     std::fill(std::begin(skills), std::end(skills), 0);
     std::cout << "Welcome to the game! Enter 'q' to quickstart or enter any other letter for character creation:\n\n";

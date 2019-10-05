@@ -22,7 +22,7 @@ all terminal emulators supported by ![termbox](https://github.com/nsf/termbox), 
 There are three different build scripts:
 
 - `./build-full.sh` (run this right after cloning or after updating termbox submodule; subsequent builds use `./build.sh`)
-- `./build.sh` (incremental build; run this to recompile after any changes made to game code)
+- `./build.sh` (builds without rebuilding termbox static library; run this to recompile after any changes made to game code)
 - `./run-tests.sh` (builds/runs test suite; cleans up after itself)
 
 `./run-tests.sh` builds/runs a modified build centered around `test-suite.cpp`, which automatically runs several functionality tests. Note that this script won't produce a new executable.
@@ -58,7 +58,7 @@ without moving to its position.
 
 - Custom character creation or quickstart
 - A movable/teleportable player character ('@')
-- RNG melee/ranged combat
+- RNG melee/ranged combat with variable damage
 - Viewable player inventory/character sheet
 - An event log
 - Equippable items

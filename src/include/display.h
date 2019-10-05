@@ -4,22 +4,22 @@
 #include "termbox.h"
 
 //Display Constants
-const int MinDisplayWidth = 30;
-const int MinDisplayHeight = 16;
+constexpr int MinDisplayWidth = 30;
+constexpr int MinDisplayHeight = 16;
 //GUI dimensions subtracted from tb_width()/height() to get play area screen dimensions
-const int GUIHeight = 10;
-const int GUIWidth = 10;
-const int InputTimeout = 10; //in milliseconds
-const char EmptySpace = '.';
-const char WallTile = '#';
-const char PlayerTile = '@';
-const char ItemTile = 'i';
-const int MaxLogSize = 4; //in number of messages
+constexpr int GUIHeight = 10;
+constexpr int GUIWidth = 10;
+constexpr int InputTimeout = 10; //in milliseconds
+constexpr char EmptySpace = '.';
+constexpr char WallTile = '#';
+constexpr char PlayerTile = '@';
+constexpr char ItemTile = 'i';
+constexpr int MaxLogSize = 4; //in number of messages
 
 //Map Constants
 //  Map should take up at least min screen space so min-size screen is always full
-const int MapWidth = 30;
-const int MapHeight = 30;
+constexpr int MapWidth = 30;
+constexpr int MapHeight = 30;
 //  An array containing tiles to display onscreen
 typedef char LevelMap[MapWidth][MapHeight];
 

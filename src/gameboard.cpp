@@ -65,10 +65,8 @@ static void applyIniPair(Actor &actor, std::string key, std::string value)
   else if(key == "sidearmSkill") actor.m_sidearmSkill = parseInt(value);
   else if(key == "longarmSkill") actor.m_longarmSkill = parseInt(value);
   else if(key == "meleeSkill") actor.m_meleeSkill = parseInt(value);
-  else if(key == "vehicleSkill") actor.m_vehicleSkill = parseInt(value);
   else if(key == "barterSkill") actor.m_barterSkill = parseInt(value);
   else if(key == "negotiateSkill") actor.m_negotiateSkill = parseInt(value);
-  else if(key == "trapSkill") actor.m_trapSkill = parseInt(value);
 }
 
 static void applyIniPair(Item &item, std::string key, std::string value)
@@ -331,10 +329,8 @@ void GameBoard::showStats(Actor &actor)
   m_screen.printText(0, 10, "Sidearm: " + std::to_string(actor.m_sidearmSkill), TB_CYAN);
   m_screen.printText(0, 11, "Longarm: " + std::to_string(actor.m_longarmSkill), TB_CYAN);
   m_screen.printText(0, 12, "Melee: " + std::to_string(actor.m_meleeSkill), TB_CYAN);
-  m_screen.printText(0, 13, "Vehicle: " + std::to_string(actor.m_vehicleSkill), TB_CYAN);
-  m_screen.printText(0, 14, "Barter: " + std::to_string(actor.m_barterSkill), TB_CYAN);
-  m_screen.printText(0, 15, "Negotiate: " + std::to_string(actor.m_negotiateSkill), TB_CYAN);
-  m_screen.printText(0, 16, "Trap: " + std::to_string(actor.m_trapSkill), TB_CYAN);
+  m_screen.printText(0, 13, "Barter: " + std::to_string(actor.m_barterSkill), TB_CYAN);
+  m_screen.printText(0, 14, "Negotiate: " + std::to_string(actor.m_negotiateSkill), TB_CYAN);
 }
 
 /* Show list of equipment slots, showing which items in which slots/which
