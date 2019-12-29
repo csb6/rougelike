@@ -5,11 +5,11 @@
 
 class Input {
 private:
-  bool &m_running;
-  Display &m_screen;
-  GameBoard &m_board;
+    bool &m_running;
+    Display &m_screen;
+    GameBoard &m_board;
 public:
-  Input(bool &running, Display &screen, GameBoard &board);
-  bool process();
+    Input(bool &running, Display &screen, GameBoard &board);
+    bool process();
 };
 #endif

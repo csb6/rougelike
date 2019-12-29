@@ -2,9 +2,9 @@
 
 static int generateId()
 {
-  static int id = -1;
-  ++id;
-  return id;
+    static int id = -1;
+    ++id;
+    return id;
 }
 
 static_assert(EQUIP_MAX > ARMOR_MAX, "ARMOR_MAX too big");
@@ -14,19 +14,19 @@ static_assert(MELEE_WEAPON < EQUIP_MAX && MELEE_WEAPON == ARMOR_MAX,
 
 Item::Item(int x, int y, std::string name, int weight, std::int_least16_t armor,
 	   std::int_least16_t attack)
-  : m_xPos(x), m_yPos(y), m_id(generateId()), m_weight(weight), m_name(name),
-    m_armor(armor), m_attack(attack)
+    : m_xPos(x), m_yPos(y), m_id(generateId()), m_weight(weight), m_name(name),
+      m_armor(armor), m_attack(attack)
 {
 
 }
 
 bool Item::operator==(const Item &other) const
 {
-  return m_id == other.m_id;
+    return m_id == other.m_id;
 }
 
 void Item::move(int newX, int newY)
 {
-  m_xPos = newX;
-  m_yPos = newY;
+    m_xPos = newX;
+    m_yPos = newY;
 }
