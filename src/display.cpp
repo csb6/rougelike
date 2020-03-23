@@ -232,12 +232,8 @@ int Display::getCameraCoord(int playerCoord, bool isX)
 
 /* Adds labels/information shown to player in sidebars onscreen to screen
    buffer, respecting the area used to draw the area around the player */
-void Display::drawGUI(const Actor &player, const Actor &currActor)
+void Display::drawGUI(const Actor &player)
 {
-    //Draw player/current Actor's info
-    printTextCol(0, "Turn:", TB_YELLOW);
-    printTextCol(0, " Name: " + currActor.getName());
-    printTextCol(0, " Energy: " + std::to_string(currActor.getEnergy()));
     printTextCol(1, "You:", TB_YELLOW);
     printTextCol(1, " Name: " + player.getName());
     printTextCol(1, " Energy: " + std::to_string(player.getEnergy()));
@@ -258,7 +254,7 @@ void Display::drawGUI(const Actor &player, const Actor &currActor)
 
 /* Places all non-empty tiles centered around the player into the screen buffer,
    stopping when there is no more room. Respects area left for GUI */
-void Display::draw(const LevelMap &map, const Actor &player, const Actor &currActor)
+void Display::draw(const LevelMap &map, const Actor &player)
 {
     //Screen may be smaller than map, so display as much as possible
     m_screenWidth = std::min(boardWidth(), MapWidth);
@@ -277,7 +273,7 @@ void Display::draw(const LevelMap &map, const Actor &player, const Actor &currAc
 	    }
 	}
     }
-    drawGUI(player, currActor);
+    drawGUI(player);
 }
 
 /* Checks if window is large enough to adequately display the game */

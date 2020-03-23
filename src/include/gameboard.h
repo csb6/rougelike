@@ -2,6 +2,7 @@
 #define GAMEBOARD_H
 #include "display.h"
 #include "actor.h"
+#include "template.h"
 #include <map>
 
 class GameBoard {
@@ -23,8 +24,6 @@ private:
     bool changePos(Actor &actor, int newX, int newY);
     bool pickupItem(Actor &actor, int x, int y);
     bool melee(Actor &attacker, int targetX, int targetY);
-    void loadMonsterTemplates(const std::string &&path);
-    void loadItemTemplates(const std::string &&path);
 public:
     GameBoard(Display &screen, Actor playerCh, const std::string &mapPath);
     inline Actor& player() { return m_actors[m_player_index]; }

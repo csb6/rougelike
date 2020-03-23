@@ -7,77 +7,6 @@ std::string getLocalDir();
 const int ItemVecDefaultSize = 5;
 const int ActorVecDefaultSize = 10;
 
-static std::string::size_type findSplit(const std::string line)
-{
-    std::string::size_type split(0);
-    for(std::string::size_type i=0; i<line.size(); ++i) {
-	if(line[i] == '=') {
-	    split = i;
-	    break;
-	}
-    }
-    return split;
-}
-
-static char parseChar(std::string value, char defaultVal = 'A')
-{
-    if(value.size() < 1 || value == "default") {
-	return defaultVal;
-    }
-    return value[0];
-}
-
-static std::int_least16_t parseInt(std::string value, std::int_least16_t defaultVal = 0)
-{
-    if(value.size() < 1 || value == "default") {
-	return defaultVal;
-    }
-    try {
-	return std::stoi(value);
-    } catch(const std::out_of_range& e) {
-	return defaultVal;
-    }
-}
-
-static bool parseBool(std::string value, bool defaultVal = false)
-{
-    if(value == "true") return true;
-    else if(value == "false") return false;
-    else return defaultVal;
-}
-
-static void applyIniPair(Actor &actor, std::string key, std::string value)
-{
-    if(key == "char") actor.setCh(parseChar(value));
-    else if(key == "name") actor.setName(value);
-    else if(key == "energy") actor.setEnergy(parseInt(value));
-    else if(key == "health") actor.addHealth(parseInt(value, 100));
-    else if(key == "carryWeight") actor.m_carryWeight = parseInt(value);
-    else if(key == "carryWeight") actor.m_carryWeight = parseInt(value);
-    else if(key == "maxCarryWeight") actor.m_maxCarryWeight = parseInt(value, 10);
-    else if(key == "level") actor.m_level = parseInt(value);
-    else if(key == "levelProgress") actor.m_levelProgress = parseInt(value);
-    else if(key == "strength") actor.m_strength = parseInt(value);
-    else if(key == "cunning") actor.m_cunning = parseInt(value);
-    else if(key == "agility") actor.m_agility = parseInt(value);
-    else if(key == "education") actor.m_education = parseInt(value);
-    else if(key == "sidearmSkill") actor.m_sidearmSkill = parseInt(value);
-    else if(key == "longarmSkill") actor.m_longarmSkill = parseInt(value);
-    else if(key == "meleeSkill") actor.m_meleeSkill = parseInt(value);
-    else if(key == "barterSkill") actor.m_barterSkill = parseInt(value);
-    else if(key == "negotiateSkill") actor.m_negotiateSkill = parseInt(value);
-}
-
-static void applyIniPair(Item &item, std::string key, std::string value)
-{
-    if(key == "name") item.setName(value);
-    else if(key == "weight") item.setWeight(parseInt(value));
-    else if(key == "attack") item.setAttack(parseInt(value));
-    else if(key == "armor") item.setArmor(parseInt(value));
-    else if(key == "isMelee") item.setMelee(parseBool(value));
-    else if(key == "isRanged") item.setRanged(parseBool(value));
-}
-
 /* Distance formula with truncated absolute value result*/
 static int distanceFrom(int x1, int y1, int x2, int y2)
 {
@@ -87,7 +16,9 @@ static int distanceFrom(int x1, int y1, int x2, int y2)
 /* Creates a new board linking to the termbox screen; opens/loads
    the given map, and sets up in-game GUI*/
 GameBoard::GameBoard(Display &screen, Actor playerCh, const std::string &mapPath)
-    : m_map{}, m_screen(screen), m_player_index(0), m_turn_index(0)
+    : m_map{}, m_screen(screen), m_player_index(0), m_turn_index(0),
+      m_templates{loadMonsterTemplates(getLocalDir() + "src/monsters.ini")},
+      m_itemTemplates{loadItemTemplates(getLocalDir() + "src/items.ini")}
 {
     m_items.reserve(ItemVecDefaultSize);
     m_actors.reserve(ActorVecDefaultSize);
@@ -95,94 +26,13 @@ GameBoard::GameBoard(Display &screen, Actor playerCh, const std::string &mapPath
     m_actors.push_back(playerCh);
     m_turn_index = m_player_index;
 
-    loadMonsterTemplates(getLocalDir() + "src/monsters.ini");
-    //Be careful that no Monsters/Items have same char representing
-    //them in .ini files; an Item/Monster will be added in the same location
-    loadItemTemplates(getLocalDir() + "src/items.ini");
-
     loadMap(mapPath);
     //When doing turns, will start iterating through m_actors backward
     //so deletions of Actors are easy/safe; however, 1st turn should be the
     //player's
     player().setTurn(true);
     //Show initial map, centered at player's current position
-    m_screen.draw(m_map, player(), currActor());
-}
-
-void GameBoard::loadItemTemplates(const std::string &&path)
-{
-    std::ifstream itemFile(path);
-    if(!itemFile) {
-	m_screen.printText(0, 0, "Error: could not load item file: " + path + "\n");
-	m_screen.input("Press Enter to exit", 0, 1);
-	exit(1);
-    }
-
-    char ch = 0;
-    bool hasCh = false;
-    Item newTemplate;
-    while(itemFile) {
-	std::string line;
-	std::getline(itemFile, line);
-	//Skip comments
-	if(line[0] == '#')
-	    continue;
-	//Finalize/add template when at blank line (end of section)
-	else if(line == "" && hasCh) {
-	    m_itemTemplates[ch] = newTemplate;
-	    newTemplate = Item();
-	    hasCh = false;
-	    continue;
-	}
-	//Find out where '=' is; it's the division between key/value
-	auto split = findSplit(line);
-	//Ignore erroneously formatted lines
-	if(split == 0 || split == (line.size() - 1)) {
-	    continue;
-	}
-
-	if(line.substr(0, split) == "char") {
-	    //All items represented by a char in map files, but not onscreen,
-	    //so char not part of the Item objects themselves
-	    ch = parseChar(line.substr(split+1), '-');
-	    hasCh = true;
-	}
-
-	applyIniPair(newTemplate, line.substr(0, split), line.substr(split+1));
-    }
-}
-
-void GameBoard::loadMonsterTemplates(const std::string &&path)
-{
-    std::ifstream monsterFile(path);
-    if(!monsterFile) {
-	m_screen.printText(0, 0, "Error: could not load monster file: " + path + "\n");
-	m_screen.input("Press Enter to exit", 0, 1);
-	exit(1);
-    }
-
-    Actor newTemplate;
-    while(monsterFile) {
-	std::string line;
-	std::getline(monsterFile, line);
-	//Skip comments
-	if(line[0] == '#')
-	    continue;
-	//Finalize/add template when at blank line (end of section)
-	else if(line == "") {
-	    m_templates[newTemplate.getCh()] = newTemplate;
-	    newTemplate = Actor();
-	    continue;
-	}
-	//Find out where '=' is; it's the division between key/value
-	auto split = findSplit(line);
-	//Ignore erroneously formatted lines
-	if(split == 0 || split == (line.size() - 1)) {
-	    continue;
-	}
-
-	applyIniPair(newTemplate, line.substr(0, split), line.substr(split+1));
-    }
+    m_screen.draw(m_map, player());
 }
 
 /* Fills 2d array with tiles from given map file, instantiating
@@ -258,7 +108,7 @@ void GameBoard::bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, i
 	    (this->*action)(actor, cursorX, cursorY);
 	    m_screen.hideCursor();
 	    m_screen.clear();
-	    m_screen.draw(m_map, player(), currActor());
+	    m_screen.draw(m_map, player());
 	}
     }
 }
@@ -275,7 +125,7 @@ void GameBoard::updateActors()
 	}
 	currActor().setTurn(true);
 	m_screen.clear();
-	m_screen.draw(m_map, player(), currActor());
+	m_screen.draw(m_map, player());
     }
 
     int i = m_turn_index;
@@ -357,7 +207,7 @@ void GameBoard::redraw()
     //Redraws whole screen (useful for exiting inventory subscreen, etc.)
     m_screen.clear();
     m_screen.hideCursor();
-    m_screen.draw(m_map, player(), currActor());
+    m_screen.draw(m_map, player());
 }
 
 void GameBoard::present()
@@ -431,7 +281,7 @@ void GameBoard::equipItem(Actor &actor)
     actor.equipItem(index, pos);
 
     m_screen.clear();
-    m_screen.draw(m_map, player(), currActor());
+    m_screen.draw(m_map, player());
 }
 
 /* Deequips item from Actor's armor slot*/
@@ -442,7 +292,7 @@ void GameBoard::deequipItem(Actor &actor)
     actor.deequipItem(pos);
 
     m_screen.clear();
-    m_screen.draw(m_map, player(), currActor());
+    m_screen.draw(m_map, player());
 }
 
 /* Moves actor from current position to another, redrawing screen
@@ -458,7 +308,7 @@ bool GameBoard::changePos(Actor &actor, int newX, int newY)
     m_map[newY][newX] = actor.getCh();
 
     m_screen.clear();
-    m_screen.draw(m_map, player(), currActor());
+    m_screen.draw(m_map, player());
     return true;
 }
 
@@ -477,7 +327,7 @@ bool GameBoard::pickupItem(Actor &actor, int x, int y)
 		log(actor.getName() + " picked up " + each.getName());
 
 		m_screen.clear();
-		m_screen.draw(m_map, player(), currActor());
+		m_screen.draw(m_map, player());
 	    }
 	    return true;
 	}
@@ -511,7 +361,7 @@ bool GameBoard::melee(Actor &attacker, int targetX, int targetY)
 	    }
 
 	    m_screen.clear();
-	    m_screen.draw(m_map, player(), currActor());
+	    m_screen.draw(m_map, player());
 	    return true;
 	}
     }
@@ -577,7 +427,7 @@ bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
 		deleteActor(targetX, targetY);
 	    }
 	    m_screen.clear();
-	    m_screen.draw(m_map, player(), currActor());
+	    m_screen.draw(m_map, player());
 	    return true;
 	}
     }
