@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <tuple>
 
 enum Equipment {
     ARMOR_HELMET,
@@ -30,11 +31,12 @@ const int ARMOR_MAX = ARMOR_BOOTS + 1;
 
 */
 using ItemId = unsigned short;
-using ItemTypeId = unsigned short;
+using ItemTypeId = char;
 using Position = std::array<int,2>;
 using Weight = unsigned int;
 using ArmorValue = unsigned int;
 using AttackValue = unsigned int;
+using ItemType = std::tuple<ItemTypeId, std::string, Weight, ArmorValue, AttackValue>;
 
 struct ItemTypeTable {
     std::vector<ItemTypeId> id;
@@ -43,9 +45,9 @@ struct ItemTypeTable {
     std::vector<ArmorValue> armor_value;
     std::vector<AttackValue> attack_value;
 
-    ItemTypeId id_count = 0;
-    ItemTypeId add(std::string name, Weight weight, ArmorValue armor = 1,
+    ItemTypeId add(ItemTypeId id, std::string name, Weight weight, ArmorValue armor = 1,
                    AttackValue attack = 1);
+    ItemTypeId add_tuple(const ItemType &new_type);
 };
 
 struct ItemTable {

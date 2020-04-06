@@ -1,5 +1,6 @@
 #include "include/template.h"
 #include <fstream>
+#include <functional>
 
 static std::string::size_type findSplit(const std::string line)
 {
@@ -40,46 +41,29 @@ static bool parseBool(std::string value, bool defaultVal = false)
     else return defaultVal;
 }
 
-static void applyIniPair(Actor &actor, std::string key, std::string value)
+static void applyIniPair(ActorType &actor, std::string key, std::string value)
 {
-    if(key == "char") actor.setCh(parseChar(value));
-    else if(key == "name") actor.setName(value);
-    else if(key == "energy") actor.setEnergy(parseInt(value));
-    else if(key == "health") actor.addHealth(parseInt(value, 100));
-    else if(key == "carryWeight") actor.m_carryWeight = parseInt(value);
-    else if(key == "carryWeight") actor.m_carryWeight = parseInt(value);
-    else if(key == "maxCarryWeight") actor.m_maxCarryWeight = parseInt(value, 10);
-    else if(key == "level") actor.m_level = parseInt(value);
-    else if(key == "levelProgress") actor.m_levelProgress = parseInt(value);
-    else if(key == "strength") actor.m_strength = parseInt(value);
-    else if(key == "cunning") actor.m_cunning = parseInt(value);
-    else if(key == "agility") actor.m_agility = parseInt(value);
-    else if(key == "education") actor.m_education = parseInt(value);
-    else if(key == "sidearmSkill") actor.m_sidearmSkill = parseInt(value);
-    else if(key == "longarmSkill") actor.m_longarmSkill = parseInt(value);
-    else if(key == "meleeSkill") actor.m_meleeSkill = parseInt(value);
-    else if(key == "barterSkill") actor.m_barterSkill = parseInt(value);
-    else if(key == "negotiateSkill") actor.m_negotiateSkill = parseInt(value);
+    if(key == "char") std::get<0>(actor) = parseChar(value);
+    else if(key == "name") std::get<1>(actor) = value;
+    else if(key == "strength") std::get<2>(actor) = parseInt(value);
+    else if(key == "maxCarryWeight") std::get<3>(actor) = parseInt(value, 10);
 }
 
-static void applyIniPair(Item &item, std::string key, std::string value)
+static void applyIniPair(ItemType &item, std::string key, std::string value)
 {
-    if(key == "name") item.setName(value);
-    else if(key == "weight") item.setWeight(parseInt(value));
-    else if(key == "attack") item.setAttack(parseInt(value));
-    else if(key == "armor") item.setArmor(parseInt(value));
-    else if(key == "isMelee") item.setMelee(parseBool(value));
-    else if(key == "isRanged") item.setRanged(parseBool(value));
+    if(key == "char") std::get<0>(item) = parseChar(value);
+    if(key == "name") std::get<1>(item) = value;
+    else if(key == "weight") std::get<2>(item) = parseInt(value);
+    else if(key == "attack") std::get<3>(item) = parseInt(value);
+    else if(key == "armor") std::get<4>(item) = parseInt(value);
 }
 
-std::map<char,Item> loadItemTemplates(const std::string &&path)
+void loadItemTypes(const std::string &&path, ItemTypeTable &types)
 {
     std::ifstream itemFile(path);
 
-    char ch = 0;
-    bool hasCh = false;
-    std::map<char,Item> templates;
-    Item newTemplate;
+    bool in_process = false;
+    ItemType new_type;
     while(itemFile) {
 	std::string line;
 	std::getline(itemFile, line);
@@ -87,10 +71,10 @@ std::map<char,Item> loadItemTemplates(const std::string &&path)
 	if(line[0] == '#')
 	    continue;
 	//Finalize/add template when at blank line (end of section)
-	else if(line == "" && hasCh) {
-	    templates[ch] = newTemplate;
-	    newTemplate = Item();
-	    hasCh = false;
+	else if(line == "" && in_process) {
+            types.add_tuple(new_type);
+            in_process = false;
+            new_type = {};
 	    continue;
 	}
 	//Find out where '=' is; it's the division between key/value
@@ -101,23 +85,19 @@ std::map<char,Item> loadItemTemplates(const std::string &&path)
 	}
 
 	if(line.substr(0, split) == "char") {
-	    //All items represented by a char in map files, but not onscreen,
-	    //so char not part of the Item objects themselves
-	    ch = parseChar(line.substr(split+1), '-');
-	    hasCh = true;
+	    in_process = true;
 	}
 
-	applyIniPair(newTemplate, line.substr(0, split), line.substr(split+1));
+	applyIniPair(new_type, line.substr(0, split), line.substr(split+1));
     }
-    return templates;
 }
 
-std::map<char,Actor> loadMonsterTemplates(const std::string &&path)
+void loadMonsterTypes(const std::string &&path, ActorTypeTable &types)
 {
     std::ifstream monsterFile(path);
 
-    std::map<char,Actor> templates;
-    Actor newTemplate;
+    bool in_process = false;
+    ActorType new_type;
     while(monsterFile) {
 	std::string line;
 	std::getline(monsterFile, line);
@@ -125,9 +105,10 @@ std::map<char,Actor> loadMonsterTemplates(const std::string &&path)
 	if(line[0] == '#')
 	    continue;
 	//Finalize/add template when at blank line (end of section)
-	else if(line == "") {
-	    templates[newTemplate.getCh()] = newTemplate;
-	    newTemplate = Actor();
+	else if(line == "" && in_process) {
+            types.add_tuple(new_type);
+	    new_type = {};
+            in_process = false;
 	    continue;
 	}
 	//Find out where '=' is; it's the division between key/value
@@ -137,7 +118,10 @@ std::map<char,Actor> loadMonsterTemplates(const std::string &&path)
 	    continue;
 	}
 
-	applyIniPair(newTemplate, line.substr(0, split), line.substr(split+1));
+        if(line.substr(0, split) == "char") {
+	    in_process = true;
+	}
+
+	applyIniPair(new_type, line.substr(0, split), line.substr(split+1));
     }
-    return templates;
 }

@@ -2,46 +2,16 @@
 #define ACTOR_H
 #include "item.h"
 #include <array>
-/*
-    Initial tables:
-      Actor table:
-      | actorId | pos | energy | strength | health | equipment_list | is_turn | carryWeight |
-      | ....    | maxCarryWeight | inventory_list | name |
+#include <tuple>
 
-    1NF:
-      Actor table:
-      | actorId | x | y | energy | strength | health | is_turn | carryWeight | maxCW |
-      | ....    | name |
-
-      ActorInventory table:
-      | actorId | item | is_equipped |
-
-   2NF:
-      Actor table:
-      | actorId | x | y | energy | health | actorType |
-
-      ActorTypes table:
-      | actorType | name | strength | maxCarryWeight |
-
-      turn = some actorId
-
-      ActorCarryWeight table:
-      | actorId | carryWeight |
-
-      ActorInventory table:
-      | actorId | item |
-
-      ActorEquipment table:
-      | actorId | item |
-
-*/
 using ActorId = unsigned short;
-using ActorTypeId = unsigned short;
+using ActorTypeId = char;
 using Position = std::array<int,2>;
 using Energy = unsigned int;
 using Strength = unsigned int;
 using Health = int; // can have negative health deltas
 using Weight = unsigned int;
+using ActorType = std::tuple<ActorTypeId, std::string, Strength, Weight>;
 
 struct ActorTypeTable {
     std::vector<ActorTypeId> id;
@@ -49,9 +19,8 @@ struct ActorTypeTable {
     std::vector<Strength> strength;
     std::vector<Weight> max_carry;
 
-    ActorTypeId id_count = 0;
-    
-    ActorTypeId add(std::string name, Strength strength, Weight max_carry);
+    ActorTypeId add(char ch, std::string name, Strength strength, Weight max_carry);
+    ActorTypeId add_tuple(const ActorType &new_type);
     Weight get_max_carry(ActorTypeId type) const;
 };
 

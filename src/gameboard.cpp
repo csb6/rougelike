@@ -1,6 +1,7 @@
 #include "include/gameboard.h"
 #include <fstream>
 #include <cmath>
+#include <functional>
 
 std::string getLocalDir();
 
@@ -15,24 +16,16 @@ static int distanceFrom(int x1, int y1, int x2, int y2)
 
 /* Creates a new board linking to the termbox screen; opens/loads
    the given map, and sets up in-game GUI*/
-GameBoard::GameBoard(Display &screen, Actor playerCh, const std::string &mapPath)
-    : m_map{}, m_screen(screen), m_player_index(0), m_turn_index(0),
-      m_templates{loadMonsterTemplates(getLocalDir() + "src/monsters.ini")},
-      m_itemTemplates{loadItemTemplates(getLocalDir() + "src/items.ini")}
+GameBoard::GameBoard(Display &screen, const std::string &mapPath,
+                     ActorType player_type)
+    : m_map{}, m_screen(screen)
 {
-    m_items.reserve(ItemVecDefaultSize);
-    m_actors.reserve(ActorVecDefaultSize);
-
-    m_actors.push_back(playerCh);
-    m_turn_index = m_player_index;
-
+    m_actor_types.add_tuple(player_type);
+    loadActorTypes(getLocalDir() + "src/monsters.ini");
+    loadItemTypes(getLocalDir() + "src/items.ini");
     loadMap(mapPath);
-    //When doing turns, will start iterating through m_actors backward
-    //so deletions of Actors are easy/safe; however, 1st turn should be the
-    //player's
-    player().setTurn(true);
     //Show initial map, centered at player's current position
-    m_screen.draw(m_map, player());
+    //m_screen.draw(m_map, player());
 }
 
 /* Fills 2d array with tiles from given map file, instantiating
@@ -59,6 +52,7 @@ void GameBoard::loadMap(const std::string &path)
 	std::string line;
 	std::getline(mapFile, line);
 	int col = 0;
+        const auto player_type = get_index_of(m_actor_types.id, '@');
 	for(std::string::size_type pos=0; pos<line.size(); ++pos) {
 	    if(col >= MapWidth) {
 		break;
@@ -71,9 +65,8 @@ void GameBoard::loadMap(const std::string &path)
 		//All Actors need to be in m_actors list/have char in m_map
 		m_map[row][col] = line[pos];
 		if(line[pos] == PlayerTile) {
-		    //Need to have accurate positioning for player object
-		    player().move(col, row);
-		    player().setCh(PlayerTile);
+		    m_actors.move(m_actors.player, {col, row});
+  // --- Stopped here ----
 		} else if(m_itemTemplates.find(line[pos]) != m_itemTemplates.end()) {
 		    Item item = m_itemTemplates[line[pos]];
 		    item.move(col, row);

@@ -1,13 +1,21 @@
 #include "include/actor.h"
+#include <functional>
 
-ActorTypeId ActorTypeTable::add(std::string name, Strength strength, Weight max_carry)
+ActorTypeId ActorTypeTable::add(char ch, std::string name, Strength strength,
+                                Weight max_carry)
 {
-    const ActorTypeId new_id = id_count++;
-    id.push_back(new_id);
+    id.push_back(ch);
     this->name.push_back(name);
     this->strength.push_back(strength);
     this->max_carry.push_back(max_carry);
-    return new_id;
+    return ch;
+}
+
+ActorTypeId ActorTypeTable::add_tuple(const ActorType &new_type)
+{
+    using namespace std::placeholders;
+    auto add_type = std::bind(&ActorTypeTable::add, this, _1, _2, _3, _4);
+    return std::apply(add_type, new_type);
 }
 
 Weight ActorTypeTable::get_max_carry(ActorTypeId type) const
@@ -29,7 +37,7 @@ bool can_carry(ActorId actor, Weight item, const ActorTable &actors,
 
 
 ActorId ActorTable::add(ActorTypeId type, Position pos, Energy energy,
-                     Health health)
+                        Health health)
 {
     const ActorId new_id = id_count++;
     this->id.push_back(new_id);
@@ -106,9 +114,9 @@ int main()
     ItemTable items;
     ItemTypeTable item_types;
 
-    const auto player_type = actor_types.add("Player", 5, 10);
-    const auto rat_type = actor_types.add("Rat", 3, 1);
-    const auto snake_type = actor_types.add("Snake", 4, 2);
+    const auto player_type = actor_types.add('@', "Player", 5, 10);
+    const auto rat_type = actor_types.add('R', "Rat", 3, 1);
+    const auto snake_type = actor_types.add('S', "Snake", 4, 2);
 
     const ActorId player = actors.add(player_type, {0, 0}, 3, 10);
     actors.add(rat_type, {5, 5}, 3, 5);
@@ -118,8 +126,8 @@ int main()
 
     inventories.append(player, 100);
 
-    const auto sword_type = item_types.add("Sword", 10, 1, 7);
-    const auto torch_type = item_types.add("Torch", 5, 3);
+    const auto sword_type = item_types.add('s', "Sword", 10, 1, 7);
+    const auto torch_type = item_types.add('t', "Torch", 5, 3);
 
     items.add({0, 2}, sword_type);
     items.add({2, 4}, torch_type);
