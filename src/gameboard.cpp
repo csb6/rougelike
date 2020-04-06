@@ -4,8 +4,8 @@
 
 std::string getLocalDir();
 
-const int ItemVecDefaultSize = 5;
-const int ActorVecDefaultSize = 10;
+constexpr int ItemVecDefaultSize = 5;
+constexpr int ActorVecDefaultSize = 10;
 
 /* Distance formula with truncated absolute value result*/
 static int distanceFrom(int x1, int y1, int x2, int y2)
