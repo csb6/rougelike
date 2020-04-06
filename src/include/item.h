@@ -2,6 +2,7 @@
 #define ITEM_GAME_H
 #include <string>
 #include <vector>
+#include <array>
 
 enum Equipment {
     ARMOR_HELMET,
@@ -15,36 +16,52 @@ enum Equipment {
 
 const int ARMOR_MAX = ARMOR_BOOTS + 1;
 
-class Item {
-private:
-    int m_xPos, m_yPos, m_id, m_weight;
-    std::string m_name;
-    bool m_isEquipped = false;
-    bool m_isRanged = false; //If this is a ranged weapon
-    bool m_isMelee = false;
-    //How much protection Item provides when equipped
-    std::int_least16_t m_armor, m_attack;
-public:
-    Item(int x = 0, int y = 0, std::string name = "Item", int weight = 0,
-	 std::int_least16_t armor = 0, std::int_least16_t attack = 0);
-    void setName(std::string value) { m_name = value; }
-    bool operator==(const Item &other) const;
-    void move(int newX, int newY);
-    int getX() const { return m_xPos; }
-    int getY() const { return m_yPos; }
-    int getId() const { return m_id; }
-    void setWeight(int value) { m_weight = value; }
-    int getWeight() const { return m_weight; }
-    std::int_least16_t getArmor() const { return m_armor; }
-    std::int_least16_t getAttack() const { return m_attack; }
-    void setArmor(std::int_least16_t value) { m_armor = value; }
-    void setAttack(std::int_least16_t value) { m_attack = value; }
-    std::string getName() const { return m_name; }
-    bool isEquipped() const { return m_isEquipped; }
-    bool isRanged() const { return m_isRanged; }
-    bool isMelee() const { return m_isMelee; }
-    void setEquip(bool isEquipped) { m_isEquipped = isEquipped; }
-    void setRanged(bool isRanged) { m_isRanged = isRanged; }
-    void setMelee(bool isMelee) { m_isMelee = isMelee; }
+/*
+  Initial tables:
+    Item table:
+    | itemId | pos | weight | name | armor_value | attack_value |
+
+  1NF:
+    Item table:
+    | itemId | pos | itemType
+
+    ItemTypes table:
+    | itemType | name | weight | armor_value | attack_value
+
+*/
+using ItemId = unsigned short;
+using ItemTypeId = unsigned short;
+using Position = std::array<int,2>;
+using Weight = unsigned int;
+using ArmorValue = unsigned int;
+using AttackValue = unsigned int;
+
+struct ItemTypeTable {
+    std::vector<ItemTypeId> id;
+    std::vector<std::string> name;
+    std::vector<Weight> weight;
+    std::vector<ArmorValue> armor_value;
+    std::vector<AttackValue> attack_value;
+
+    ItemTypeId id_count = 0;
+    ItemTypeId add(std::string name, Weight weight, ArmorValue armor = 1,
+                   AttackValue attack = 1);
 };
+
+struct ItemTable {
+    std::vector<ItemId> id;
+    std::vector<Position> position;
+    std::vector<ItemTypeId> type;
+
+    ItemId id_count = 0;
+    ItemId add(Position pos, ItemTypeId type);
+};
+
+
+template<typename Row, typename Id>
+std::size_t get_index_of(const Row &id_row, Id target)
+{
+    const auto match = std::lower_bound(id_row.begin(), id_row.end(), target);
+    return std::distance(id_row.begin(), match);
+}
 #endif
