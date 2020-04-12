@@ -21,7 +21,7 @@ ActorTypeId ActorTypeTable::add_tuple(const ActorType &new_type)
 Weight ActorTypeTable::get_max_carry(ActorTypeId type) const
 {
     const auto index = get_index_of(id, type);
-    return max_carry[type];
+    return max_carry[index];
 }
 
 
@@ -33,6 +33,14 @@ bool can_carry(ActorId actor, Weight item, const ActorTable &actors,
     const Weight max_carry_weight = types.get_max_carry(type);
     const Weight carry_weight = inventories.get_carry(actor);
     return carry_weight + item <= max_carry_weight;
+}
+
+std::string get_name(ActorId actor, const ActorTable &actors,
+                     const ActorTypeTable &types)
+{
+    const auto actor_index = get_index_of(actors.id, actor);
+    const auto type_index = get_index_of(types.id, actors.actor_type[actor_index]);
+    return types.name[type_index];
 }
 
 
@@ -103,35 +111,4 @@ void ActorInventoryTable::add_item(ActorId actor, ItemId item)
 {
     const auto index = get_index_of(actor_id, actor);
     inventory[index].push_back(item);
-}
-
-
-int main()
-{
-    ActorTable actors;
-    ActorTypeTable actor_types;
-    ActorInventoryTable inventories;
-    ItemTable items;
-    ItemTypeTable item_types;
-
-    const auto player_type = actor_types.add('@', "Player", 5, 10);
-    const auto rat_type = actor_types.add('R', "Rat", 3, 1);
-    const auto snake_type = actor_types.add('S', "Snake", 4, 2);
-
-    const ActorId player = actors.add(player_type, {0, 0}, 3, 10);
-    actors.add(rat_type, {5, 5}, 3, 5);
-    actors.add(rat_type, {5, 6}, 3, 5);
-    actors.add(rat_type, {5, 7}, 3, 5);
-    actors.add(snake_type, {0, 4}, 3, 5);
-
-    inventories.append(player, 100);
-
-    const auto sword_type = item_types.add('s', "Sword", 10, 1, 7);
-    const auto torch_type = item_types.add('t', "Torch", 5, 3);
-
-    items.add({0, 2}, sword_type);
-    items.add({2, 4}, torch_type);
-    items.add({3, 3}, torch_type);
-
-    return 0;
 }

@@ -34,7 +34,7 @@ struct ActorTable {
     ActorId current_turn = 0;
     std::size_t turn_index = 0;
     ActorId id_count = 0;
-    ActorId player = 0;
+    std::size_t player_index = 0;
 
     ActorId add(ActorTypeId type, Position pos, Energy energy, Health health);
     void move(ActorId actor, Position newPos);
@@ -59,6 +59,11 @@ struct ActorEquipmentTable {
     //std::vector<ItemId> item;
 };
 
+bool can_carry(ActorId actor, Weight item, const ActorTable &actors,
+               const ActorTypeTable &types, const ActorInventoryTable &inventories);
+std::string get_name(ActorId actor, const ActorTable &actors,
+                     const ActorTypeTable &types);
+
 constexpr int RNGUpperLimit = 100;
 constexpr int SkillAmount = 9; //Number of skills (e.g. strengh, agility, etc.)
 constexpr int MaxInitPoints = 25; //Total pts doled out at character creation
@@ -80,5 +85,4 @@ constexpr int MaxInitPoints = 25; //Total pts doled out at character creation
   std::int_least16_t m_meleeSkill = 0;     // 2 - Skill with melee weapons
   std::int_least16_t m_barterSkill = 0;    // 3 - Skill affecting cost of items
   std::int_least16_t m_negotiateSkill = 0; // 4 - Skill affecting chance of successful negotiations*/
-
 #endif

@@ -25,7 +25,7 @@ ItemTypeId ItemTypeTable::add_tuple(const ItemType &new_type)
 }
 
 
-ItemId ItemTable::add(Position pos, ItemTypeId type)
+ItemId ItemTable::add(ItemTypeId type, Position pos)
 {
     const ItemId new_id = id_count++;
     id.push_back(new_id);

@@ -46,7 +46,7 @@ private:
     void putChar(int col, int row, char letter,
 		 const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
     int getCameraCoord(int playerCoord, bool isX);
-    void drawGUI(const Actor &player);
+    //void drawGUI(const Actor &player);
     inline int convertCoord(int coord, bool isX);
 public:
     Display();
@@ -66,7 +66,7 @@ public:
     void printTextCol(int gridCol, const std::string text,
 		      const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
     //Note: draw functions alter screen buffer; must call present() to push to display
-    void draw(const LevelMap &map, const Actor &player);
+    void draw(const LevelMap &map, int playerX, int playerY);
     //Setters/Getters
     void clear() { tb_clear(); }
     void present() { tb_present(); }

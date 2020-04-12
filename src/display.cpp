@@ -232,7 +232,7 @@ int Display::getCameraCoord(int playerCoord, bool isX)
 
 /* Adds labels/information shown to player in sidebars onscreen to screen
    buffer, respecting the area used to draw the area around the player */
-void Display::drawGUI(const Actor &player)
+/*void Display::drawGUI(const Actor &player)
 {
     printTextCol(1, "You:", TB_YELLOW);
     printTextCol(1, " Name: " + player.getName());
@@ -250,18 +250,18 @@ void Display::drawGUI(const Actor &player)
     m_textX = 0;
     m_textY = 0;
     m_textMaxWidth = 0;
-}
+    }*/
 
 /* Places all non-empty tiles centered around the player into the screen buffer,
    stopping when there is no more room. Respects area left for GUI */
-void Display::draw(const LevelMap &map, const Actor &player)
+void Display::draw(const LevelMap &map, int playerX, int playerY)
 {
     //Screen may be smaller than map, so display as much as possible
     m_screenWidth = std::min(boardWidth(), MapWidth);
     m_screenHeight = std::min(boardHeight(), MapHeight);
     //Calculate where to start drawing from so player stays centered (if possible)
-    m_cornerX = getCameraCoord(player.getX(), true);
-    m_cornerY = getCameraCoord(player.getY(), false);
+    m_cornerX = getCameraCoord(playerX, true);
+    m_cornerY = getCameraCoord(playerY, false);
     for(int y=m_cornerY; y<(m_cornerY+m_screenHeight); ++y) {
 	for(int x=m_cornerX; x<(m_cornerX+m_screenWidth); ++x) {
 	    int col = convertCoord(x, true);
@@ -273,7 +273,7 @@ void Display::draw(const LevelMap &map, const Actor &player)
 	    }
 	}
     }
-    drawGUI(player);
+    //drawGUI(player);
 }
 
 /* Checks if window is large enough to adequately display the game */

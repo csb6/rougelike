@@ -56,7 +56,7 @@ struct ItemTable {
     std::vector<ItemTypeId> type;
 
     ItemId id_count = 0;
-    ItemId add(Position pos, ItemTypeId type);
+    ItemId add(ItemTypeId type, Position pos);
 };
 
 

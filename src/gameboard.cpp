@@ -21,8 +21,8 @@ GameBoard::GameBoard(Display &screen, const std::string &mapPath,
     : m_map{}, m_screen(screen)
 {
     m_actor_types.add_tuple(player_type);
-    loadActorTypes(getLocalDir() + "src/monsters.ini");
-    loadItemTypes(getLocalDir() + "src/items.ini");
+    loadMonsterTypes(getLocalDir() + "src/monsters.ini", m_actor_types);
+    loadItemTypes(getLocalDir() + "src/items.ini", m_item_types);
     loadMap(mapPath);
     //Show initial map, centered at player's current position
     //m_screen.draw(m_map, player());
@@ -66,17 +66,16 @@ void GameBoard::loadMap(const std::string &path)
 		m_map[row][col] = line[pos];
 		if(line[pos] == PlayerTile) {
 		    m_actors.move(m_actors.player, {col, row});
-  // --- Stopped here ----
-		} else if(m_itemTemplates.find(line[pos]) != m_itemTemplates.end()) {
-		    Item item = m_itemTemplates[line[pos]];
-		    item.move(col, row);
-		    //Add Item to Item list
-		    m_items.push_back(item);
-		} else if(m_templates.find(line[pos]) != m_templates.end()) {
-		    //If in template list, create monster mapped from given char
-		    Actor monster = m_templates[line[pos]];
-		    monster.move(col, row);
-		    m_actors.push_back(monster);
+		} else {
+                    const auto item_it = std::lower_bound(m_item_types.id.begin(),
+                                                          m_item_types.id.end(), line[pos]);
+                    if(item_it != m_item_types.id.end())
+                        m_items.add(line[pos], {col, row});
+
+                    const auto actor_it = std::lower_bound(m_actor_types.id.begin(),
+                                                           m_actor_types.id.end(), line[pos]);
+                    if(actor_it != m_actor_types.id.end())
+                        m_actors.add(line[pos], {col, row}, 3, 10);
 		}
 		++col;
 	    }
@@ -87,7 +86,7 @@ void GameBoard::loadMap(const std::string &path)
 
 /* Toggles cursor on/off; calls function pointer/disables cursor when called
    and cursor active*/
-void GameBoard::bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, int, int))
+/*void GameBoard::bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, int, int))
 {
     //Put cursor at player position on first keypress
     if(!m_screen.hasCursor()) {
@@ -101,14 +100,14 @@ void GameBoard::bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, i
 	    (this->*action)(actor, cursorX, cursorY);
 	    m_screen.hideCursor();
 	    m_screen.clear();
-	    m_screen.draw(m_map, player());
+	    m_screen.draw(m_map, player()); //FIXME
 	}
     }
-}
+    }*/
 
 /* Calls update functions on all actors currently on the board,
    working backwards so removing an actor doesn't skip anything*/
-void GameBoard::updateActors()
+/*void GameBoard::updateActors()
 {
     //Check if actor with current turn is done;
     //if so, move turn to next actor, update screen
@@ -128,52 +127,59 @@ void GameBoard::updateActors()
 	    i = m_actors.size() - 1;
 	}
     } while(i != m_turn_index);
-}
+    }*/
 
 /* Displays an actor's current inventory in subscreen; ESC/any redraws closes it*/
-void GameBoard::showInventory(Actor &actor)
+void GameBoard::showInventory(ActorId actor)
 {
-    m_screen.printText(0, 0, actor.getName() + "'s Inventory: (ESC to exit)", TB_YELLOW);
+    const auto actor_name = get_name(actor, m_actors, m_actor_types);
+    m_screen.printText(0, 0, actor_name + "'s Inventory: (ESC to exit)", TB_YELLOW);
     m_screen.printText(0, 1, "E) Equip item, D) Deequip item", TB_YELLOW);
-    int size = actor.getInventorySize();
-    int row = 2;
-    if(size <= 0) {
-	m_screen.printText(2, row, "Empty", TB_CYAN);
+
+    const auto index = get_index_of(m_inventories.actor_id, actor);
+    if(m_inventories.inventory[index].empty()) {
+	m_screen.printText(2, 2, "Empty", TB_CYAN);
 	return;
     }
-    for(int i=0; i<size; ++i) {
-	Item* item = actor.getItemAt(i);
-	if(item == nullptr) continue;
-	m_screen.printText(0, row, " " + std::to_string(i+1) + ". " + item->getName()
-			   + " - Weight: " + std::to_string(item->getWeight())
-			   + ", Armor: " + std::to_string(item->getArmor()), TB_CYAN);
-	++row;
+
+    int i = 3;
+    for(const auto item_id : m_inventories.inventory[index]) {
+        const auto index = get_index_of(m_item_types.id, item_id);
+        const auto name = m_item_types.name[index];
+        const auto weight = m_item_types.weight[index];
+        const auto armor = m_item_types.armor_value[index];
+	m_screen.printText(0, i, " " + std::to_string(i+1) + ". " + name
+			   + " - Weight: " + std::to_string(weight)
+			   + ", Armor: " + std::to_string(armor), TB_CYAN);
+	++i;
     }
 }
 
 /*Prints character sheet for an Actor, showing main stats*/
-void GameBoard::showStats(Actor &actor)
+void GameBoard::showStats(ActorId actor)
 {
-    m_screen.printText(0, 0, actor.getName() + "'s Character Sheet: (ESC to exit)", TB_YELLOW);
-    m_screen.printText(0, 1, "Health: " + std::to_string(actor.getHealth()), TB_CYAN);
-    m_screen.printText(0, 2, "Carry Weight: " + std::to_string(actor.m_carryWeight), TB_CYAN);
-    m_screen.printText(0, 3, "Carry Capacity: " + std::to_string(actor.m_maxCarryWeight), TB_CYAN);
-    m_screen.printText(0, 4, "Level: " + std::to_string(actor.m_level), TB_CYAN);
-    m_screen.printText(0, 5, "XP: " + std::to_string(actor.m_levelProgress), TB_CYAN);
-    m_screen.printText(0, 6, "Strength: " + std::to_string(actor.m_strength), TB_CYAN);
-    m_screen.printText(0, 7, "Cunning: " + std::to_string(actor.m_cunning), TB_CYAN);
-    m_screen.printText(0, 8, "Agility: " + std::to_string(actor.m_agility), TB_CYAN);
-    m_screen.printText(0, 9, "Education: " + std::to_string(actor.m_education), TB_CYAN);
-    m_screen.printText(0, 10, "Sidearm: " + std::to_string(actor.m_sidearmSkill), TB_CYAN);
-    m_screen.printText(0, 11, "Longarm: " + std::to_string(actor.m_longarmSkill), TB_CYAN);
-    m_screen.printText(0, 12, "Melee: " + std::to_string(actor.m_meleeSkill), TB_CYAN);
-    m_screen.printText(0, 13, "Barter: " + std::to_string(actor.m_barterSkill), TB_CYAN);
-    m_screen.printText(0, 14, "Negotiate: " + std::to_string(actor.m_negotiateSkill), TB_CYAN);
+    const auto actor_index = get_index_of(m_actors.id, actor);
+    const auto type_index = get_index_of(m_actor_types.id, m_actors.actor_type[actor_index]);
+    const auto inv_index = get_index_of(m_inventories.actor_id, actor);
+
+    m_screen.printText(0, 0, m_actor_types.name[type_index]
+                       + "'s Character Sheet: (ESC to exit)", TB_YELLOW);
+    m_screen.printText(0, 1, "Health: " + std::to_string(m_actors.health[actor_index]),
+                                                         TB_CYAN);
+    m_screen.printText(0, 2, "Carry Weight: "
+                       + std::to_string(m_inventories.carry[inv_index]),
+                       TB_CYAN);
+    m_screen.printText(0, 3, "Carry Capacity: "
+                       + std::to_string(m_actor_types.max_carry[type_index]),
+                       TB_CYAN);
+    m_screen.printText(0, 6, "Strength: "
+                       + std::to_string(m_actor_types.strength[actor_index]),
+                       TB_CYAN);
 }
 
 /* Show list of equipment slots, showing which items in which slots/which
    slots are empty*/
-void GameBoard::showEquipped(Actor &actor)
+/*void GameBoard::showEquipped(Actor &actor)
 {
     std::string labels[EQUIP_MAX] = {". Head: ", ". Chest: ", ". Legs: ", ". Feet: ",
 				     ". Melee: ", ". Ranged: "};
@@ -186,7 +192,7 @@ void GameBoard::showEquipped(Actor &actor)
 	    m_screen.printText(0, i+1, std::to_string(i+1) + labels[i] + item->getName(), TB_CYAN);
 	}
     }
-}
+    }*/
 
 /* Puts text message into stored message log; useful for debugging/showing
    events as they occur*/
@@ -200,7 +206,8 @@ void GameBoard::redraw()
     //Redraws whole screen (useful for exiting inventory subscreen, etc.)
     m_screen.clear();
     m_screen.hideCursor();
-    m_screen.draw(m_map, player());
+    auto[playerX, playerY] = m_actors.position[m_actors.player_index];
+    m_screen.draw(m_map, playerX, playerY);
 }
 
 void GameBoard::present()
@@ -214,59 +221,8 @@ bool GameBoard::isValid(int x, int y) const
     return x < MapWidth && x >= 0 && y < MapHeight && y >= 0;
 }
 
-/* Removes given Item from m_items*/
-void GameBoard::deleteItem(int x, int y)
-{
-    if(m_items.size() <= 0) {
-	return;
-    }
-
-    for(unsigned int i=0; i<m_items.size(); ++i) {
-	if(m_items[i].getX() == x && m_items[i].getY() == y) {
-	    m_items.erase(m_items.begin()+i);
-	    return;
-	}
-    }
-    log("Error: Couldn't find item");
-}
-
-/* Removes given Actor from m_actors*/
-void GameBoard::deleteActor(int x, int y)
-{
-    if(m_actors.size() <= 0) {
-	return;
-    }
-    using vector_t = std::vector<Actor>::size_type;
-
-    bool foundActor = false;
-    int pos = 0;
-    for(vector_t i=0; i<m_actors.size(); ++i) {
-	if(m_actors[i].getX() == x && m_actors[i].getY() == y) {
-	    log(m_actors[i].getName() + " died");
-	    m_actors.erase(m_actors.begin()+i);
-	    foundActor = true;
-	    pos = i;
-	    break;
-	}
-    }
-    if(!foundActor) {
-	log("Error: actor not found");
-	return;
-    }
-    //Need to update player/turn indexes to account for deletion
-    if(pos < m_player_index) {
-	--m_player_index;
-    } else if(pos == m_player_index) {
-	log("Player is dead/deleted");
-    }
-
-    if(static_cast<vector_t>(m_turn_index) >= m_actors.size()) {
-	m_turn_index = 0;
-    }
-}
-
 /* Equips item in inventory into an Actor's equip slots*/
-void GameBoard::equipItem(Actor &actor)
+/*void GameBoard::equipItem(Actor &actor)
 {
     int index = m_screen.input("Enter item #: ") - 1;
     int pos = m_screen.input("Enter equip position [1-"
@@ -275,10 +231,10 @@ void GameBoard::equipItem(Actor &actor)
 
     m_screen.clear();
     m_screen.draw(m_map, player());
-}
+    }*/
 
 /* Deequips item from Actor's armor slot*/
-void GameBoard::deequipItem(Actor &actor)
+/*void GameBoard::deequipItem(Actor &actor)
 {
     int pos = m_screen.input("Enter equip position [1-"
 			     + std::to_string(EQUIP_MAX) + "]: ", 0, 1) - 1;
@@ -286,53 +242,59 @@ void GameBoard::deequipItem(Actor &actor)
 
     m_screen.clear();
     m_screen.draw(m_map, player());
-}
+}*/
 
 /* Moves actor from current position to another, redrawing screen
    buffer to show change. Private function, only to be called by
    moveActor()*/
-bool GameBoard::changePos(Actor &actor, int newX, int newY)
+bool GameBoard::changePos(ActorId actor, int newX, int newY)
 {
     //Note: screen doesn't visibly change until screen.present() called in main loop
-    int oldX = actor.getX();
-    int oldY = actor.getY();
-    actor.move(newX, newY);
-    m_map[oldY][oldX] = 0;
-    m_map[newY][newX] = actor.getCh();
+    const auto index = get_index_of(m_actors.id, actor);
+    const auto old_ch = m_map[m_actors.position[index][1]][m_actors.position[index][0]];
+    m_map[m_actors.position[index][1]][m_actors.position[index][0]] = 0;
+    m_actors.position[index][0] = newX;
+    m_actors.position[index][1] = newY;
+    m_map[newY][newX] = old_ch;
 
     m_screen.clear();
-    m_screen.draw(m_map, player());
+    //m_screen.draw(m_map, player()); //FIXME
     return true;
 }
 
 /* Picks up an Item at given coords if one can be found at that
    position; private function, only to be called by moveActor()*/
-bool GameBoard::pickupItem(Actor &actor, int x, int y)
+bool GameBoard::pickupItem(ActorId actor, int x, int y)
 {
-    for(Item& each : m_items) {
-	//Find existing Item at the given position
-	if(each.getX() == x && each.getY() == y) {
-	    if(actor.canCarry(each.getWeight())) {
-		actor.addItem(each);
-		//Item now in Actor inventory, not on map, so stop tracking
-		deleteItem(x, y);
-		m_map[y][x] = 0;
-		log(actor.getName() + " picked up " + each.getName());
+    const auto item_index = get_index_of(m_items.id, item);
+    const auto actor_index = get_index_of(m_actors.id, actor);
+    const auto inv_index = get_index_of(m_inventories.actor_id, actor);
+    const auto itype_index = get_index_of(m_item_types.id, m_items.type[item_index]);
+    const auto atype_index = get_index_of(m_actor_types.id, m_actors.actor_type[actor_index]);
+    const Weight weight = m_item_types.weight[itype_index];
+    const Weight max_carry = m_actor_types.max_carry[atype_index];
+    if(m_inventories.carry[inv_index] + weight <= max_carry) {
+        // Pick up the item
+        m_inventories.inventory[inv_index].push_back(item);
+        const auto[x, y] = m_items.position[item_index];
+        m_map[y][x] = 0;
+        const std::string actor_name = m_actor_types.name[atype_index];
+        const std::string item_name = m_item_types.name[itype_index];
+        log(actor_name + " picked up " + item_name);
 
-		m_screen.clear();
-		m_screen.draw(m_map, player());
-	    }
-	    return true;
-	}
+        m_screen.clear();
+        //m_screen.draw(m_map, player()); //FIXME
+        return true;
+    } else {
+        log("Can't find item");
+        return false;
     }
-    log("Can't find item");
-    return false;
 }
 
 /* Have given Actor attack an Actor at another position. If no Actor
    at that position, do nothing; private function, only to be called
    by moveActor()*/
-bool GameBoard::melee(Actor &attacker, int targetX, int targetY)
+/*bool GameBoard::melee(Actor &attacker, int targetX, int targetY)
 {
     for(Actor &each : m_actors) {
 	if(each.getX() == targetX && each.getY() == targetY
@@ -359,17 +321,19 @@ bool GameBoard::melee(Actor &attacker, int targetX, int targetY)
 	}
     }
     return false;
-}
+    }*/
 
 /* Performs action on given position; will move Actor there if possible,
    pickup an Item at that position, or attack a Monster at that position*/
-bool GameBoard::moveActor(Actor &actor, int newX, int newY)
+bool GameBoard::moveActor(ActorId actor, int newX, int newY)
 {
     //Check to make sure turn is respected/position exists/is within teleport range
     //and not attacking self
-    if(!actor.isTurn() || !isValid(newX, newY)
-       || distanceFrom(actor.getX(), actor.getY(), newX, newY) >= 5
-       || (actor.getX() == newX && actor.getY() == newY)) {
+    const auto actor_index = get_index_of(m_actors.id, actor);
+    const auto[x, y] = m_actors.position[actor_index];
+    if(!isValid(newX, newY) || actor_index != m_actors.turn_index
+       || distanceFrom(x, y, newX, newY) >= 5
+       || (x == newX && y == newY)) {
 	return false;
     }
     //If tile is empty, move Actor to it
@@ -379,16 +343,16 @@ bool GameBoard::moveActor(Actor &actor, int newX, int newY)
     //If an Item is in that position, try to pick it up
     else if(m_map[newY][newX] == ItemTile) {
 	return pickupItem(actor, newX, newY);
-    } else if(m_map[newY][newX] != WallTile) {
+        }/* else if(m_map[newY][newX] != WallTile) {
 	return melee(actor, newX, newY);
-    }
+        }*/
     return false;
 }
 
 /* Attacks another player over a distance using a ranged weapon if equipped
    (otherwise, throws equipped item if it's not ranged or notifies user
    if no item equipped at all)*/
-bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
+/*bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
 {
     //Can't attack yourself
     if(attacker.getX() == targetX && attacker.getY() == targetY) {
@@ -425,26 +389,27 @@ bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
 	}
     }
     return false;
-}
+    }*/
 
-bool GameBoard::translateActor(Actor &actor, int dx, int dy)
+/*bool GameBoard::translateActor(Actor &actor, int dx, int dy)
 {
     return moveActor(actor, actor.getX() + dx, actor.getY() + dy);
-}
+}*/
 
 /* If possible, moves the player into a new location, updating the player
    object, map array, screen buffer, and display to show the change*/
 void GameBoard::movePlayer(int newX, int newY)
 {
-    moveActor(player(), newX, newY);
+    const auto player_id = m_actors.id[m_actors.player_index];
+    moveActor(player_id, newX, newY);
 }
 
 /* Shortcut for moving player through change in current position*/
-void GameBoard::translatePlayer(int dx, int dy)
+/*void GameBoard::translatePlayer(int dx, int dy)
 {
     if(!m_screen.hasCursor()) {
 	translateActor(player(), dx, dy);
     } else {
 	m_screen.translateCursor(dx, dy);
     }
-}
+    }*/
