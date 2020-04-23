@@ -20,24 +20,24 @@ GameBoard::GameBoard(Display &screen, const std::string &mapPath,
                      ActorType player_type)
     : m_map{}, m_screen(screen)
 {
-    m_actor_types.add_tuple(player_type);
+    // Add player type
+    const auto player_type_id = m_actor_types.add_tuple(player_type);
+    // Add player
+    m_actors.add(player_type_id, {3}, {10});
+    m_actors.player_index = m_actors.ids.size() - 1;
+    // (player position will be set during loadMap)
+
     loadMonsterTypes(getLocalDir() + "src/monsters.ini", m_actor_types);
     loadItemTypes(getLocalDir() + "src/items.ini", m_item_types);
     loadMap(mapPath);
-    //Show initial map, centered at player's current position
-    //m_screen.draw(m_map, player());
+    //Show initial map
+    m_screen.draw(m_map, m_actors.player_x, m_actors.player_y);
 }
 
 /* Fills 2d array with tiles from given map file, instantiating
    new Actors/other entities as needed in their correct positions*/
 void GameBoard::loadMap(const std::string &path)
 {
-    //First, make all tiles empty tiles
-    for(int row=0; row<MapHeight; ++row) {
-	for(int col=0; col<MapWidth; ++col) {
-	    m_map[row][col] = 0;
-	}
-    }
     std::ifstream mapFile(path);
     if(!mapFile) {
 	m_screen.printText(0, 0, "Error: could not load map file: " + path + "\n");
@@ -52,7 +52,6 @@ void GameBoard::loadMap(const std::string &path)
 	std::string line;
 	std::getline(mapFile, line);
 	int col = 0;
-        const auto player_type = get_index_of(m_actor_types.id, '@');
 	for(std::string::size_type pos=0; pos<line.size(); ++pos) {
 	    if(col >= MapWidth) {
 		break;
@@ -63,19 +62,15 @@ void GameBoard::loadMap(const std::string &path)
 		++col;
 	    } else {
 		//All Actors need to be in m_actors list/have char in m_map
-		m_map[row][col] = line[pos];
+		m_map[row][col].ch = line[pos];
 		if(line[pos] == PlayerTile) {
-		    m_actors.move(m_actors.player, {col, row});
-		} else {
-                    const auto item_it = std::lower_bound(m_item_types.id.begin(),
-                                                          m_item_types.id.end(), line[pos]);
-                    if(item_it != m_item_types.id.end())
-                        m_items.add(line[pos], {col, row});
-
-                    const auto actor_it = std::lower_bound(m_actor_types.id.begin(),
-                                                           m_actor_types.id.end(), line[pos]);
-                    if(actor_it != m_actor_types.id.end())
-                        m_actors.add(line[pos], {col, row}, 3, 10);
+                    // Set player position
+                    m_map[row][col].actor_id = m_actors.player();
+                    m_actors.player_x = col;
+                    m_actors.player_y = row;
+		} else if(m_actor_types.contains(line[pos])) {
+                    // Add and set position of a NPC
+                    m_map[row][col].actor_id = m_actors.add(line[pos], {3}, {10});
 		}
 		++col;
 	    }
@@ -130,33 +125,38 @@ void GameBoard::loadMap(const std::string &path)
     }*/
 
 /* Displays an actor's current inventory in subscreen; ESC/any redraws closes it*/
-void GameBoard::showInventory(ActorId actor)
+void GameBoard::showInventory(int x, int y)
 {
-    const auto actor_name = get_name(actor, m_actors, m_actor_types);
-    m_screen.printText(0, 0, actor_name + "'s Inventory: (ESC to exit)", TB_YELLOW);
+    char type = m_map[y][x].ch;
+    ActorId actor_id = m_map[y][x].actor_id;
+    const auto type_index = get_index_of(m_actor_types.ids, type);
+
+    m_screen.printText(0, 0, m_actor_types.names[type_index]
+                       + "'s Inventory: (ESC to exit)", TB_YELLOW);
     m_screen.printText(0, 1, "E) Equip item, D) Deequip item", TB_YELLOW);
 
-    const auto index = get_index_of(m_inventories.actor_id, actor);
-    if(m_inventories.inventory[index].empty()) {
+    const auto it = std::lower_bound(m_inventories.actor_ids.begin(),
+                                     m_inventories.actor_ids.end(), actor_id);
+    if(it == m_inventories.actor_ids.end()) {
 	m_screen.printText(2, 2, "Empty", TB_CYAN);
 	return;
     }
 
     int i = 3;
-    for(const auto item_id : m_inventories.inventory[index]) {
-        const auto index = get_index_of(m_item_types.id, item_id);
-        const auto name = m_item_types.name[index];
-        const auto weight = m_item_types.weight[index];
-        const auto armor = m_item_types.armor_value[index];
-	m_screen.printText(0, i, " " + std::to_string(i+1) + ". " + name
-			   + " - Weight: " + std::to_string(weight)
-			   + ", Armor: " + std::to_string(armor), TB_CYAN);
-	++i;
-    }
+    std::size_t inv_index = std::distance(m_inventories.actor_ids.begin(), it);
+    do {
+        const auto item_type_id = m_inventories.items[inv_index];
+        const auto amount = m_inventories.amounts[inv_index];
+	m_screen.printText(0, i, " " + std::to_string(item_type_id) + ". "
+                           + std::to_string(amount), TB_CYAN);
+	++inv_index;
+        ++i;
+    } while(inv_index < m_inventories.items.size()
+            && m_inventories.actor_ids[inv_index] == actor_id);
 }
 
 /*Prints character sheet for an Actor, showing main stats*/
-void GameBoard::showStats(ActorId actor)
+/*void GameBoard::showStats(int x, int y)
 {
     const auto actor_index = get_index_of(m_actors.id, actor);
     const auto type_index = get_index_of(m_actor_types.id, m_actors.actor_type[actor_index]);
@@ -175,7 +175,7 @@ void GameBoard::showStats(ActorId actor)
     m_screen.printText(0, 6, "Strength: "
                        + std::to_string(m_actor_types.strength[actor_index]),
                        TB_CYAN);
-}
+                       }*/
 
 /* Show list of equipment slots, showing which items in which slots/which
    slots are empty*/
@@ -206,8 +206,7 @@ void GameBoard::redraw()
     //Redraws whole screen (useful for exiting inventory subscreen, etc.)
     m_screen.clear();
     m_screen.hideCursor();
-    auto[playerX, playerY] = m_actors.position[m_actors.player_index];
-    m_screen.draw(m_map, playerX, playerY);
+    m_screen.draw(m_map, m_actors.player_x, m_actors.player_y);
 }
 
 void GameBoard::present()
@@ -247,24 +246,19 @@ bool GameBoard::isValid(int x, int y) const
 /* Moves actor from current position to another, redrawing screen
    buffer to show change. Private function, only to be called by
    moveActor()*/
-bool GameBoard::changePos(ActorId actor, int newX, int newY)
+void GameBoard::changePos(int x, int y, int newX, int newY)
 {
     //Note: screen doesn't visibly change until screen.present() called in main loop
-    const auto index = get_index_of(m_actors.id, actor);
-    const auto old_ch = m_map[m_actors.position[index][1]][m_actors.position[index][0]];
-    m_map[m_actors.position[index][1]][m_actors.position[index][0]] = 0;
-    m_actors.position[index][0] = newX;
-    m_actors.position[index][1] = newY;
-    m_map[newY][newX] = old_ch;
-
+    m_map[newY][newX] = m_map[y][x];
+    m_map[y][x] = {};
+    
     m_screen.clear();
-    //m_screen.draw(m_map, player()); //FIXME
-    return true;
+    m_screen.draw(m_map, m_actors.player_x, m_actors.player_y);
 }
 
 /* Picks up an Item at given coords if one can be found at that
    position; private function, only to be called by moveActor()*/
-bool GameBoard::pickupItem(ActorId actor, int x, int y)
+/*bool GameBoard::pickupItem(ActorId actor, int x, int y)
 {
     const auto item_index = get_index_of(m_items.id, item);
     const auto actor_index = get_index_of(m_actors.id, actor);
@@ -289,7 +283,7 @@ bool GameBoard::pickupItem(ActorId actor, int x, int y)
         log("Can't find item");
         return false;
     }
-}
+    }*/
 
 /* Have given Actor attack an Actor at another position. If no Actor
    at that position, do nothing; private function, only to be called
@@ -322,6 +316,8 @@ bool GameBoard::pickupItem(ActorId actor, int x, int y)
     }
     return false;
     }*/
+
+ // Stopped here
 
 /* Performs action on given position; will move Actor there if possible,
    pickup an Item at that position, or attack a Monster at that position*/

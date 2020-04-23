@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include <tuple>
+#include "strong-types.hpp"
 
 enum Equipment {
     ARMOR_HELMET,
@@ -15,7 +16,7 @@ enum Equipment {
     EQUIP_MAX
 };
 
-const int ARMOR_MAX = ARMOR_BOOTS + 1;
+constexpr int ARMOR_MAX = ARMOR_BOOTS + 1;
 
 /*
   Initial tables:
@@ -30,35 +31,23 @@ const int ARMOR_MAX = ARMOR_BOOTS + 1;
     | itemType | name | weight | armor_value | attack_value
 
 */
-using ItemId = unsigned short;
-using ItemTypeId = char;
-using Position = std::array<int,2>;
-using Weight = unsigned int;
-using ArmorValue = unsigned int;
-using AttackValue = unsigned int;
-using ItemType = std::tuple<ItemTypeId, std::string, Weight, ArmorValue, AttackValue>;
+struct Position { std::array<int,2> v; };
+struct Weight { unsigned int v; };
+struct ArmorValue { unsigned int v; };
+struct AttackValue { unsigned int v; };
+using ItemType = std::tuple<char, std::string, Weight, ArmorValue, AttackValue>;
 
 struct ItemTypeTable {
-    std::vector<ItemTypeId> id;
-    std::vector<std::string> name;
-    std::vector<Weight> weight;
-    std::vector<ArmorValue> armor_value;
-    std::vector<AttackValue> attack_value;
+    std::vector<char> ids; // the char representing the item onscreen
+    std::vector<std::string> names;
+    std::vector<Weight> weights;
+    std::vector<ArmorValue> armor_values;
+    std::vector<AttackValue> attack_values;
 
-    ItemTypeId add(ItemTypeId id, std::string name, Weight weight, ArmorValue armor = 1,
-                   AttackValue attack = 1);
-    ItemTypeId add_tuple(const ItemType &new_type);
+    char add(char id, std::string name, Weight weight, ArmorValue armor = {1},
+             AttackValue attack = {1});
+    char add_tuple(const ItemType &new_type);
 };
-
-struct ItemTable {
-    std::vector<ItemId> id;
-    std::vector<Position> position;
-    std::vector<ItemTypeId> type;
-
-    ItemId id_count = 0;
-    ItemId add(ItemTypeId type, Position pos);
-};
-
 
 template<typename Row, typename Id>
 std::size_t get_index_of(const Row &id_row, Id target)

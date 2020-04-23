@@ -22,13 +22,13 @@ static char parseChar(std::string value, char defaultVal = 'A')
     return value[0];
 }
 
-static std::int_least16_t parseInt(std::string value, std::int_least16_t defaultVal = 0)
+static unsigned int parseInt(std::string value, int defaultVal = 0)
 {
     if(value.size() < 1 || value == "default") {
 	return defaultVal;
     }
     try {
-	return std::stoi(value);
+	return static_cast<unsigned int>(std::stoi(value));
     } catch(const std::out_of_range& e) {
 	return defaultVal;
     }
@@ -43,19 +43,19 @@ static bool parseBool(std::string value, bool defaultVal = false)
 
 static void applyIniPair(ActorType &actor, std::string key, std::string value)
 {
-    if(key == "char") std::get<0>(actor) = parseChar(value);
-    else if(key == "name") std::get<1>(actor) = value;
-    else if(key == "strength") std::get<2>(actor) = parseInt(value);
-    else if(key == "maxCarryWeight") std::get<3>(actor) = parseInt(value, 10);
+    if(key == "char") std::get<0>(actor) = {parseChar(value)};
+    else if(key == "name") std::get<1>(actor) = {value};
+    else if(key == "strength") std::get<2>(actor) = {parseInt(value)};
+    else if(key == "maxCarryWeight") std::get<3>(actor) = {parseInt(value, 10)};
 }
 
 static void applyIniPair(ItemType &item, std::string key, std::string value)
 {
-    if(key == "char") std::get<0>(item) = parseChar(value);
-    if(key == "name") std::get<1>(item) = value;
-    else if(key == "weight") std::get<2>(item) = parseInt(value);
-    else if(key == "attack") std::get<3>(item) = parseInt(value);
-    else if(key == "armor") std::get<4>(item) = parseInt(value);
+    if(key == "char") std::get<0>(item) = {parseChar(value)};
+    if(key == "name") std::get<1>(item) = {value};
+    else if(key == "weight") std::get<2>(item) = {parseInt(value)};
+    else if(key == "attack") std::get<3>(item) = {parseInt(value)};
+    else if(key == "armor") std::get<4>(item) = {parseInt(value)};
 }
 
 void loadItemTypes(const std::string &&path, ItemTypeTable &types)

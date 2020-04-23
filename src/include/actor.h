@@ -4,65 +4,56 @@
 #include <array>
 #include <tuple>
 
-using ActorId = unsigned short;
-using ActorTypeId = char;
-using Position = std::array<int,2>;
-using Energy = unsigned int;
-using Strength = unsigned int;
-using Health = int; // can have negative health deltas
-using Weight = unsigned int;
-using ActorType = std::tuple<ActorTypeId, std::string, Strength, Weight>;
+struct ActorId { unsigned short v; };
+struct Energy { unsigned int v; };
+struct Strength { unsigned int v; };
+struct Health { int v; }; // can have negative health deltas
+using ActorType = std::tuple<char, std::string, Strength, Weight>;
+
+constexpr ActorId InitActorId{0};
 
 struct ActorTypeTable {
-    std::vector<ActorTypeId> id;
-    std::vector<std::string> name;
-    std::vector<Strength> strength;
-    std::vector<Weight> max_carry;
+    std::vector<char> ids;
+    std::vector<std::string> names;
+    std::vector<Strength> strengths;
+    std::vector<Weight> max_carries;
 
-    ActorTypeId add(char ch, std::string name, Strength strength, Weight max_carry);
-    ActorTypeId add_tuple(const ActorType &new_type);
-    Weight get_max_carry(ActorTypeId type) const;
+    char add(char ch, std::string name, Strength strength, Weight max_carry);
+    char add_tuple(const ActorType &new_type);
+    bool contains(char actor) const;
 };
 
 struct ActorTable {
-    std::vector<ActorId> id;
-    std::vector<Position> position; // (x, y)
-    std::vector<Health> health;
-    std::vector<Energy> energy;
-    std::vector<ActorTypeId> actor_type;
+    std::vector<ActorId> ids;
+    std::vector<Health> healths;
+    std::vector<Energy> energies;
+    std::vector<Weight> carries;
+    std::vector<char> types;
 
-    ActorId current_turn = 0;
+    ActorId current_turn = InitActorId;
     std::size_t turn_index = 0;
-    ActorId id_count = 0;
+    ActorId id_count = InitActorId;
     std::size_t player_index = 0;
+    int player_x = 0;
+    int player_y = 0;
+    inline ActorId player() const { return ids[player_index]; }
+    inline ActorId curr() const { return ids[turn_index]; }
 
-    ActorId add(ActorTypeId type, Position pos, Energy energy, Health health);
-    void move(ActorId actor, Position newPos);
+    ActorId add(char type, Energy energy, Health health);
     void next_turn();
     void add_health(ActorId actor, Health amount);    
-    Position get_position(ActorId actor) const;
 };
 
 struct ActorInventoryTable {
-    std::vector<ActorId> actor_id;
-    std::vector<std::vector<ItemId>> inventory;
-    std::vector<Weight> carry;
-
-    void append(ActorId actor, Weight carry);
-    void insert(ActorId actor, Weight carry);
-    Weight get_carry(ActorId actor) const;
-    void add_item(ActorId actor, ItemId item);
+    std::vector<ActorId> actor_ids;
+    std::vector<char> items;
+    std::vector<std::size_t> amounts;
 };
 
 struct ActorEquipmentTable {
     std::vector<ActorId> actor_id;
     //std::vector<ItemId> item;
 };
-
-bool can_carry(ActorId actor, Weight item, const ActorTable &actors,
-               const ActorTypeTable &types, const ActorInventoryTable &inventories);
-std::string get_name(ActorId actor, const ActorTable &actors,
-                     const ActorTypeTable &types);
 
 constexpr int RNGUpperLimit = 100;
 constexpr int SkillAmount = 9; //Number of skills (e.g. strengh, agility, etc.)
