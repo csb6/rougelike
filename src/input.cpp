@@ -48,10 +48,10 @@ bool Input::process()
 	    switch(m_screen.getEventChar())
 	    {
 	    case 'i':
-		//m_board.showInventory(m_board.player());
+		m_board.showInventory();
 		break;
 	    case '@':
-		//m_board.showStats(m_board.player());
+		m_board.showStats();
 		break;
 	    case 'e':
 		//m_board.showEquipped(m_board.player());

@@ -2,6 +2,8 @@
 #define DISPLAY_TERMBOX_H
 #include <string>
 #include "termbox.h"
+#include "actor.h"
+#include <array>
 
 //Display Constants
 constexpr int MinDisplayWidth = 30;
@@ -20,10 +22,11 @@ constexpr int MaxLogSize = 4; //in number of messages
 //  Map should take up at least min screen space so min-size screen is always full
 constexpr int MapWidth = 30;
 constexpr int MapHeight = 30;
-//  An array containing tiles to display onscreen
-typedef char LevelMap[MapWidth][MapHeight];
 
-class Actor;
+struct Cell {
+    char ch = 0;
+    ActorId actor_id{0};
+};
 
 class Display {
 //Purpose: Puts/manages content onscreen using termbox library
@@ -66,7 +69,8 @@ public:
     void printTextCol(int gridCol, const std::string text,
 		      const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
     //Note: draw functions alter screen buffer; must call present() to push to display
-    void draw(const LevelMap &map, int playerX, int playerY);
+    void draw(const std::array<std::array<Cell, MapWidth>, MapHeight> &map,
+              int playerX, int playerY);
     //Setters/Getters
     void clear() { tb_clear(); }
     void present() { tb_present(); }

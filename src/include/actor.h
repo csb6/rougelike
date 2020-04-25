@@ -37,6 +37,7 @@ struct ActorTable {
 
     std::size_t turn_index = 0;
     ActorId id_count = InitActorId;
+    // NOTE: player_index assumed to be 0, and assumed to == index of player in ActorTypesTable
     std::size_t player_index = 0;
     inline ActorId player() const { return ids[player_index]; }
     inline int player_x() const { return positions[player_index].x; }

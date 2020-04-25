@@ -124,18 +124,15 @@ void GameBoard::loadMap(const std::string &path)
 }*/
 
 /* Displays an actor's current inventory in subscreen; ESC/any redraws closes it*/
-void GameBoard::showInventory(int x, int y)
+void GameBoard::showInventory()
 {
-    char type = m_map[y][x].ch;
-    ActorId actor_id = m_map[y][x].actor_id;
-    const auto type_index = get_index_of(m_actor_types.ids, type);
+    const auto player_id = m_actors.player();
 
-    m_screen.printText(0, 0, m_actor_types.names[type_index]
-                       + "'s Inventory: (ESC to exit)", TB_YELLOW);
+    m_screen.printText(0, 0, "Inventory: (ESC to exit)", TB_YELLOW);
     m_screen.printText(0, 1, "E) Equip item, D) Deequip item", TB_YELLOW);
 
     const auto it = std::lower_bound(m_inventories.actor_ids.begin(),
-                                     m_inventories.actor_ids.end(), actor_id);
+                                     m_inventories.actor_ids.end(), player_id);
     if(it == m_inventories.actor_ids.end()) {
 	m_screen.printText(2, 2, "Empty", TB_CYAN);
 	return;
@@ -151,30 +148,28 @@ void GameBoard::showInventory(int x, int y)
 	++inv_index;
         ++i;
     } while(inv_index < m_inventories.items.size()
-            && m_inventories.actor_ids[inv_index] == actor_id);
+            && m_inventories.actor_ids[inv_index] == player_id);
 }
 
-/*Prints character sheet for an Actor, showing main stats*/
-/*void GameBoard::showStats(int x, int y)
+/*Prints character sheet for the player, showing main stats*/
+void GameBoard::showStats()
 {
-    const auto actor_index = get_index_of(m_actors.id, actor);
-    const auto type_index = get_index_of(m_actor_types.id, m_actors.actor_type[actor_index]);
-    const auto inv_index = get_index_of(m_inventories.actor_id, actor);
+    const auto player_index = m_actors.player_index;
 
-    m_screen.printText(0, 0, m_actor_types.name[type_index]
-                       + "'s Character Sheet: (ESC to exit)", TB_YELLOW);
-    m_screen.printText(0, 1, "Health: " + std::to_string(m_actors.health[actor_index]),
-                                                         TB_CYAN);
+    m_screen.printText(0, 0, "Character Sheet: (ESC to exit)", TB_YELLOW);
+    m_screen.printText(0, 1, "Health: "
+                       + std::to_string(m_actors.healths[player_index].v),
+                       TB_CYAN);
     m_screen.printText(0, 2, "Carry Weight: "
-                       + std::to_string(m_inventories.carry[inv_index]),
+                       + std::to_string(m_actors.carries[player_index].v),
                        TB_CYAN);
     m_screen.printText(0, 3, "Carry Capacity: "
-                       + std::to_string(m_actor_types.max_carry[type_index]),
+                       + std::to_string(m_actor_types.max_carries[player_index].v),
                        TB_CYAN);
-    m_screen.printText(0, 6, "Strength: "
-                       + std::to_string(m_actor_types.strength[actor_index]),
+    m_screen.printText(0, 4, "Strength: "
+                       + std::to_string(m_actor_types.strengths[player_index].v),
                        TB_CYAN);
-                       }*/
+}
 
 /* Show list of equipment slots, showing which items in which slots/which
    slots are empty*/
@@ -331,10 +326,10 @@ bool GameBoard::moveActor(ActorId actor, int newX, int newY)
     }
     //If tile is empty, move Actor to it
     if(m_map[newY][newX].ch == 0) {
-        // Move the Cell to the new spot
-        changePos(x, y, newX, newY);
         // Update the player's position in table
         m_actors.positions[index] = {newX, newY};
+        // Move the Cell to the new spot
+        changePos(x, y, newX, newY);
         return true;
     }
     //If an Item is in that position, try to pick it up

@@ -254,7 +254,8 @@ int Display::getCameraCoord(int playerCoord, bool isX)
 
 /* Places all non-empty tiles centered around the player into the screen buffer,
    stopping when there is no more room. Respects area left for GUI */
-void Display::draw(const LevelMap &map, int playerX, int playerY)
+void Display::draw(const std::array<std::array<Cell, MapWidth>, MapHeight> &map,
+                   int playerX, int playerY)
 {
     //Screen may be smaller than map, so display as much as possible
     m_screenWidth = std::min(boardWidth(), MapWidth);
@@ -266,8 +267,8 @@ void Display::draw(const LevelMap &map, int playerX, int playerY)
 	for(int x=m_cornerX; x<(m_cornerX+m_screenWidth); ++x) {
 	    int col = convertCoord(x, true);
 	    int row = convertCoord(y, false);
-	    if(map[y][x] != 0) {
-		putChar(col, row, map[y][x]);
+	    if(map[y][x].ch != 0) {
+		putChar(col, row, map[y][x].ch);
 	    } else {
 		putChar(col, row, EmptySpace);
 	    }

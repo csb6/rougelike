@@ -3,17 +3,13 @@
 #include "display.h"
 #include "actor.h"
 #include "template.h"
-
-struct Cell {
-    char ch = 0;
-    ActorId actor_id{0};
-};
+#include <array>
 
 class GameBoard {
 //Purpose: To represent the game map/the actors/pieces on it, as well as to
 //    handle user input for controlling the player
 private:
-    Cell m_map[MapHeight][MapWidth];
+    std::array<std::array<Cell, MapWidth>, MapHeight> m_map;
     Display &m_screen;
     ActorTypeTable m_actor_types;
     ItemTypeTable m_item_types;
@@ -28,8 +24,8 @@ public:
     void loadMap(const std::string &path);
     //void bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, int, int));
     //void updateActors();
-    void showInventory(int x, int y);
-    //void showStats(int x, int y);
+    void showInventory();
+    void showStats();
     //void showEquipped(Actor &actor);
     //void equipItem(Actor &actor);
     //void deequipItem(Actor &actor);
