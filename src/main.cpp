@@ -31,6 +31,7 @@
 #include "include/gameboard.h"
 #include "include/input.h"
 #include <iostream>
+#include <tuple>
 #include <cstdio> //for FILENAME_MAX
 #ifdef _WIN32
 #include <libloaderapi.h>
@@ -66,7 +67,7 @@ std::string getLocalDir()
     return dirPath.substr(0, dirPath.size()-4);
 }
 
-/* Prompts user for integer value using given message*/
+/*/* Prompts user for integer value using given message
 static int inputSkill(int index, const std::string &message)
 {
     std::cout << index+1 << ". "<< message;
@@ -77,7 +78,7 @@ static int inputSkill(int index, const std::string &message)
 
 /* Prompts for integer values for each of given messages, saving the responses.
    Each prompt will loop until the user enters a point value less than their
-   remaining points, which are tracked over all prompts*/
+   remaining points, which are tracked over all prompts
 static void inputAllSkills(const std::string messages[], int responses[], int messagesLen, int maxPoints)
 {
     int usedPoints = 0;
@@ -105,7 +106,7 @@ static void inputAllSkills(const std::string messages[], int responses[], int me
     }
 }
 
-/* Creates an actor with the give traits*/
+/* Creates an actor with the give traits
 static void assignSkills(Actor &actor, const int skills[])
 {
     actor.m_strength = skills[0];
@@ -120,7 +121,7 @@ static void assignSkills(Actor &actor, const int skills[])
 }
 
 /* Runs player character creation, giving option for quickstart or to redo
-   creation if not satisified with stats*/
+   creation if not satisified with stats
 static void skillSelection(Actor &actor)
 {
     //Player character creation
@@ -160,21 +161,22 @@ static void skillSelection(Actor &actor)
             break;
         }
     }
-}
+}*/
 
 int main()
 {
-    Actor player(0, 0, "Player", PlayerTile, true);
-    skillSelection(player);
+    //Actor player(0, 0, "Player", PlayerTile, true);
+    //skillSelection(player);
 
     bool running = true;
     Display screen;
-    GameBoard board(screen, player, getLocalDir() + "trapped-map.csv");
+    GameBoard board(screen, getLocalDir() + "trapped-map.csv",
+                    std::make_tuple('@', "Player", Strength{5}, Weight{10}));
     Input device(running, screen, board);
 
     //Start main game loop
     while(running && device.process()) {
-        board.updateActors();
+        //board.updateActors();
         board.present();
     }
 

@@ -24,10 +24,11 @@ bool ActorTypeTable::contains(char type) const
 }
 
 
-ActorId ActorTable::add(char type, Energy energy, Health health)
+ActorId ActorTable::add(char type, Position pos, Energy energy, Health health)
 {
     const ActorId new_id = id_count++;
     ids.push_back(new_id);
+    positions.push_back(pos);
     healths.push_back(health);
     energies.push_back(energy);
     carries.push_back({0}); // initially, all actors carry nothing
@@ -43,7 +44,6 @@ void ActorTable::next_turn()
         turn_index = 0;
     }
     ++turn_index;
-    current_turn = ids[turn_index];
 }
 
 // Assumes the actor id is present in this collection

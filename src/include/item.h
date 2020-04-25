@@ -31,7 +31,6 @@ constexpr int ARMOR_MAX = ARMOR_BOOTS + 1;
     | itemType | name | weight | armor_value | attack_value
 
 */
-struct Position { std::array<int,2> v; };
 struct Weight { unsigned int v; };
 struct ArmorValue { unsigned int v; };
 struct AttackValue { unsigned int v; };

@@ -9,6 +9,10 @@ struct Energy { unsigned int v; };
 struct Strength { unsigned int v; };
 struct Health { int v; }; // can have negative health deltas
 using ActorType = std::tuple<char, std::string, Strength, Weight>;
+struct Position {
+    int x = 0;
+    int y = 0;
+};
 
 constexpr ActorId InitActorId{0};
 
@@ -25,21 +29,21 @@ struct ActorTypeTable {
 
 struct ActorTable {
     std::vector<ActorId> ids;
+    std::vector<Position> positions;
     std::vector<Health> healths;
     std::vector<Energy> energies;
     std::vector<Weight> carries;
     std::vector<char> types;
 
-    ActorId current_turn = InitActorId;
     std::size_t turn_index = 0;
     ActorId id_count = InitActorId;
     std::size_t player_index = 0;
-    int player_x = 0;
-    int player_y = 0;
     inline ActorId player() const { return ids[player_index]; }
+    inline int player_x() const { return positions[player_index].x; }
+    inline int player_y() const { return positions[player_index].y; }
     inline ActorId curr() const { return ids[turn_index]; }
 
-    ActorId add(char type, Energy energy, Health health);
+    ActorId add(char type, Position pos, Energy energy, Health health);
     void next_turn();
     void add_health(ActorId actor, Health amount);    
 };

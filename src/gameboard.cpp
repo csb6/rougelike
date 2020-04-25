@@ -23,7 +23,7 @@ GameBoard::GameBoard(Display &screen, const std::string &mapPath,
     // Add player type
     const auto player_type_id = m_actor_types.add_tuple(player_type);
     // Add player
-    m_actors.add(player_type_id, {3}, {10});
+    m_actors.add(player_type_id, {0, 0}, {3}, {10});
     m_actors.player_index = m_actors.ids.size() - 1;
     // (player position will be set during loadMap)
 
@@ -31,7 +31,7 @@ GameBoard::GameBoard(Display &screen, const std::string &mapPath,
     loadItemTypes(getLocalDir() + "src/items.ini", m_item_types);
     loadMap(mapPath);
     //Show initial map
-    m_screen.draw(m_map, m_actors.player_x, m_actors.player_y);
+    m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
 }
 
 /* Fills 2d array with tiles from given map file, instantiating
@@ -66,11 +66,10 @@ void GameBoard::loadMap(const std::string &path)
 		if(line[pos] == PlayerTile) {
                     // Set player position
                     m_map[row][col].actor_id = m_actors.player();
-                    m_actors.player_x = col;
-                    m_actors.player_y = row;
+                    m_actors.positions[m_actors.player_index] = {col, row};
 		} else if(m_actor_types.contains(line[pos])) {
                     // Add and set position of a NPC
-                    m_map[row][col].actor_id = m_actors.add(line[pos], {3}, {10});
+                    m_map[row][col].actor_id = m_actors.add(line[pos], {col, row}, {3}, {10});
 		}
 		++col;
 	    }
@@ -122,7 +121,7 @@ void GameBoard::loadMap(const std::string &path)
 	    i = m_actors.size() - 1;
 	}
     } while(i != m_turn_index);
-    }*/
+}*/
 
 /* Displays an actor's current inventory in subscreen; ESC/any redraws closes it*/
 void GameBoard::showInventory(int x, int y)
@@ -206,7 +205,7 @@ void GameBoard::redraw()
     //Redraws whole screen (useful for exiting inventory subscreen, etc.)
     m_screen.clear();
     m_screen.hideCursor();
-    m_screen.draw(m_map, m_actors.player_x, m_actors.player_y);
+    m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
 }
 
 void GameBoard::present()
@@ -253,7 +252,7 @@ void GameBoard::changePos(int x, int y, int newX, int newY)
     m_map[y][x] = {};
     
     m_screen.clear();
-    m_screen.draw(m_map, m_actors.player_x, m_actors.player_y);
+    m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
 }
 
 /* Picks up an Item at given coords if one can be found at that
@@ -317,27 +316,29 @@ void GameBoard::changePos(int x, int y, int newX, int newY)
     return false;
     }*/
 
- // Stopped here
-
 /* Performs action on given position; will move Actor there if possible,
    pickup an Item at that position, or attack a Monster at that position*/
 bool GameBoard::moveActor(ActorId actor, int newX, int newY)
 {
+    const auto index = get_index_of(m_actors.ids, actor);
+    const auto[x, y] = m_actors.positions[index];
     //Check to make sure turn is respected/position exists/is within teleport range
     //and not attacking self
-    const auto actor_index = get_index_of(m_actors.id, actor);
-    const auto[x, y] = m_actors.position[actor_index];
-    if(!isValid(newX, newY) || actor_index != m_actors.turn_index
+    if(!isValid(newX, newY) /*|| actor_index != m_actors.turn_index*/
        || distanceFrom(x, y, newX, newY) >= 5
        || (x == newX && y == newY)) {
 	return false;
     }
     //If tile is empty, move Actor to it
-    if(m_map[newY][newX] == 0) {
-	return changePos(actor, newX, newY);
+    if(m_map[newY][newX].ch == 0) {
+        // Move the Cell to the new spot
+        changePos(x, y, newX, newY);
+        // Update the player's position in table
+        m_actors.positions[index] = {newX, newY};
+        return true;
     }
     //If an Item is in that position, try to pick it up
-    else if(m_map[newY][newX] == ItemTile) {
+    /*else if(m_map[newY][newX] == ItemTile) {
 	return pickupItem(actor, newX, newY);
         }/* else if(m_map[newY][newX] != WallTile) {
 	return melee(actor, newX, newY);
@@ -396,16 +397,15 @@ bool GameBoard::moveActor(ActorId actor, int newX, int newY)
    object, map array, screen buffer, and display to show the change*/
 void GameBoard::movePlayer(int newX, int newY)
 {
-    const auto player_id = m_actors.id[m_actors.player_index];
-    moveActor(player_id, newX, newY);
+    moveActor(m_actors.player(), newX, newY);
 }
 
 /* Shortcut for moving player through change in current position*/
-/*void GameBoard::translatePlayer(int dx, int dy)
+void GameBoard::translatePlayer(int dx, int dy)
 {
     if(!m_screen.hasCursor()) {
-	translateActor(player(), dx, dy);
+        movePlayer(m_actors.player_x() + dx, m_actors.player_y() + dy);
     } else {
 	m_screen.translateCursor(dx, dy);
     }
-    }*/
+}

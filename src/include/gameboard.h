@@ -37,10 +37,10 @@ public:
     void redraw();
     void present();
     bool isValid(int x, int y) const;
-    bool moveActor(int x, int y, int newX, int newY);
+    bool moveActor(ActorId actor, int newX, int newY);
     //bool rangeAttack(Actor& attacker, int targetX, int targetY);
-    //bool translateActor(Actor &actor, int dx, int dy);
+    //bool translateActor(ActorId actor, int dx, int dy);
     void movePlayer(int newX, int newY);
-    //void translatePlayer(int dx, int dy);
+    void translatePlayer(int dx, int dy);
 };
 #endif
