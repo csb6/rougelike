@@ -53,6 +53,8 @@ struct ActorInventoryTable {
     std::vector<ActorId> actor_ids;
     std::vector<char> items;
     std::vector<std::size_t> amounts;
+
+    void add(ActorId actor, char item_type, std::size_t amount = 1);
 };
 
 struct ActorEquipmentTable {

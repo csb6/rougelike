@@ -15,7 +15,7 @@ private:
     ItemTypeTable m_item_types;
     ActorTable m_actors;
     ActorInventoryTable m_inventories;
-    void changePos(int x, int y, int newX, int newY);
+    void swapCell(int x, int y, int newX, int newY);
     //bool pickupItem(ActorId actor, int x, int y);
     //bool melee(Actor &attacker, int targetX, int targetY);
 public:

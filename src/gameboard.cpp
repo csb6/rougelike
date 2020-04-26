@@ -5,9 +5,6 @@
 
 std::string getLocalDir();
 
-constexpr int ItemVecDefaultSize = 5;
-constexpr int ActorVecDefaultSize = 10;
-
 /* Distance formula with truncated absolute value result*/
 static int distanceFrom(int x1, int y1, int x2, int y2)
 {
@@ -68,9 +65,10 @@ void GameBoard::loadMap(const std::string &path)
                     m_map[row][col].actor_id = m_actors.player();
                     m_actors.positions[m_actors.player_index] = {col, row};
 		} else if(m_actor_types.contains(line[pos])) {
-                    // Add and set position of a NPC
+                    // Add and set position of a non-player actor
                     m_map[row][col].actor_id = m_actors.add(line[pos], {col, row}, {3}, {10});
 		}
+                // else if a item/other object, then don't need to do anything
 		++col;
 	    }
 	}
@@ -240,12 +238,12 @@ bool GameBoard::isValid(int x, int y) const
 /* Moves actor from current position to another, redrawing screen
    buffer to show change. Private function, only to be called by
    moveActor()*/
-void GameBoard::changePos(int x, int y, int newX, int newY)
+void GameBoard::swapCell(int x, int y, int newX, int newY)
 {
     //Note: screen doesn't visibly change until screen.present() called in main loop
     m_map[newY][newX] = m_map[y][x];
     m_map[y][x] = {};
-    
+
     m_screen.clear();
     m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
 }
@@ -329,7 +327,7 @@ bool GameBoard::moveActor(ActorId actor, int newX, int newY)
         // Update the player's position in table
         m_actors.positions[index] = {newX, newY};
         // Move the Cell to the new spot
-        changePos(x, y, newX, newY);
+        swapCell(x, y, newX, newY);
         return true;
     }
     //If an Item is in that position, try to pick it up

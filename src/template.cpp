@@ -34,13 +34,6 @@ static unsigned int parseInt(std::string value, int defaultVal = 0)
     }
 }
 
-static bool parseBool(std::string value, bool defaultVal = false)
-{
-    if(value == "true") return true;
-    else if(value == "false") return false;
-    else return defaultVal;
-}
-
 static void applyIniPair(ActorType &actor, std::string key, std::string value)
 {
     if(key == "char") std::get<0>(actor) = {parseChar(value)};

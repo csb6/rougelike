@@ -52,3 +52,29 @@ void ActorTable::add_health(ActorId actor, Health amount)
     const auto index = get_index_of(ids, actor);
     healths[index] += amount;
 }
+
+
+void ActorInventoryTable::add(ActorId actor, char item_type, std::size_t amount)
+{
+    // TODO: handle case where this actor has no items, need to put this item
+    // into the sorted order by id
+
+    // Iterator to the first entry for this actor
+    const auto actor_start = std::lower_bound(actor_ids.begin(), actor_ids.end(),
+                                              actor);
+    // Index of the first entry for this actor
+    const auto start_index = std::distance(actor_ids.begin(), actor_start);
+    // Iterator
+    const auto insert_point = std::find(items.begin()+start_index, items.end(),
+                                        item_type);
+    const auto insert_index = std::distance(items.begin(), insert_point);
+    if(insert_point == items.end()) {
+        // New unique item; insert it at end of this actor's items
+        actor_ids.insert(actor_start, actor);
+        items.insert(insert_point, item_type);
+        amounts.insert(amounts.begin()+insert_index, amount);
+    } else {
+        // Item already exists in this actor's inventory; increment that item's count
+        amounts[insert_index] += amount;
+    }
+}

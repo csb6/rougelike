@@ -46,6 +46,7 @@ struct ItemTypeTable {
     char add(char id, std::string name, Weight weight, ArmorValue armor = {1},
              AttackValue attack = {1});
     char add_tuple(const ItemType &new_type);
+    bool contains(char type) const;
 };
 
 template<typename Row, typename Id>
