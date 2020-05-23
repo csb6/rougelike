@@ -78,24 +78,24 @@ void GameBoard::loadMap(const std::string &path)
 
 /* Toggles cursor on/off; calls function pointer/disables cursor when called
    and cursor active*/
-/*void GameBoard::bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, int, int))
+void GameBoard::bindCursorMode(int actor_x, int actor_y,
+                               bool (GameBoard::*action)(int, int))
 {
     //Put cursor at player position on first keypress
     if(!m_screen.hasCursor()) {
-	m_screen.moveCursor(actor.getX(), actor.getY());
-    }
-    //Execute action, passing cursor position, on second keypress
-    else {
+	m_screen.moveCursor(actor_x, actor_y);
+    } else {
+        //Execute action, passing cursor position, on second keypress
 	int cursorX = m_screen.getCursorX();
 	int cursorY = m_screen.getCursorY();
 	if(isValid(cursorX, cursorY)) {
-	    (this->*action)(actor, cursorX, cursorY);
+	    (this->*action)(cursorX, cursorY);
 	    m_screen.hideCursor();
 	    m_screen.clear();
-	    m_screen.draw(m_map, player()); //FIXME
+	    m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
 	}
     }
-    }*/
+}
 
 /* Calls update functions on all actors currently on the board,
    working backwards so removing an actor doesn't skip anything*/
@@ -250,32 +250,32 @@ void GameBoard::swapCell(int x, int y, int newX, int newY)
 
 /* Picks up an Item at given coords if one can be found at that
    position; private function, only to be called by moveActor()*/
-/*bool GameBoard::pickupItem(ActorId actor, int x, int y)
+bool GameBoard::pickupItem(ActorId actor, std::size_t actor_index,
+                           int item_x, int item_y)
 {
-    const auto item_index = get_index_of(m_items.id, item);
-    const auto actor_index = get_index_of(m_actors.id, actor);
-    const auto inv_index = get_index_of(m_inventories.actor_id, actor);
-    const auto itype_index = get_index_of(m_item_types.id, m_items.type[item_index]);
-    const auto atype_index = get_index_of(m_actor_types.id, m_actors.actor_type[actor_index]);
-    const Weight weight = m_item_types.weight[itype_index];
-    const Weight max_carry = m_actor_types.max_carry[atype_index];
-    if(m_inventories.carry[inv_index] + weight <= max_carry) {
+    const char item_type = m_map[item_y][item_x].ch;
+    const auto item_type_index = get_index_of(m_item_types.ids, item_type);
+    const Weight item_weight = m_item_types.weights[item_type_index];
+    const char actor_type = m_actors.types[actor_index];
+    const auto actor_type_index = get_index_of(m_actor_types.ids, actor_type);
+    const Weight max_carry{m_actor_types.max_carries[actor_type_index]};
+
+    if(m_actors.carries[actor_index] + item_weight <= max_carry) {
         // Pick up the item
-        m_inventories.inventory[inv_index].push_back(item);
-        const auto[x, y] = m_items.position[item_index];
-        m_map[y][x] = 0;
-        const std::string actor_name = m_actor_types.name[atype_index];
-        const std::string item_name = m_item_types.name[itype_index];
+        m_inventories.add(actor, item_type);
+        m_map[item_y][item_x].ch = 0;
+        const std::string actor_name = m_actor_types.names[actor_type_index];
+        const std::string item_name = m_item_types.names[item_type_index];
         log(actor_name + " picked up " + item_name);
 
         m_screen.clear();
-        //m_screen.draw(m_map, player()); //FIXME
+        m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
         return true;
     } else {
-        log("Can't find item");
+        log("Can't carry");
         return false;
     }
-    }*/
+}
 
 /* Have given Actor attack an Actor at another position. If no Actor
    at that position, do nothing; private function, only to be called
@@ -319,7 +319,8 @@ bool GameBoard::moveActor(ActorId actor, int newX, int newY)
     //and not attacking self
     if(!isValid(newX, newY) /*|| actor_index != m_actors.turn_index*/
        || distanceFrom(x, y, newX, newY) >= 5
-       || (x == newX && y == newY)) {
+       || (x == newX && y == newY)
+       || m_map[newY][newX].ch == WallTile) {
 	return false;
     }
     //If tile is empty, move Actor to it
@@ -329,14 +330,13 @@ bool GameBoard::moveActor(ActorId actor, int newX, int newY)
         // Move the Cell to the new spot
         swapCell(x, y, newX, newY);
         return true;
+    } else if(m_map[newY][newX].actor_id != ActorId{0}) {
+        // return melee(actor, newX, newY);
+        return false;
+    } else {
+        //If an Item is in that position, try to pick it up
+	return pickupItem(actor, index, newX, newY);
     }
-    //If an Item is in that position, try to pick it up
-    /*else if(m_map[newY][newX] == ItemTile) {
-	return pickupItem(actor, newX, newY);
-        }/* else if(m_map[newY][newX] != WallTile) {
-	return melee(actor, newX, newY);
-        }*/
-    return false;
 }
 
 /* Attacks another player over a distance using a ranged weapon if equipped

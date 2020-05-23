@@ -16,13 +16,13 @@ private:
     ActorTable m_actors;
     ActorInventoryTable m_inventories;
     void swapCell(int x, int y, int newX, int newY);
-    //bool pickupItem(ActorId actor, int x, int y);
+    bool pickupItem(ActorId actor, std::size_t actor_index, int item_x, int item_y);
     //bool melee(Actor &attacker, int targetX, int targetY);
 public:
     GameBoard(Display &screen, const std::string &mapPath,
               ActorType player_type);
     void loadMap(const std::string &path);
-    //void bindCursorMode(Actor &actor, bool (GameBoard::*action)(Actor&, int, int));
+    void bindCursorMode(int actor_x, int actor_y, bool (GameBoard::*action)(int, int));
     //void updateActors();
     void showInventory();
     void showStats();

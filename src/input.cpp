@@ -2,9 +2,7 @@
 
 Input::Input(bool &running, Display &screen, GameBoard &board)
     : m_running(running), m_screen(screen), m_board(board)
-{
-
-}
+{}
 
 /* Checks with screen to see if any user input, then changes game state
    based on the event type (e.g. move player, resize screen) */

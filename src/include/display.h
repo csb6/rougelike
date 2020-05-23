@@ -49,7 +49,7 @@ private:
     void putChar(int col, int row, char letter,
 		 const uint16_t fg = TB_WHITE, const uint16_t bg = TB_BLACK);
     int getCameraCoord(int playerCoord, bool isX);
-    //void drawGUI(const Actor &player);
+    void drawGUI();
     inline int convertCoord(int coord, bool isX);
 public:
     Display();
