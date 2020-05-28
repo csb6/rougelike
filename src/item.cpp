@@ -8,13 +8,14 @@ static_assert(MELEE_WEAPON < EQUIP_MAX && MELEE_WEAPON == ARMOR_MAX,
 	      "MELEE_WEAPON in wrong position");
 
 char ItemTypeTable::add(char id, std::string name, Weight weight,
-                              ArmorValue armor, AttackValue attack)
+                        ArmorValue armor, AttackValue attack)
 {
-    ids.push_back(id);
-    names.push_back(name);
-    weights.push_back(weight);
-    armor_values.push_back(armor);
-    attack_values.push_back(attack);
+    const auto insert_index = get_index_of(ids, id);
+    ids.insert(ids.begin()+insert_index, id);
+    names.insert(names.begin()+insert_index, name);
+    weights.insert(weights.begin()+insert_index, weight);
+    armor_values.insert(armor_values.begin()+insert_index, armor);
+    attack_values.insert(attack_values.begin()+insert_index, attack);
     return id;
 }
 

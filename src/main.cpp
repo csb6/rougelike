@@ -67,7 +67,7 @@ std::string getLocalDir()
     return dirPath.substr(0, dirPath.size()-4);
 }
 
-/*/* Prompts user for integer value using given message
+/* Prompts user for integer value using given message
 static int inputSkill(int index, const std::string &message)
 {
     std::cout << index+1 << ". "<< message;
@@ -76,7 +76,7 @@ static int inputSkill(int index, const std::string &message)
     return skillValue;
 }
 
-/* Prompts for integer values for each of given messages, saving the responses.
+ Prompts for integer values for each of given messages, saving the responses.
    Each prompt will loop until the user enters a point value less than their
    remaining points, which are tracked over all prompts
 static void inputAllSkills(const std::string messages[], int responses[], int messagesLen, int maxPoints)
@@ -106,7 +106,7 @@ static void inputAllSkills(const std::string messages[], int responses[], int me
     }
 }
 
-/* Creates an actor with the give traits
+ Creates an actor with the give traits
 static void assignSkills(Actor &actor, const int skills[])
 {
     actor.m_strength = skills[0];
@@ -120,7 +120,7 @@ static void assignSkills(Actor &actor, const int skills[])
     actor.m_negotiateSkill = skills[8];
 }
 
-/* Runs player character creation, giving option for quickstart or to redo
+ Runs player character creation, giving option for quickstart or to redo
    creation if not satisified with stats
 static void skillSelection(Actor &actor)
 {

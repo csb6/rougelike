@@ -4,10 +4,10 @@
 #include <array>
 #include <tuple>
 
-struct ActorId { unsigned short v; };
-struct Energy { unsigned int v; };
-struct Strength { unsigned int v; };
-struct Health { int v; }; // can have negative health deltas
+struct ActorId : strong_type<unsigned short, ActorId> {};
+struct Energy : strong_type<unsigned int, Energy> {};
+struct Strength : strong_type<unsigned int, Strength> {};
+struct Health : strong_type<int, Health> {}; // can have negative health deltas
 using ActorType = std::tuple<char, std::string, Strength, Weight>;
 struct Position {
     int x = 0;

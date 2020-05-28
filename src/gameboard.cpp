@@ -132,17 +132,19 @@ void GameBoard::showInventory()
     const auto it = std::lower_bound(m_inventories.actor_ids.begin(),
                                      m_inventories.actor_ids.end(), player_id);
     if(it == m_inventories.actor_ids.end()) {
-	m_screen.printText(2, 2, "Empty", TB_CYAN);
+	m_screen.printText(0, 2, "Empty", TB_CYAN);
 	return;
     }
 
-    int i = 3;
+    int i = 2;
     std::size_t inv_index = std::distance(m_inventories.actor_ids.begin(), it);
     do {
         const auto item_type_id = m_inventories.items[inv_index];
         const auto amount = m_inventories.amounts[inv_index];
-	m_screen.printText(0, i, " " + std::to_string(item_type_id) + ". "
-                           + std::to_string(amount), TB_CYAN);
+        const auto item_type_index = get_index_of(m_item_types.ids, item_type_id);
+	m_screen.printText(0, i, std::to_string(i-1) + ". "
+                           + m_item_types.names[item_type_index] + "      Amount: "
+                           + std::to_string(amount) + "   ", TB_CYAN);
 	++inv_index;
         ++i;
     } while(inv_index < m_inventories.items.size()
@@ -156,17 +158,17 @@ void GameBoard::showStats()
 
     m_screen.printText(0, 0, "Character Sheet: (ESC to exit)", TB_YELLOW);
     m_screen.printText(0, 1, "Health: "
-                       + std::to_string(m_actors.healths[player_index].v),
-                       TB_CYAN);
+                       + std::to_string(m_actors.healths[player_index].v)
+                        + "         ", TB_CYAN);
     m_screen.printText(0, 2, "Carry Weight: "
-                       + std::to_string(m_actors.carries[player_index].v),
-                       TB_CYAN);
+                       + std::to_string(m_actors.carries[player_index].v)
+                        + "    ", TB_CYAN);
     m_screen.printText(0, 3, "Carry Capacity: "
-                       + std::to_string(m_actor_types.max_carries[player_index].v),
-                       TB_CYAN);
+                       + std::to_string(m_actor_types.max_carries[player_index].v)
+                       + " ", TB_CYAN);
     m_screen.printText(0, 4, "Strength: "
-                       + std::to_string(m_actor_types.strengths[player_index].v),
-                       TB_CYAN);
+                       + std::to_string(m_actor_types.strengths[player_index].v)
+                        + "          ", TB_CYAN);
 }
 
 /* Show list of equipment slots, showing which items in which slots/which
@@ -317,10 +319,8 @@ bool GameBoard::moveActor(ActorId actor, int newX, int newY)
     const auto[x, y] = m_actors.positions[index];
     //Check to make sure turn is respected/position exists/is within teleport range
     //and not attacking self
-    if(!isValid(newX, newY) /*|| actor_index != m_actors.turn_index*/
-       || distanceFrom(x, y, newX, newY) >= 5
-       || (x == newX && y == newY)
-       || m_map[newY][newX].ch == WallTile) {
+    if(!isValid(newX, newY) || distanceFrom(x, y, newX, newY) >= 5
+       || (x == newX && y == newY) || m_map[newY][newX].ch == WallTile) {
 	return false;
     }
     //If tile is empty, move Actor to it

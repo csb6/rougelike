@@ -4,10 +4,11 @@
 char ActorTypeTable::add(char ch, std::string name, Strength strength,
                          Weight max_carry)
 {
-    ids.push_back(ch);
-    names.push_back(name);
-    strengths.push_back(strength);
-    max_carries.push_back(max_carry);
+    const auto insert_index = get_index_of(ids, ch);
+    ids.insert(ids.begin()+insert_index, ch);
+    names.insert(names.begin()+insert_index, name);
+    strengths.insert(strengths.begin()+insert_index, strength);
+    max_carries.insert(max_carries.begin()+insert_index, max_carry);
     return ch;
 }
 
@@ -26,7 +27,7 @@ bool ActorTypeTable::contains(char type) const
 
 ActorId ActorTable::add(char type, Position pos, Energy energy, Health health)
 {
-    const ActorId new_id = id_count++;
+    const ActorId new_id = {id_count++};
     ids.push_back(new_id);
     positions.push_back(pos);
     healths.push_back(health);
@@ -50,31 +51,28 @@ void ActorTable::next_turn()
 void ActorTable::add_health(ActorId actor, Health amount)
 {
     const auto index = get_index_of(ids, actor);
-    healths[index] += amount;
+    healths[index] += {amount};
 }
 
 
 void ActorInventoryTable::add(ActorId actor, char item_type, std::size_t amount)
 {
-    // TODO: handle case where this actor has no items, need to put this item
-    // into the sorted order by id
-
     // Iterator to the first entry for this actor
-    const auto actor_start = std::lower_bound(actor_ids.begin(), actor_ids.end(),
+    const auto actor_begin = std::lower_bound(actor_ids.begin(), actor_ids.end(),
                                               actor);
     // Index of the first entry for this actor
-    const auto start_index = std::distance(actor_ids.begin(), actor_start);
-    // Iterator
-    const auto insert_point = std::find(items.begin()+start_index, items.end(),
+    const auto actor_begin_index = std::distance(actor_ids.begin(), actor_begin);
+    // Iterator to the position of the item's entry for the given actor
+    const auto insert_point = std::find(items.begin()+actor_begin_index, items.end(),
                                         item_type);
-    const auto insert_index = std::distance(items.begin(), insert_point);
     if(insert_point == items.end()) {
-        // New unique item; insert it at end of this actor's items
-        actor_ids.insert(actor_start, actor);
-        items.insert(insert_point, item_type);
-        amounts.insert(amounts.begin()+insert_index, amount);
+        // New unique item; insert it at front of this actor's items
+        actor_ids.insert(actor_begin, actor);
+        items.insert(items.begin()+actor_begin_index, item_type);
+        amounts.insert(amounts.begin()+actor_begin_index, amount);
     } else {
         // Item already exists in this actor's inventory; increment that item's count
-        amounts[insert_index] += amount;
+        const auto insert_point_index = std::distance(items.begin(), insert_point);
+        amounts[insert_point_index] += amount;
     }
 }

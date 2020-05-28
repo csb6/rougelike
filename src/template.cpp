@@ -60,16 +60,16 @@ void loadItemTypes(const std::string &&path, ItemTypeTable &types)
     while(itemFile) {
 	std::string line;
 	std::getline(itemFile, line);
-	//Skip comments
-	if(line[0] == '#')
-	    continue;
 	//Finalize/add template when at blank line (end of section)
-	else if(line == "" && in_process) {
+	if(line == "" && in_process) {
             types.add_tuple(new_type);
             in_process = false;
             new_type = {};
 	    continue;
-	}
+	} else if(line[0] == '#') {
+            //Skip comments
+	    continue;
+        }
 	//Find out where '=' is; it's the division between key/value
 	auto split = findSplit(line);
 	//Ignore erroneously formatted lines

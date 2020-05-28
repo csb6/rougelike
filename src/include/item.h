@@ -31,9 +31,9 @@ constexpr int ARMOR_MAX = ARMOR_BOOTS + 1;
     | itemType | name | weight | armor_value | attack_value
 
 */
-struct Weight { unsigned int v; };
-struct ArmorValue { unsigned int v; };
-struct AttackValue { unsigned int v; };
+struct Weight : strong_type<unsigned int, Weight> {};
+struct ArmorValue : strong_type<unsigned int, ArmorValue> {};
+struct AttackValue : strong_type<unsigned int, AttackValue> {};
 using ItemType = std::tuple<char, std::string, Weight, ArmorValue, AttackValue>;
 
 struct ItemTypeTable {
