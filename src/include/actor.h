@@ -2,7 +2,6 @@
 #define ACTOR_H
 #include "item.h"
 #include <tuple>
-#include <vector>
 
 struct ActorId : strong_type<unsigned short, ActorId> {};
 struct Energy : strong_type<unsigned int, Energy> {};
@@ -50,17 +49,17 @@ struct ActorTable {
 };
 
 struct ActorInventoryTable {
-    std::vector<ActorId> actor_ids;
-    std::vector<char> items;
-    std::vector<std::size_t> amounts;
+    SortedArray<ActorId, 60> actor_ids;
+    Array<char, 60> items;
+    Array<std::size_t, 60> amounts;
 
     void add(ActorId actor, char item_type, std::size_t amount = 1);
 };
 
-struct ActorEquipmentTable {
+/*struct ActorEquipmentTable {
     std::vector<ActorId> actor_id;
     //std::vector<ItemId> item;
-};
+    };*/
 
 constexpr int RNGUpperLimit = 100;
 constexpr int SkillAmount = 9; //Number of skills (e.g. strengh, agility, etc.)

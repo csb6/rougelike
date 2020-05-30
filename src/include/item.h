@@ -47,11 +47,4 @@ struct ItemTypeTable {
     char add_tuple(const ItemType &new_type);
     bool contains(char type) const;
 };
-
-template<typename Row, typename Id>
-std::size_t get_index_of(const Row &id_row, Id target)
-{
-    const auto match = std::lower_bound(id_row.begin(), id_row.end(), target);
-    return std::distance(id_row.begin(), match);
-}
 #endif

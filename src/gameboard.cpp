@@ -124,20 +124,18 @@ void GameBoard::bindCursorMode(int actor_x, int actor_y,
 /* Displays an actor's current inventory in subscreen; ESC/any redraws closes it*/
 void GameBoard::showInventory()
 {
-    const auto player_id = m_actors.player();
-
     m_screen.printText(0, 0, "Inventory: (ESC to exit)", TB_YELLOW);
     m_screen.printText(0, 1, "E) Equip item, D) Deequip item", TB_YELLOW);
 
-    const auto it = std::lower_bound(m_inventories.actor_ids.begin(),
-                                     m_inventories.actor_ids.end(), player_id);
-    if(it == m_inventories.actor_ids.end()) {
+    const auto player_id = m_actors.player();
+    std::size_t inv_index = m_inventories.actor_ids.index_of(player_id);
+    if(inv_index >= m_inventories.actor_ids.size()
+       || m_inventories.actor_ids[inv_index] != player_id) {
 	m_screen.printText(0, 2, "Empty", TB_CYAN);
 	return;
     }
 
     int i = 2;
-    std::size_t inv_index = std::distance(m_inventories.actor_ids.begin(), it);
     do {
         const auto item_type_id = m_inventories.items[inv_index];
         const auto amount = m_inventories.amounts[inv_index];
