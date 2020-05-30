@@ -4,11 +4,11 @@
 char ActorTypeTable::add(char ch, std::string name, Strength strength,
                          Weight max_carry)
 {
-    const auto insert_index = get_index_of(ids, ch);
-    ids.insert(ids.begin()+insert_index, ch);
-    names.insert(names.begin()+insert_index, name);
-    strengths.insert(strengths.begin()+insert_index, strength);
-    max_carries.insert(max_carries.begin()+insert_index, max_carry);
+    const auto insert_index = ids.index_of(ch);
+    ids.insert_at(insert_index, ch);
+    names.insert_at(insert_index, name);
+    strengths.insert_at(insert_index, strength);
+    max_carries.insert_at(insert_index, max_carry);
     return ch;
 }
 
@@ -21,19 +21,20 @@ char ActorTypeTable::add_tuple(const ActorType &new_type)
 
 bool ActorTypeTable::contains(char type) const
 {
-    return std::binary_search(ids.begin(), ids.end(), type);
+    const auto index = ids.index_of(type);
+    return index < ids.size() && ids[index] == type;
 }
 
 
 ActorId ActorTable::add(char type, Position pos, Energy energy, Health health)
 {
     const ActorId new_id = {id_count++};
-    ids.push_back(new_id);
-    positions.push_back(pos);
-    healths.push_back(health);
-    energies.push_back(energy);
-    carries.push_back({0}); // initially, all actors carry nothing
-    types.push_back(type);
+    ids.append(new_id);
+    positions.append(pos);
+    healths.append(health);
+    energies.append(energy);
+    carries.append({0}); // initially, all actors carry nothing
+    types.append(type);
     return new_id;
 }
 
@@ -50,7 +51,7 @@ void ActorTable::next_turn()
 // Assumes the actor id is present in this collection
 void ActorTable::add_health(ActorId actor, Health amount)
 {
-    const auto index = get_index_of(ids, actor);
+    const auto index = ids.index_of(actor);
     healths[index] += {amount};
 }
 

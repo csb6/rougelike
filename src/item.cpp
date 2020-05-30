@@ -10,12 +10,12 @@ static_assert(MELEE_WEAPON < EQUIP_MAX && MELEE_WEAPON == ARMOR_MAX,
 char ItemTypeTable::add(char id, std::string name, Weight weight,
                         ArmorValue armor, AttackValue attack)
 {
-    const auto insert_index = get_index_of(ids, id);
-    ids.insert(ids.begin()+insert_index, id);
-    names.insert(names.begin()+insert_index, name);
-    weights.insert(weights.begin()+insert_index, weight);
-    armor_values.insert(armor_values.begin()+insert_index, armor);
-    attack_values.insert(attack_values.begin()+insert_index, attack);
+    const auto insert_index = ids.index_of(id);
+    ids.insert_at(insert_index, id);
+    names.insert_at(insert_index, name);
+    weights.insert_at(insert_index, weight);
+    armor_values.insert_at(insert_index, armor);
+    attack_values.insert_at(insert_index, attack);
     return id;
 }
 
@@ -28,5 +28,5 @@ char ItemTypeTable::add_tuple(const ItemType &new_type)
 
 bool ItemTypeTable::contains(char type) const
 {
-    return std::binary_search(ids.begin(), ids.end(), type);
+    return ids.index_of(type) != ids.size();
 }

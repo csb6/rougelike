@@ -1,10 +1,9 @@
 #ifndef ITEM_GAME_H
 #define ITEM_GAME_H
 #include <string>
-#include <vector>
-#include <array>
 #include <tuple>
 #include "strong-types.hpp"
+#include "SortedArray.h"
 
 enum Equipment {
     ARMOR_HELMET,
@@ -37,11 +36,11 @@ struct AttackValue : strong_type<unsigned int, AttackValue> {};
 using ItemType = std::tuple<char, std::string, Weight, ArmorValue, AttackValue>;
 
 struct ItemTypeTable {
-    std::vector<char> ids; // the char representing the item onscreen
-    std::vector<std::string> names;
-    std::vector<Weight> weights;
-    std::vector<ArmorValue> armor_values;
-    std::vector<AttackValue> attack_values;
+    SortedArray<char, 30> ids; // the char representing the item onscreen
+    Array<std::string, 30> names;
+    Array<Weight, 30> weights;
+    Array<ArmorValue, 30> armor_values;
+    Array<AttackValue, 30> attack_values;
 
     char add(char id, std::string name, Weight weight, ArmorValue armor = {1},
              AttackValue attack = {1});

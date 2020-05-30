@@ -1,8 +1,8 @@
 #ifndef ACTOR_H
 #define ACTOR_H
 #include "item.h"
-#include <array>
 #include <tuple>
+#include <vector>
 
 struct ActorId : strong_type<unsigned short, ActorId> {};
 struct Energy : strong_type<unsigned int, Energy> {};
@@ -17,10 +17,10 @@ struct Position {
 constexpr ActorId InitActorId{0};
 
 struct ActorTypeTable {
-    std::vector<char> ids;
-    std::vector<std::string> names;
-    std::vector<Strength> strengths;
-    std::vector<Weight> max_carries;
+    SortedArray<char, 30> ids;
+    Array<std::string, 30> names;
+    Array<Strength, 30> strengths;
+    Array<Weight, 30> max_carries;
 
     char add(char ch, std::string name, Strength strength, Weight max_carry);
     char add_tuple(const ActorType &new_type);
@@ -28,12 +28,12 @@ struct ActorTypeTable {
 };
 
 struct ActorTable {
-    std::vector<ActorId> ids;
-    std::vector<Position> positions;
-    std::vector<Health> healths;
-    std::vector<Energy> energies;
-    std::vector<Weight> carries;
-    std::vector<char> types;
+    SortedArray<ActorId, 40> ids;
+    Array<Position, 40> positions;
+    Array<Health, 40> healths;
+    Array<Energy, 40> energies;
+    Array<Weight, 40> carries;
+    Array<char, 40> types;
 
     std::size_t turn_index = 0;
     ActorId id_count = InitActorId;

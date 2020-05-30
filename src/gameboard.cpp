@@ -141,7 +141,7 @@ void GameBoard::showInventory()
     do {
         const auto item_type_id = m_inventories.items[inv_index];
         const auto amount = m_inventories.amounts[inv_index];
-        const auto item_type_index = get_index_of(m_item_types.ids, item_type_id);
+        const auto item_type_index = m_item_types.ids.index_of(item_type_id);
 	m_screen.printText(0, i, std::to_string(i-1) + ". "
                            + m_item_types.names[item_type_index] + "      Amount: "
                            + std::to_string(amount) + "   ", TB_CYAN);
@@ -256,10 +256,10 @@ bool GameBoard::pickupItem(ActorId actor, std::size_t actor_index,
                            int item_x, int item_y)
 {
     const char item_type = m_map[item_y][item_x].ch;
-    const auto item_type_index = get_index_of(m_item_types.ids, item_type);
+    const auto item_type_index = m_item_types.ids.index_of(item_type);
     const Weight item_weight = m_item_types.weights[item_type_index];
     const char actor_type = m_actors.types[actor_index];
-    const auto actor_type_index = get_index_of(m_actor_types.ids, actor_type);
+    const auto actor_type_index = m_actor_types.ids.index_of(actor_type);
     const Weight max_carry{m_actor_types.max_carries[actor_type_index]};
 
     if(m_actors.carries[actor_index] + item_weight <= max_carry) {
@@ -315,7 +315,7 @@ bool GameBoard::pickupItem(ActorId actor, std::size_t actor_index,
    pickup an Item at that position, or attack a Monster at that position*/
 bool GameBoard::moveActor(ActorId actor, int newX, int newY)
 {
-    const auto index = get_index_of(m_actors.ids, actor);
+    const auto index = m_actors.ids.index_of(actor);
     const auto[x, y] = m_actors.positions[index];
     //Check to make sure turn is respected/position exists/is within teleport range
     //and not attacking self
