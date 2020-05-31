@@ -14,9 +14,9 @@ private:
     ItemTypeTable m_item_types;
     ActorTable m_actors;
     ActorInventoryTable m_inventories;
-    void swapCell(int x, int y, int newX, int newY);
+    void swapCells(int x, int y, int newX, int newY);
     bool pickupItem(ActorId actor, std::size_t actor_index, int item_x, int item_y);
-    void melee(ActorId attacker, ActorId target);
+    void melee(std::size_t attacker_index, ActorId target);
 public:
     GameBoard(Display &screen, const std::string &mapPath,
               ActorType player_type);
@@ -33,7 +33,7 @@ public:
     void present();
     static bool isValid(int x, int y);
     bool moveActor(ActorId actor, int newX, int newY);
-    //bool rangeAttack(Actor& attacker, int targetX, int targetY);
+    //bool rangeAttack(ActorId attacker, int targetX, int targetY);
     //bool translateActor(ActorId actor, int dx, int dy);
     void movePlayer(int newX, int newY);
     void translatePlayer(int dx, int dy);

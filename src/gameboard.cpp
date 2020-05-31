@@ -236,7 +236,7 @@ bool GameBoard::isValid(int x, int y)
 /* Moves actor from current position to another, redrawing screen
    buffer to show change. Private function, only to be called by
    moveActor()*/
-void GameBoard::swapCell(int x, int y, int newX, int newY)
+void GameBoard::swapCells(int x, int y, int newX, int newY)
 {
     //Note: screen doesn't visibly change until screen.present() called in main loop
     m_map[newY][newX] = m_map[y][x];
@@ -260,6 +260,7 @@ bool GameBoard::pickupItem(ActorId actor, std::size_t actor_index,
 
     if(m_actors.carries[actor_index] + item_weight <= max_carry) {
         // Pick up the item
+        m_actors.carries[actor_index] += item_weight;
         m_inventories.add(actor, item_type);
         m_map[item_y][item_x].ch = 0;
         const std::string actor_name = m_actor_types.names[actor_type_index];
@@ -271,6 +272,8 @@ bool GameBoard::pickupItem(ActorId actor, std::size_t actor_index,
         return true;
     } else {
         log("Can't carry");
+        m_screen.clear();
+        m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
         return false;
     }
 }
@@ -278,30 +281,33 @@ bool GameBoard::pickupItem(ActorId actor, std::size_t actor_index,
 /* Have given Actor attack an Actor at another position. If no Actor
    at that position, do nothing; private function, only to be called
    by moveActor()*/
-void GameBoard::melee(ActorId attacker, ActorId target)
+void GameBoard::melee(std::size_t attacker_index, ActorId target)
 {
-    const auto attacker_index = m_actors.ids.index_of(attacker);
-    const auto target_index = m_actors.ids.index_of(target);
+    const std::size_t target_index = m_actors.ids.index_of(target);
     const auto attacker_type = m_actors.types[attacker_index];
     const auto target_type = m_actors.types[target_index];
-    const auto attacker_type_index = m_actor_types.ids.index_of(attacker_type);
-    const auto target_type_index = m_actor_types.ids.index_of(target_type);
+    const std::size_t attacker_type_index = m_actor_types.ids.index_of(attacker_type);
+    const std::size_t target_type_index = m_actor_types.ids.index_of(target_type);
     const auto attacker_name = m_actor_types.names[attacker_type_index];
     const auto target_name = m_actor_types.names[target_type_index];
 
     if(m_actor_types.successful_attack(attacker_type_index, target_type_index)) {
-        log(attacker_name + " attacked " + target_name);
+        if(--m_actors.healths[target_index] > 0) {
+            log(attacker_name + " attacked " + target_name);
+        } else {
+            // TODO: delete/deactivate actors when they die
+            log(target_name + " died");
+        }
     } else {
-        log(target_name + " attacked " + attacker_name);
+        if(--m_actors.healths[attacker_index] > 0) {
+            log(target_name + " attacked " + attacker_name);
+        } else {
+            log(attacker_name + " died");
+        }
     }
-    
+
     m_screen.clear();
     m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
-    /*	    if(!each.isAlive()) {
-		m_map[targetY][targetX] = 0;
-		deleteActor(targetX, targetY);
-	    }
-        }*/
 }
 
 /* Performs action on given position; will move Actor there if possible,
@@ -321,10 +327,10 @@ bool GameBoard::moveActor(ActorId actor, int newX, int newY)
         // Update the player's position in table
         m_actors.positions[index] = {newX, newY};
         // Move the Cell to the new spot
-        swapCell(x, y, newX, newY);
+        swapCells(x, y, newX, newY);
         return true;
     } else if(m_map[newY][newX].actor_id != -1) {
-        melee(actor, m_map[newY][newX].actor_id);
+        melee(index, m_map[newY][newX].actor_id);
         return true;
     } else {
         //If an Item is in that position, try to pick it up
