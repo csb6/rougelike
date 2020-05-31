@@ -1,5 +1,4 @@
 #include "include/actor.h"
-#include <functional>
 
 char ActorTypeTable::add(char ch, std::string name, Strength strength,
                          Weight max_carry)
@@ -12,11 +11,9 @@ char ActorTypeTable::add(char ch, std::string name, Strength strength,
     return ch;
 }
 
-char ActorTypeTable::add_tuple(const ActorType &new_type)
+char ActorTypeTable::add(const ActorType &new_type)
 {
-    using namespace std::placeholders;
-    auto add_type = std::bind(&ActorTypeTable::add, this, _1, _2, _3, _4);
-    return std::apply(add_type, new_type);
+    return add(new_type.id, new_type.name, new_type.strength, new_type.max_carry);
 }
 
 bool ActorTypeTable::contains(char type) const

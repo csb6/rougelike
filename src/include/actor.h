@@ -1,13 +1,19 @@
 #ifndef ACTOR_H
 #define ACTOR_H
 #include "item.h"
-#include <tuple>
 
 struct ActorId : strong_type<unsigned short, ActorId> {};
 struct Energy : strong_type<unsigned int, Energy> {};
 struct Strength : strong_type<unsigned int, Strength> {};
 struct Health : strong_type<int, Health> {}; // can have negative health deltas
-using ActorType = std::tuple<char, std::string, Strength, Weight>;
+
+struct ActorType {
+    char id;
+    std::string name;
+    Strength strength;
+    Weight max_carry;
+};
+
 struct Position {
     int x = 0;
     int y = 0;
@@ -22,7 +28,7 @@ struct ActorTypeTable {
     Array<Weight, 30> max_carries;
 
     char add(char ch, std::string name, Strength strength, Weight max_carry);
-    char add_tuple(const ActorType &new_type);
+    char add(const ActorType &new_type);
     bool contains(char actor) const;
 };
 

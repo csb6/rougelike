@@ -1,6 +1,5 @@
 #include "include/template.h"
 #include <fstream>
-#include <functional>
 
 static std::string::size_type findSplit(const std::string line)
 {
@@ -36,19 +35,19 @@ static unsigned int parseInt(std::string value, int defaultVal = 0)
 
 static void applyIniPair(ActorType &actor, std::string key, std::string value)
 {
-    if(key == "char") std::get<0>(actor) = {parseChar(value)};
-    else if(key == "name") std::get<1>(actor) = {value};
-    else if(key == "strength") std::get<2>(actor) = {parseInt(value)};
-    else if(key == "maxCarryWeight") std::get<3>(actor) = {parseInt(value, 10)};
+    if(key == "char") actor.id = {parseChar(value)};
+    else if(key == "name") actor.name = {value};
+    else if(key == "strength") actor.strength = {parseInt(value)};
+    else if(key == "maxCarryWeight") actor.max_carry = {parseInt(value, 10)};
 }
 
 static void applyIniPair(ItemType &item, std::string key, std::string value)
 {
-    if(key == "char") std::get<0>(item) = {parseChar(value)};
-    if(key == "name") std::get<1>(item) = {value};
-    else if(key == "weight") std::get<2>(item) = {parseInt(value)};
-    else if(key == "attack") std::get<3>(item) = {parseInt(value)};
-    else if(key == "armor") std::get<4>(item) = {parseInt(value)};
+    if(key == "char") item.id = {parseChar(value)};
+    if(key == "name") item.name = {value};
+    else if(key == "weight") item.weight = {parseInt(value)};
+    else if(key == "attack") item.attack_value = {parseInt(value)};
+    else if(key == "armor") item.armor_value = {parseInt(value)};
 }
 
 void loadItemTypes(const std::string &&path, ItemTypeTable &types)
@@ -62,7 +61,7 @@ void loadItemTypes(const std::string &&path, ItemTypeTable &types)
 	std::getline(itemFile, line);
 	//Finalize/add template when at blank line (end of section)
 	if(line == "" && in_process) {
-            types.add_tuple(new_type);
+            types.add(new_type);
             in_process = false;
             new_type = {};
 	    continue;
@@ -99,7 +98,7 @@ void loadMonsterTypes(const std::string &&path, ActorTypeTable &types)
 	    continue;
 	//Finalize/add template when at blank line (end of section)
 	else if(line == "" && in_process) {
-            types.add_tuple(new_type);
+            types.add(new_type);
 	    new_type = {};
             in_process = false;
 	    continue;

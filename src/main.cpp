@@ -31,7 +31,6 @@
 #include "include/gameboard.h"
 #include "include/input.h"
 #include <iostream>
-#include <tuple>
 #include <cstdio> //for FILENAME_MAX
 #ifdef _WIN32
 #include <libloaderapi.h>
@@ -171,7 +170,7 @@ int main()
     bool running = true;
     Display screen;
     GameBoard board(screen, getLocalDir() + "trapped-map.csv",
-                    std::make_tuple('@', "Player", Strength{5}, Weight{10}));
+                    {'@', "Player", Strength{5}, Weight{10}});
     Input device(running, screen, board);
 
     //Start main game loop

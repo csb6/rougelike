@@ -1,7 +1,6 @@
 #ifndef ITEM_GAME_H
 #define ITEM_GAME_H
 #include <string>
-#include <tuple>
 #include "strong-types.hpp"
 #include "SortedArray.h"
 
@@ -17,23 +16,17 @@ enum Equipment {
 
 constexpr int ARMOR_MAX = ARMOR_BOOTS + 1;
 
-/*
-  Initial tables:
-    Item table:
-    | itemId | pos | weight | name | armor_value | attack_value |
-
-  1NF:
-    Item table:
-    | itemId | pos | itemType
-
-    ItemTypes table:
-    | itemType | name | weight | armor_value | attack_value
-
-*/
 struct Weight : strong_type<unsigned int, Weight> {};
 struct ArmorValue : strong_type<unsigned int, ArmorValue> {};
 struct AttackValue : strong_type<unsigned int, AttackValue> {};
-using ItemType = std::tuple<char, std::string, Weight, ArmorValue, AttackValue>;
+
+struct ItemType {
+    char id;
+    std::string name;
+    Weight weight;
+    ArmorValue armor_value;
+    AttackValue attack_value;
+};
 
 struct ItemTypeTable {
     SortedArray<char, 30> ids; // the char representing the item onscreen
@@ -44,7 +37,7 @@ struct ItemTypeTable {
 
     char add(char id, std::string name, Weight weight, ArmorValue armor = {1},
              AttackValue attack = {1});
-    char add_tuple(const ItemType &new_type);
+    char add(const ItemType &new_type);
     bool contains(char type) const;
 };
 #endif

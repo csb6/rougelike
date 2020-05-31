@@ -1,6 +1,4 @@
 #include "include/item.h"
-#include <functional>
-#include <algorithm>
 
 static_assert(EQUIP_MAX > ARMOR_MAX, "ARMOR_MAX too big");
 static_assert(ARMOR_BOOTS < ARMOR_MAX, "ARMOR_MAX too small");
@@ -19,11 +17,10 @@ char ItemTypeTable::add(char id, std::string name, Weight weight,
     return id;
 }
 
-char ItemTypeTable::add_tuple(const ItemType &new_type)
+char ItemTypeTable::add(const ItemType &new_type)
 {
-    using namespace std::placeholders;
-    auto add_type = std::bind(&ItemTypeTable::add, this, _1, _2, _3, _4, _5);
-    return std::apply(add_type, new_type);
+    return add(new_type.id, new_type.name, new_type.weight, new_type.armor_value,
+               new_type.attack_value);
 }
 
 bool ItemTypeTable::contains(char type) const

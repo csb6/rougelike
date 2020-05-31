@@ -1,7 +1,6 @@
 #include "include/gameboard.h"
 #include <fstream>
 #include <cmath>
-#include <functional>
 
 std::string getLocalDir();
 
@@ -18,7 +17,7 @@ GameBoard::GameBoard(Display &screen, const std::string &mapPath,
     : m_map{}, m_screen(screen)
 {
     // Add player type
-    const auto player_type_id = m_actor_types.add_tuple(player_type);
+    const auto player_type_id = m_actor_types.add(player_type);
     // Add player
     m_actors.add(player_type_id, {0, 0}, {3}, {10});
     m_actors.player_index = m_actors.ids.size() - 1;
