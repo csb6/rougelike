@@ -6,8 +6,7 @@
 #include <array>
 
 class GameBoard {
-//Purpose: To represent the game map/the actors/pieces on it, as well as to
-//    handle user input for controlling the player
+// Purpose: To represent the game map/the actors/pieces on it
 private:
     std::array<std::array<Cell, MapWidth>, MapHeight> m_map;
     Display &m_screen;
@@ -17,12 +16,12 @@ private:
     ActorInventoryTable m_inventories;
     void swapCell(int x, int y, int newX, int newY);
     bool pickupItem(ActorId actor, std::size_t actor_index, int item_x, int item_y);
-    //bool melee(Actor &attacker, int targetX, int targetY);
+    void melee(ActorId attacker, ActorId target);
 public:
     GameBoard(Display &screen, const std::string &mapPath,
               ActorType player_type);
     void loadMap(const std::string &path);
-    void bindCursorMode(int actor_x, int actor_y, bool (GameBoard::*action)(int, int));
+    void bindCursorMode(bool (GameBoard::*action)(ActorId, int, int));
     //void updateActors();
     void showInventory();
     void showStats();
@@ -32,7 +31,7 @@ public:
     void log(const std::string &text);
     void redraw();
     void present();
-    bool isValid(int x, int y) const;
+    static bool isValid(int x, int y);
     bool moveActor(ActorId actor, int newX, int newY);
     //bool rangeAttack(Actor& attacker, int targetX, int targetY);
     //bool translateActor(ActorId actor, int dx, int dy);

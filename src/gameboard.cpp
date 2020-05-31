@@ -77,18 +77,17 @@ void GameBoard::loadMap(const std::string &path)
 
 /* Toggles cursor on/off; calls function pointer/disables cursor when called
    and cursor active*/
-void GameBoard::bindCursorMode(int actor_x, int actor_y,
-                               bool (GameBoard::*action)(int, int))
+void GameBoard::bindCursorMode(bool (GameBoard::*action)(ActorId, int, int))
 {
     //Put cursor at player position on first keypress
     if(!m_screen.hasCursor()) {
-	m_screen.moveCursor(actor_x, actor_y);
+	m_screen.moveCursor(m_actors.player_x(), m_actors.player_y());
     } else {
         //Execute action, passing cursor position, on second keypress
 	int cursorX = m_screen.getCursorX();
 	int cursorY = m_screen.getCursorY();
 	if(isValid(cursorX, cursorY)) {
-	    (this->*action)(cursorX, cursorY);
+	    (this->*action)(m_actors.player(), cursorX, cursorY);
 	    m_screen.hideCursor();
 	    m_screen.clear();
 	    m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
@@ -206,7 +205,7 @@ void GameBoard::present()
 }
 
 /* Determines if a position is a valid one for an Actor to move into*/
-bool GameBoard::isValid(int x, int y) const
+bool GameBoard::isValid(int x, int y)
 {
     return x < MapWidth && x >= 0 && y < MapHeight && y >= 0;
 }
@@ -279,34 +278,31 @@ bool GameBoard::pickupItem(ActorId actor, std::size_t actor_index,
 /* Have given Actor attack an Actor at another position. If no Actor
    at that position, do nothing; private function, only to be called
    by moveActor()*/
-/*bool GameBoard::melee(Actor &attacker, int targetX, int targetY)
+void GameBoard::melee(ActorId attacker, ActorId target)
 {
-    for(Actor &each : m_actors) {
-	if(each.getX() == targetX && each.getY() == targetY
-	   && each.getFaction() != attacker.getFaction()) {
-	    //Attacker attempts to attack; print result (success/fail)
-	    int eachHealth = each.getHealth();
-	    int attackerHealth = attacker.getHealth();
-	    if(attacker.attack(each)) {
-		log(attacker.getName() + " attacked " + each.getName());
-		log("Damage: " + std::to_string(each.getHealth() - eachHealth));
-	    } else {
-		log(each.getName() + " attacked " + attacker.getName());
-		log("Damage: " + std::to_string(attacker.getHealth() - attackerHealth));
-	    }
+    const auto attacker_index = m_actors.ids.index_of(attacker);
+    const auto target_index = m_actors.ids.index_of(target);
+    const auto attacker_type = m_actors.types[attacker_index];
+    const auto target_type = m_actors.types[target_index];
+    const auto attacker_type_index = m_actor_types.ids.index_of(attacker_type);
+    const auto target_type_index = m_actor_types.ids.index_of(target_type);
+    const auto attacker_name = m_actor_types.names[attacker_type_index];
+    const auto target_name = m_actor_types.names[target_type_index];
 
-	    if(!each.isAlive()) {
+    if(m_actor_types.successful_attack(attacker_type_index, target_type_index)) {
+        log(attacker_name + " attacked " + target_name);
+    } else {
+        log(target_name + " attacked " + attacker_name);
+    }
+    
+    m_screen.clear();
+    m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
+    /*	    if(!each.isAlive()) {
 		m_map[targetY][targetX] = 0;
 		deleteActor(targetX, targetY);
 	    }
-
-	    m_screen.clear();
-	    m_screen.draw(m_map, player());
-	    return true;
-	}
-    }
-    return false;
-    }*/
+        }*/
+}
 
 /* Performs action on given position; will move Actor there if possible,
    pickup an Item at that position, or attack a Monster at that position*/
@@ -314,8 +310,8 @@ bool GameBoard::moveActor(ActorId actor, int newX, int newY)
 {
     const auto index = m_actors.ids.index_of(actor);
     const auto[x, y] = m_actors.positions[index];
-    //Check to make sure turn is respected/position exists/is within teleport range
-    //and not attacking self
+    //Check to make sure position exists/is within teleport range
+    //and not attacking self/or doing something to a wall
     if(!isValid(newX, newY) || distanceFrom(x, y, newX, newY) >= 5
        || (x == newX && y == newY) || m_map[newY][newX].ch == WallTile) {
 	return false;
@@ -327,9 +323,9 @@ bool GameBoard::moveActor(ActorId actor, int newX, int newY)
         // Move the Cell to the new spot
         swapCell(x, y, newX, newY);
         return true;
-    } else if(m_map[newY][newX].actor_id != ActorId{0}) {
-        // return melee(actor, newX, newY);
-        return false;
+    } else if(m_map[newY][newX].actor_id != -1) {
+        melee(actor, m_map[newY][newX].actor_id);
+        return true;
     } else {
         //If an Item is in that position, try to pick it up
 	return pickupItem(actor, index, newX, newY);

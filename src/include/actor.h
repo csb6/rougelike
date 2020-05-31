@@ -4,7 +4,7 @@
 
 struct ActorId : strong_type<unsigned short, ActorId> {};
 struct Energy : strong_type<unsigned int, Energy> {};
-struct Strength : strong_type<unsigned int, Strength> {};
+struct Strength : public strong_type<unsigned int, Strength> {};
 struct Health : strong_type<int, Health> {}; // can have negative health deltas
 
 struct ActorType {
@@ -19,8 +19,6 @@ struct Position {
     int y = 0;
 };
 
-constexpr ActorId InitActorId{0};
-
 struct ActorTypeTable {
     SortedArray<char, 30> ids;
     Array<std::string, 30> names;
@@ -30,6 +28,7 @@ struct ActorTypeTable {
     char add(char ch, std::string name, Strength strength, Weight max_carry);
     char add(const ActorType &new_type);
     bool contains(char actor) const;
+    bool successful_attack(std::size_t attacker_type, std::size_t target_type) const;
 };
 
 struct ActorTable {
@@ -41,7 +40,7 @@ struct ActorTable {
     Array<char, 40> types;
 
     std::size_t turn_index = 0;
-    ActorId id_count = InitActorId;
+    ActorId id_count = {0};
     // NOTE: player_index assumed to be 0, and assumed to == index of player in ActorTypesTable
     std::size_t player_index = 0;
     inline ActorId player() const { return ids[player_index]; }
@@ -51,8 +50,9 @@ struct ActorTable {
 
     ActorId add(char type, Position pos, Energy energy, Health health);
     void next_turn();
-    void add_health(ActorId actor, Health amount);    
+    void add_health(ActorId actor, Health amount);
 };
+
 
 struct ActorInventoryTable {
     SortedArray<ActorId, 60> actor_ids;
@@ -67,7 +67,6 @@ struct ActorInventoryTable {
     //std::vector<ItemId> item;
     };*/
 
-constexpr int RNGUpperLimit = 100;
 constexpr int SkillAmount = 9; //Number of skills (e.g. strengh, agility, etc.)
 constexpr int MaxInitPoints = 25; //Total pts doled out at character creation
 

@@ -25,7 +25,7 @@ constexpr int MapHeight = 30;
 
 struct Cell {
     char ch = 0;
-    ActorId actor_id{0};
+    ActorId actor_id{-1};
 };
 
 class Display {

@@ -1,4 +1,29 @@
 #include "include/actor.h"
+#include <random>
+#include <ctime>
+
+//RNG
+constexpr unsigned int RNGUpperLimit = 100;
+/* Gets random integer on range [min, max]*/
+static unsigned int getRandomNumber(unsigned int min, unsigned int max)
+{
+    static std::mt19937 generator(static_cast<unsigned int>(std::time(nullptr)));
+    std::uniform_int_distribution<unsigned int> distribution(min, max);
+    return distribution(generator);
+}
+
+/* Given a skill amount for 2 actors, decide using RNG/relative skills who wins skill check */
+bool actorWins(unsigned int skillAmt, unsigned int otherSkillAmt)
+{
+    unsigned int randNumber = getRandomNumber(0, RNGUpperLimit);
+    int difference = skillAmt - otherSkillAmt;
+    unsigned int divider = RNGUpperLimit / 2;
+    if(difference != 0) {
+	//Scales linearly; actor with 12 better wins ~98% of time ((50 + 48) / 100)
+	divider += (difference * 4);
+    }
+    return randNumber < divider;
+}
 
 char ActorTypeTable::add(char ch, std::string name, Strength strength,
                          Weight max_carry)
@@ -20,6 +45,12 @@ bool ActorTypeTable::contains(char type) const
 {
     const auto index = ids.index_of(type);
     return index < ids.size() && ids[index] == type;
+}
+
+bool ActorTypeTable::successful_attack(std::size_t attacker_type,
+                                       std::size_t target_type) const
+{
+    return actorWins(strengths[attacker_type].v, strengths[target_type].v);
 }
 
 
@@ -57,14 +88,14 @@ void ActorInventoryTable::add(ActorId actor, char item_type, std::size_t amount)
 {
     // Index of the first entry for this actor
     std::size_t index = actor_ids.index_of(actor);
-    // Find the index for insertion
+    // Find the index (within this actor's set of entries) for insertion
     for(; index < items.size(); ++index) {
         if(items[index] == item_type)
             break;
     }
     // Insertion
     if(index >= items.size() || items[index] != item_type) {
-        // New unique item; insert it at front of this actor's items
+        // New unique item; insert it at end of this actor's items
         actor_ids.insert_at(index, actor);
         items.insert_at(index, item_type);
         amounts.insert_at(index, amount);
