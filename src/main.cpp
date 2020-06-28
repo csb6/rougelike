@@ -1,6 +1,6 @@
 /*TODO:
 [ ] Profile to see what is causing memory leaks when resizing window
-[ ] Add way to save/load
+xf[ ] Add way to save/load
 [ ] Add way to drop items onto map (remove from inventory)
 [X] Add basic test suite for key functionality (see old RPG code)
 [ ] Add better, safer, more comprehensive way to draw GUI
@@ -22,7 +22,7 @@
 [ ] Reference melee skill and strength skill for attacking; factor in armor
     and agility for defense
 [ ] Add 'negotiate' option with monsters that generates funny dialogue
-    (e.g. low-negotiate skill player: "Hey, Commie bastard, want to surrender
+    (e.g. low-negotiate skill player: "Hey, want to surrender
     so I can kill you somewhat quicker?")
 [ ] Find way to gracefully exit; use it in loadMap()'s error branch
 [ ] Add keybindings file loaded on start

@@ -137,6 +137,12 @@ void GameBoard::showInventory()
     do {
         const auto item_type_id = m_inventories.items[inv_index];
         const auto amount = m_inventories.amounts[inv_index];
+        if(amount <= 0) {
+            // Means that the item is currently equipped, so not in
+            // regular inventory, so shouldn't be shown
+            ++inv_index;
+            continue;
+        }
         const auto item_type_index = m_item_types.ids.index_of(item_type_id);
 	m_screen.printText(0, i, std::to_string(i-1) + ". "
                            + m_item_types.names[item_type_index] + "      Amount: "
@@ -167,23 +173,6 @@ void GameBoard::showStats()
                         + "          ", TB_CYAN);
 }
 
-/* Show list of equipment slots, showing which items in which slots/which
-   slots are empty*/
-/*void GameBoard::showEquipped(Actor &actor)
-{
-    std::string labels[EQUIP_MAX] = {". Head: ", ". Chest: ", ". Legs: ", ". Feet: ",
-				     ". Melee: ", ". Ranged: "};
-    m_screen.printText(0, 0, actor.getName() + "'s Equipped Items: (ESC to exit)", TB_YELLOW);
-    for(int i=0; i<EQUIP_MAX; ++i) {
-	Item *item = actor.getEquipped(i);
-	if(item == nullptr) {
-	    m_screen.printText(0, i+1, std::to_string(i+1) + labels[i] + "Empty", TB_CYAN);
-	} else {
-	    m_screen.printText(0, i+1, std::to_string(i+1) + labels[i] + item->getName(), TB_CYAN);
-	}
-    }
-    }*/
-
 /* Puts text message into stored message log; useful for debugging/showing
    events as they occur*/
 void GameBoard::log(const std::string &text)
@@ -210,28 +199,107 @@ bool GameBoard::isValid(int x, int y)
     return x < MapWidth && x >= 0 && y < MapHeight && y >= 0;
 }
 
-/* Equips item in inventory into an Actor's equip slots*/
-/*void GameBoard::equipItem(Actor &actor)
+/* Show list of equipment slots, showing which items in which slots/which
+   slots are empty*/
+void GameBoard::showPlayerEquipped()
 {
-    int index = m_screen.input("Enter item #: ") - 1;
-    int pos = m_screen.input("Enter equip position [1-"
-			     + std::to_string(EQUIP_MAX) + "]: ", 0, 1) - 1;
-    actor.equipItem(index, pos);
+    std::string labels[EquipSlotCount] = {". Head: ", ". Chest: ", ". Legs: ", ". Feet: ",
+                                          /*". Melee: ", ". Ranged: "*/};
+    m_screen.printText(0, 0, "Equipped Items: (ESC to exit)", TB_YELLOW);
+    const auto base_index = m_equipment.actor_ids.index_of(m_actors.player());
+    if(base_index < 0 || base_index >= m_equipment.actor_ids.size()) {
+        m_screen.printText(0, 1, " Nothing Equipped", TB_CYAN);
+        return;
+    }
+    int count = 0;
+    for(size_t i = base_index; i < base_index + EquipSlotCount; ++i) {
+        char item_type = m_equipment.equipments[i];
+        if(item_type == -1) {
+            m_screen.printText(0, count+1, std::to_string(count+1)
+                               + labels[count] + "Empty", TB_CYAN);
+        } else {
+            const auto item_index = m_item_types.ids.index_of(item_type);
+            const auto& item_name = m_item_types.names[item_index];
+            m_screen.printText(0, count+1, std::to_string(count+1)
+                               + labels[count] + item_name, TB_CYAN);
+            
+        }
+        ++count;
+    }
+}
+
+/* Equips item in inventory into an Actor's equip slots*/
+void GameBoard::equipPlayerItem()
+{
+    int item_num = m_screen.input("Enter item #: ") - 1;
+    int equip_index = m_screen.input("Enter equip position [1-"
+                                     + std::to_string(EquipSlotCount) + "]: ",
+                                     0, 1) - 1;
+    if(equip_index < 0 || equip_index >= EquipSlotCount) {
+        log("Can't equip");
+        m_screen.clear();
+        m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
+        return;
+    }
+    const auto base_index = m_inventories.actor_ids.index_of(m_actors.player());
+    const auto item_index = base_index + item_num;
+    if(item_index < 0 || item_index >= m_inventories.items.size()
+        || m_inventories.amounts[item_index] <= 0) {
+        log("Can't equip");
+        m_screen.clear();
+        m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
+        return;
+    }
+    m_equipment.equip(m_actors.player(), equip_index, m_inventories.items[item_index]);
+    // Remove equipped item from player's normal inventory
+    m_inventories.amounts[item_index] -= 1;
 
     m_screen.clear();
-    m_screen.draw(m_map, player());
-    }*/
+    m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
+}
 
 /* Deequips item from Actor's armor slot*/
-/*void GameBoard::deequipItem(Actor &actor)
+void GameBoard::deequipPlayerItem()
 {
-    int pos = m_screen.input("Enter equip position [1-"
-			     + std::to_string(EQUIP_MAX) + "]: ", 0, 1) - 1;
-    actor.deequipItem(pos);
+    int equip_index = m_screen.input("Enter equip position [1-"
+                                     + std::to_string(EquipSlotCount) + "]: ",
+                                     0, 1) - 1;
+    if(equip_index < 0 || equip_index >= EquipSlotCount) {
+        log("Can't deequip");
+        m_screen.clear();
+        m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
+        return;
+    }
 
+    const auto player_id = m_actors.player();
+    const char item_type = m_equipment.deequip(player_id, equip_index);
+    if(item_type == -1) {
+        log("Can't deequip");
+        m_screen.clear();
+        m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
+        return;
+    }
+
+    const auto base_index = m_inventories.actor_ids.index_of(m_actors.player());
+    for(size_t i = base_index; i < m_inventories.items.size(); ++i) {
+        if(m_inventories.actor_ids[i] != player_id) {
+            log("Can't deequip");
+            m_screen.clear();
+            m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
+            return;
+        } else if(m_inventories.items[i] == item_type) {
+            // Put the item back in the normal inventory
+            m_inventories.amounts[i] += 1;
+            m_screen.clear();
+            m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
+            return;
+        }
+    }
+
+    log("Can't deequip");
     m_screen.clear();
-    m_screen.draw(m_map, player());
-}*/
+    m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
+}
 
 /* Moves actor from current position to another, redrawing screen
    buffer to show change. Private function, only to be called by
@@ -341,13 +409,17 @@ bool GameBoard::moveActor(ActorId actor, int newX, int newY)
 /* Attacks another player over a distance using a ranged weapon if equipped
    (otherwise, throws equipped item if it's not ranged or notifies user
    if no item equipped at all)*/
-/*bool GameBoard::rangeAttack(Actor& attacker, int targetX, int targetY)
+bool GameBoard::rangeAttack(ActorId attacker, int target_x, int target_y)
 {
     //Can't attack yourself
-    if(attacker.getX() == targetX && attacker.getY() == targetY) {
-	return false;
+    const auto attacker_index = m_actors.ids.index_of(attacker);
+    const auto [attacker_x, attacker_y] = m_actors.positions[attacker_index];
+    if(target_x == attacker_x && target_y == attacker_y) {
+        return false;
     }
 
+    return false;
+    /*
     for(Actor &each : m_actors) {
 	if(each.getX() == targetX && each.getY() == targetY) {
 	    //Figure out whether to throw/fire projectile
@@ -377,8 +449,8 @@ bool GameBoard::moveActor(ActorId actor, int newX, int newY)
 	    return true;
 	}
     }
-    return false;
-    }*/
+    return false;*/
+}
 
 /*bool GameBoard::translateActor(Actor &actor, int dx, int dy)
 {

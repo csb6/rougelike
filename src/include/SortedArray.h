@@ -27,6 +27,7 @@ public:
         std::size_t curr = index;
         --m_size;
         assert(m_size >= 0);
+        m_data[curr].~T();
         // Move all elements to the left by an index
         while(curr < m_size) {
             m_data[curr] = m_data[curr+1];
@@ -38,6 +39,13 @@ public:
     {
         m_data[m_size++] = value;
         assert(m_size <= Size);
+    }
+
+    void fill_init(T value)
+    {
+        for(auto& each : m_data) {
+            each = value;
+        }
     }
 protected:
     std::size_t m_size = 0;

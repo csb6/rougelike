@@ -52,13 +52,13 @@ bool Input::process()
 		m_board.showStats();
 		break;
 	    case 'e':
-		//m_board.showEquipped(m_board.player());
+		m_board.showPlayerEquipped();
 		break;
 	    case 'E':
-		//m_board.equipItem(m_board.player());
+		m_board.equipPlayerItem();
 		break;
 	    case 'D':
-		//m_board.deequipItem(m_board.player());
+		m_board.deequipPlayerItem();
 		break;
 		//Controls for showing/moving cursor
 	    case 'r':

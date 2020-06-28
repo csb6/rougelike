@@ -71,7 +71,7 @@ void ActorTable::next_turn()
     if(ids.empty())
         return;
     else if(turn_index >= ids.size()) {
-        turn_index = 0;
+        turn_index = -1;
     }
     ++turn_index;
 }
@@ -90,7 +90,7 @@ void ActorInventoryTable::add(ActorId actor, char item_type, std::size_t amount)
     std::size_t index = actor_ids.index_of(actor);
     // Find the index (within this actor's set of entries) for insertion
     for(; index < items.size(); ++index) {
-        if(items[index] == item_type)
+        if(actor_ids[index] != actor || items[index] == item_type)
             break;
     }
     // Insertion
@@ -103,4 +103,31 @@ void ActorInventoryTable::add(ActorId actor, char item_type, std::size_t amount)
         // Item already exists in this actor's inventory; increment that item's count
         amounts[index] += amount;
     }
+}
+
+void ActorEquipmentTable::equip(ActorId actor, short slot, char item_type)
+{
+    std::size_t index = actor_ids.index_of(actor);
+
+    if(index >= actor_ids.size() || actor_ids[index] != actor) {
+        // First-time equipping something for this actor
+        for(std::size_t i = index; i < index + EquipSlotCount; ++i) {
+            actor_ids.insert_at(i, actor);
+        }
+    }
+
+    equipments[index + slot] = item_type;
+}
+
+char ActorEquipmentTable::deequip(ActorId actor, short slot)
+{
+    std::size_t index = actor_ids.index_of(actor);
+
+    if(index >= actor_ids.size() || actor_ids[index] != actor) {
+        return -1;
+    }
+
+    const char old_item = equipments[index + slot];
+    equipments[index + slot] = -1;
+    return old_item;
 }

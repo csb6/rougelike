@@ -62,10 +62,20 @@ struct ActorInventoryTable {
     void add(ActorId actor, char item_type, std::size_t amount = 1);
 };
 
-/*struct ActorEquipmentTable {
-    std::vector<ActorId> actor_id;
-    //std::vector<ItemId> item;
-    };*/
+enum class EquipSlot : char {
+    Helmet, Chestplate, Pants, Boots
+};
+
+constexpr int EquipSlotCount = 4;
+
+struct ActorEquipmentTable {
+    SortedArray<ActorId, 30> actor_ids;
+    Array<char, 30 * EquipSlotCount> equipments;
+
+    ActorEquipmentTable() { equipments.fill_init(-1); }
+    void equip(ActorId, short slot, char item_type);
+    char deequip(ActorId, short slot);
+};
 
 constexpr int SkillAmount = 9; //Number of skills (e.g. strengh, agility, etc.)
 constexpr int MaxInitPoints = 25; //Total pts doled out at character creation
