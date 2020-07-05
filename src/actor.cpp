@@ -40,7 +40,7 @@ ActorTypeId ActorTypeTable::add(char icon_, std::string name_,
 
 std::pair<bool, ActorTypeId> ActorTypeTable::find(char icon_) const
 {
-    for(int i = 0; i < icon.size(); ++i) {
+    for(std::size_t i = 0; i < icon.size(); ++i) {
         if(icon[i] == icon_) {
             return {true, i};
         }

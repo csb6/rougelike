@@ -65,7 +65,7 @@ bool Input::process()
 		//m_board.bindCursorMode(m_board.player(), &GameBoard::rangeAttack);
 		break;
 	    case 't':
-		//m_board.bindCursorMode(&GameBoard::moveActor);
+                m_board.bindCursorMode(&GameBoard::moveActor);
 		break;
 	    }
 	}

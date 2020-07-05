@@ -20,7 +20,7 @@ private:
 public:
     GameBoard(Display &screen, const std::string &mapPath);
     void loadMap(const std::string &path);
-    //void bindCursorMode(bool (GameBoard::*action)(ActorId, int, int));
+    void bindCursorMode(bool (GameBoard::*action)(ActorId, short, short));
     //void updateActors();
     void showInventory();
     /*void showStats();

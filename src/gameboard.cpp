@@ -86,23 +86,25 @@ void GameBoard::loadMap(const std::string &path)
 
 /* Toggles cursor on/off; calls function pointer/disables cursor when called
    and cursor active*/
-/*void GameBoard::bindCursorMode(bool (GameBoard::*action)(ActorId, int, int))
+void GameBoard::bindCursorMode(bool (GameBoard::*action)(ActorId, short, short))
 {
     //Put cursor at player position on first keypress
     if(!m_screen.hasCursor()) {
-	m_screen.moveCursor(m_actors.player_x(), m_actors.player_y());
+        const auto[player_x, player_y] = m_actors.player_pos();
+	m_screen.moveCursor(player_x, player_y);
     } else {
         //Execute action, passing cursor position, on second keypress
-	int cursorX = m_screen.getCursorX();
-	int cursorY = m_screen.getCursorY();
+        short cursorX = m_screen.getCursorX();
+	short cursorY = m_screen.getCursorY();
 	if(isValid(cursorX, cursorY)) {
-	    (this->*action)(m_actors.player(), cursorX, cursorY);
+	    (this->*action)(m_actors.player_id, cursorX, cursorY);
 	    m_screen.hideCursor();
 	    m_screen.clear();
-	    m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
+            const auto[player_x, player_y] = m_actors.player_pos();
+	    m_screen.draw(m_map, player_x, player_y);
 	}
     }
-    }*/
+}
 
 /* Calls update functions on all actors currently on the board,
    working backwards so removing an actor doesn't skip anything*/
