@@ -21,9 +21,10 @@ void loadItemTypes(const std::string &&path, Array<ItemType, ArraySize> &types)
 	std::string line;
 	std::getline(itemFile, line);
 	//Finalize/add template when at blank line (end of section)
-	if(line == "" && !in_process) {
+	if(line == "" && in_process) {
             types.append(new_item);
             new_item = {};
+            in_process = false;
 	    continue;
 	} else if(line[0] == '#') {
             //Skip comments

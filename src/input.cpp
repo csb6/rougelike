@@ -46,7 +46,7 @@ bool Input::process()
 	    switch(m_screen.getEventChar())
 	    {
 	    case 'i':
-		//m_board.showInventory();
+		m_board.showInventory();
 		break;
 	    case '@':
 		//m_board.showStats();

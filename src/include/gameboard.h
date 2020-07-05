@@ -13,18 +13,17 @@ private:
     ActorTypeTable m_actor_types;
     ItemTypeTable m_item_types;
     ActorTable m_actors;
-    //ActorInventoryTable m_inventories;
     //ActorEquipmentTable m_equipment;
     void swapCells(short x, short y, short newX, short newY);
-    //bool pickupItem(ActorId actor, std::size_t actor_index, int item_x, int item_y);
+    void pickupItem(ActorId actor, short item_x, short item_y);
     //void melee(std::size_t attacker_index, ActorId target);
 public:
     GameBoard(Display &screen, const std::string &mapPath);
     void loadMap(const std::string &path);
     //void bindCursorMode(bool (GameBoard::*action)(ActorId, int, int));
     //void updateActors();
-    /*void showInventory();
-    void showStats();
+    void showInventory();
+    /*void showStats();
     void showPlayerEquipped();
     void equipPlayerItem();
     void deequipPlayerItem();*/

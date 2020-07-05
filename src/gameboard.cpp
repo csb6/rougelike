@@ -15,11 +15,6 @@ static int distanceFrom(int x1, int y1, int x2, int y2)
 GameBoard::GameBoard(Display &screen, const std::string &mapPath)
     : m_map{}, m_screen(screen)
 {
-    // Add player type
-    //const auto player_type_id = m_actor_types.add(player_type);
-    // Add player
-    //m_actors.add(player_type_id, {0, 0}, {3}, {10});
-    //m_actors.player_index = m_actors.ids.size() -
     // Setup player character; player position will be set during loadMap
     const ActorTypeId player_type = m_actor_types.add('@', "Player", 3, {5, 5, 5});
     m_actors.add(player_type, "Player", {0, 0}, 10);
@@ -134,38 +129,40 @@ void GameBoard::loadMap(const std::string &path)
 }*/
 
 /* Displays an actor's current inventory in subscreen; ESC/any redraws closes it*/
-/*void GameBoard::showInventory()
+void GameBoard::showInventory()
 {
     m_screen.printText(0, 0, "Inventory: (ESC to exit)", TB_YELLOW);
     m_screen.printText(0, 1, "E) Equip item, D) Deequip item", TB_YELLOW);
 
-    const auto player_id = m_actors.player();
-    std::size_t inv_index = m_inventories.actor_ids.index_of(player_id);
-    if(inv_index >= m_inventories.actor_ids.size()
-       || m_inventories.actor_ids[inv_index] != player_id) {
-	m_screen.printText(0, 2, "Empty", TB_CYAN);
-	return;
+    auto print_item = [this](int i, ItemAmount amount, const std::string &name) {
+                          m_screen.printText(0, i, std::to_string(i-1) + ". "
+                                             + name + "    Amt: "
+                                             + std::to_string(amount) + " ", TB_CYAN);
+                      };
+
+    const InventorySet &inventory = m_actors.inventory[m_actors.player_id];
+    int i = 2;
+
+    for(auto[item_id, amount] : inventory.melee_weapon) {
+        print_item(i, amount, m_item_types.melee_weapons[item_id].name);
+        ++i;
     }
 
-    int i = 2;
-    do {
-        const auto item_type_id = m_inventories.items[inv_index];
-        const auto amount = m_inventories.amounts[inv_index];
-        if(amount <= 0) {
-            // Means that the item is currently equipped, so not in
-            // regular inventory, so shouldn't be shown
-            ++inv_index;
-            continue;
-        }
-        const auto item_type_index = m_item_types.ids.index_of(item_type_id);
-	m_screen.printText(0, i, std::to_string(i-1) + ". "
-                           + m_item_types.names[item_type_index] + "      Amount: "
-                           + std::to_string(amount) + "   ", TB_CYAN);
-	++inv_index;
+    for(auto[item_id, amount] : inventory.ranged_weapon) {
+        print_item(i, amount, m_item_types.ranged_weapons[item_id].name);
         ++i;
-    } while(inv_index < m_inventories.items.size()
-            && m_inventories.actor_ids[inv_index] == player_id);
-            }*/
+    }
+
+    for(auto[item_id, amount] : inventory.armor) {
+        print_item(i, amount, m_item_types.armor[item_id].name);
+        ++i;
+    }
+
+    for(auto[item_id, amount] : inventory.misc) {
+        print_item(i, amount, m_item_types.misc[item_id].name);
+        ++i;
+    }
+}
 
 /*Prints character sheet for the player, showing main stats*/
  /*void GameBoard::showStats()
@@ -334,35 +331,42 @@ void GameBoard::swapCells(short x, short y, short newX, short newY)
 
 /* Picks up an Item at given coords if one can be found at that
    position; private function, only to be called by moveActor()*/
-/*bool GameBoard::pickupItem(ActorId actor, std::size_t actor_index,
-                           int item_x, int item_y)
+void GameBoard::pickupItem(ActorId actor, short item_x, short item_y)
 {
-    const char item_type = m_map[item_y][item_x].ch;
-    const auto item_type_index = m_item_types.ids.index_of(item_type);
-    const Weight item_weight = m_item_types.weights[item_type_index];
-    const char actor_type = m_actors.types[actor_index];
-    const auto actor_type_index = m_actor_types.ids.index_of(actor_type);
-    const Weight max_carry{m_actor_types.max_carries[actor_type_index]};
+    const ItemId item_id = m_map[item_y][item_x].item_id;
+    const ItemCategory item_cat = m_map[item_y][item_x].item_cat;
 
-    if(m_actors.carries[actor_index] + item_weight <= max_carry) {
-        // Pick up the item
-        m_actors.carries[actor_index] += item_weight;
-        m_inventories.add(actor, item_type);
-        m_map[item_y][item_x].ch = 0;
-        const std::string actor_name = m_actor_types.names[actor_type_index];
-        const std::string item_name = m_item_types.names[item_type_index];
-        log(actor_name + " picked up " + item_name);
-
-        m_screen.clear();
-        m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
-        return true;
-    } else {
-        log("Can't carry");
-        m_screen.clear();
-        m_screen.draw(m_map, m_actors.player_x(), m_actors.player_y());
-        return false;
+    m_map[item_y][item_x] = {};
+    const std::string &actor_name = m_actors.name[actor];
+    switch(item_cat) {
+    case ItemCategory::Melee:
+        log(actor_name + " picked up "
+            + m_item_types.melee_weapons[item_id].name);
+        m_actors.inventory[actor].melee_weapon[item_id] += 1;
+        break;
+    case ItemCategory::Ranged:
+        log(actor_name + " picked up "
+            + m_item_types.ranged_weapons[item_id].name);
+        m_actors.inventory[actor].ranged_weapon[item_id] += 1;
+        break;
+    case ItemCategory::Armor:
+        log(actor_name + " picked up "
+            + m_item_types.armor[item_id].name);
+        m_actors.inventory[actor].armor[item_id] += 1;
+        break;
+    case ItemCategory::Misc:
+        log(actor_name + " picked up "
+            + m_item_types.misc[item_id].name);
+        m_actors.inventory[actor].misc[item_id] += 1;
+        break;
+    case ItemCategory::None:
+        break;
     }
-    }*/
+
+    m_screen.clear();
+    const auto[player_x, player_y] = m_actors.player_pos();
+    m_screen.draw(m_map, player_x, player_y);
+}
 
 /* Have given Actor attack an Actor at another position. If no Actor
    at that position, do nothing; private function, only to be called
@@ -458,13 +462,15 @@ bool GameBoard::moveActor(ActorId actor, short newX, short newY)
         // Move the Cell to the new spot
         swapCells(x, y, newX, newY);
         return true;
-    } /*else if(m_map[newY][newX].actor_id != -1) {
+    } else if(m_map[newY][newX].item_cat != ItemCategory::None) {
+        //If an Item is in that position, try to pick it up
+        pickupItem(actor, newX, newY);
+        return true;
+    }
+    /*else if(m_map[newY][newX].actor_id != -1) {
         melee(index, m_map[newY][newX].actor_id);
         return true;
-    } else {
-        //If an Item is in that position, try to pick it up
-	return pickupItem(actor, index, newX, newY);
-        }*/
+    }*/
     return false;
 }
 
