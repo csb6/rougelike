@@ -1,86 +1,84 @@
 #ifndef ACTOR_H
 #define ACTOR_H
 #include "item.h"
+#include <map>
 
-struct ActorId : strong_type<unsigned short, ActorId> {};
-struct Energy : strong_type<unsigned int, Energy> {};
-struct Strength : public strong_type<unsigned int, Strength> {};
-struct Health : strong_type<int, Health> {}; // can have negative health deltas
-
-struct ActorType {
-    char id;
-    std::string name;
-    Strength strength;
-    Weight max_carry;
+struct BattleStats {
+    short attack;
+    short defense;
+    short ranged_attack;
 };
 
 struct Position {
-    int x = 0;
-    int y = 0;
+    short x;
+    short y;
 };
 
+using ItemAmount = unsigned short;
+struct InventorySet {
+    std::map<ItemId, ItemAmount> melee_weapon;
+    std::map<ItemId, ItemAmount> ranged_weapon;
+    std::map<ItemId, ItemAmount> armor;
+    std::map<ItemId, ItemAmount> misc;
+};
+
+
+using ActorTypeId = unsigned short;
 struct ActorTypeTable {
-    SortedArray<char, 30> ids;
-    Array<std::string, 30> names;
-    Array<Strength, 30> strengths;
-    Array<Weight, 30> max_carries;
+    Array<char, 30> icon;
+    Array<std::string, 30> name;
+    Array<short, 30> energy;
+    Array<BattleStats, 30> base_battle_stats;
 
-    char add(char ch, std::string name, Strength strength, Weight max_carry);
-    char add(const ActorType &new_type);
-    bool contains(char actor) const;
-    bool successful_attack(std::size_t attacker_type, std::size_t target_type) const;
+    ActorTypeId add(char, std::string, short, BattleStats);
+    std::pair<bool, ActorTypeId> find(char icon_) const;
+    const size_t player_type_id = 0;
 };
 
+using ActorId = short;
 struct ActorTable {
-    SortedArray<ActorId, 40> ids;
-    Array<Position, 40> positions;
-    Array<Health, 40> healths;
-    Array<Energy, 40> energies;
-    Array<Weight, 40> carries;
-    Array<char, 40> types;
+    Array<ActorTypeId, 30> type;
+    Array<std::string, 30> name;
+    Array<Position, 30> position;
+    Array<short, 30> health;
+    Array<InventorySet, 30> inventory;
 
-    std::size_t turn_index = 0;
-    ActorId id_count = {0};
-    // NOTE: player_index assumed to be 0, and assumed to == index of player in ActorTypesTable
-    std::size_t player_index = 0;
-    inline ActorId player() const { return ids[player_index]; }
-    inline int player_x() const { return positions[player_index].x; }
-    inline int player_y() const { return positions[player_index].y; }
-    inline ActorId curr() const { return ids[turn_index]; }
-
-    ActorId add(char type, Position pos, Energy energy, Health health);
-    void next_turn();
-    void add_health(ActorId actor, Health amount);
+    ActorId add(ActorTypeId, std::string, Position, short);
+    bool subtract_health(ActorId, short amount);
+    const size_t player_id = 0;
+    Position player_pos() const { return position[player_id]; }
 };
 
-
-struct ActorInventoryTable {
-    SortedArray<ActorId, 60> actor_ids;
-    Array<char, 60> items;
-    Array<std::size_t, 60> amounts;
-
-    void add(ActorId actor, char item_type, std::size_t amount = 1);
-};
+// 0. Head, 1. Chest, 2. Legs, 3. Feet, 4. Melee, 5. Ranged
+/*constexpr int EquipSlotCount = 6;
 
 enum class EquipSlot : char {
-    Helmet, Chestplate, Pants, Boots
+    Head, Chest, Legs, Feet, Melee, Ranged
 };
 
-constexpr int EquipSlotCount = 4;
+struct ActorEquipment {
+    ItemId head;
+    ItemId chest;
+    ItemId legs;
+    ItemId feet;
+    ItemId melee;
+    ItemId ranged;
+};
 
 struct ActorEquipmentTable {
     SortedArray<ActorId, 30> actor_ids;
-    Array<char, 30 * EquipSlotCount> equipments;
+    Array<ActorEquipment, 30> equipments{};
 
-    ActorEquipmentTable() { equipments.fill_init(-1); }
-    void equip(ActorId, short slot, char item_type);
-    char deequip(ActorId, short slot);
+    void equip(ActorId, EquipSlot, char item_type);
+    char deequip(ActorId, EquipSlot);
+    char equipment_at(ActorId, EquipSlot) const;
+    char to_bits(ActorId) const;
 };
 
 constexpr int SkillAmount = 9; //Number of skills (e.g. strengh, agility, etc.)
 constexpr int MaxInitPoints = 25; //Total pts doled out at character creation
 
-/*  std::int_least16_t m_carryWeight = 0; //Current weight of inventory
+  std::int_least16_t m_carryWeight = 0; //Current weight of inventory
   std::int_least16_t m_maxCarryWeight = 20;
   std::int_least16_t m_level = 1; //General level; when upgraded, points available to boost stats
   std::int_least16_t m_levelProgress = 0; //On scale 0-100; when 100, level-up

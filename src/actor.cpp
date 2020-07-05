@@ -25,101 +25,83 @@ bool actorWins(unsigned int skillAmt, unsigned int otherSkillAmt)
     return randNumber < divider;
 }
 
-char ActorTypeTable::add(char ch, std::string name, Strength strength,
-                         Weight max_carry)
-{
-    const auto insert_index = ids.index_of(ch);
-    ids.insert_at(insert_index, ch);
-    names.insert_at(insert_index, name);
-    strengths.insert_at(insert_index, strength);
-    max_carries.insert_at(insert_index, max_carry);
-    return ch;
-}
 
-char ActorTypeTable::add(const ActorType &new_type)
-{
-    return add(new_type.id, new_type.name, new_type.strength, new_type.max_carry);
-}
 
-bool ActorTypeTable::contains(char type) const
+ActorTypeId ActorTypeTable::add(char icon_, std::string name_,
+                                short energy_, BattleStats stats)
 {
-    const auto index = ids.index_of(type);
-    return index < ids.size() && ids[index] == type;
-}
-
-bool ActorTypeTable::successful_attack(std::size_t attacker_type,
-                                       std::size_t target_type) const
-{
-    return actorWins(strengths[attacker_type].v, strengths[target_type].v);
+    icon.append(icon_);
+    name.append(name_);
+    energy.append(energy_);
+    base_battle_stats.append(stats);
+    return static_cast<ActorTypeId>(icon.size() - 1);
 }
 
 
-ActorId ActorTable::add(char type, Position pos, Energy energy, Health health)
+std::pair<bool, ActorTypeId> ActorTypeTable::find(char icon_) const
 {
-    const ActorId new_id = {id_count++};
-    ids.append(new_id);
-    positions.append(pos);
-    healths.append(health);
-    energies.append(energy);
-    carries.append({0}); // initially, all actors carry nothing
-    types.append(type);
-    return new_id;
-}
-
-void ActorTable::next_turn()
-{
-    if(ids.empty())
-        return;
-    else if(turn_index >= ids.size()) {
-        turn_index = -1;
+    for(int i = 0; i < icon.size(); ++i) {
+        if(icon[i] == icon_) {
+            return {true, i};
+        }
     }
-    ++turn_index;
+    return {false, 0};
 }
 
-// Assumes the actor id is present in this collection
-void ActorTable::add_health(ActorId actor, Health amount)
+
+ActorId ActorTable::add(ActorTypeId type_, std::string name_, Position pos,
+                        short health_)
 {
-    const auto index = ids.index_of(actor);
-    healths[index] += {amount};
+    type.append(type_);
+    name.append(name_);
+    position.append(pos);
+    health.append(health_);
+    inventory.append(InventorySet{});
+    return static_cast<ActorId>(type.size() - 1);
 }
 
-
-void ActorInventoryTable::add(ActorId actor, char item_type, std::size_t amount)
+bool ActorTable::subtract_health(ActorId actor, short amount)
 {
-    // Index of the first entry for this actor
-    std::size_t index = actor_ids.index_of(actor);
-    // Find the index (within this actor's set of entries) for insertion
-    for(; index < items.size(); ++index) {
-        if(actor_ids[index] != actor || items[index] == item_type)
-            break;
-    }
-    // Insertion
-    if(index >= items.size() || items[index] != item_type) {
-        // New unique item; insert it at end of this actor's items
-        actor_ids.insert_at(index, actor);
-        items.insert_at(index, item_type);
-        amounts.insert_at(index, amount);
-    } else {
-        // Item already exists in this actor's inventory; increment that item's count
-        amounts[index] += amount;
-    }
+    health[actor] -= amount;
+    // True if dead
+    return health[actor] <= 0;
 }
 
-void ActorEquipmentTable::equip(ActorId actor, short slot, char item_type)
+
+/*
+void ActorEquipmentTable::equip(ActorId actor, EquipSlot slot, char item_type)
 {
     std::size_t index = actor_ids.index_of(actor);
 
     if(index >= actor_ids.size() || actor_ids[index] != actor) {
         // First-time equipping something for this actor
-        for(std::size_t i = index; i < index + EquipSlotCount; ++i) {
-            actor_ids.insert_at(i, actor);
-        }
+        actor_ids.append(actor);
+        index = actor_ids.size() - 1;
     }
 
-    equipments[index + slot] = item_type;
+    switch(slot) {
+    case EquipSlot::Head:
+        equipments[index].head = item_type;
+        break;
+    case EquipSlot::Chest:
+        equipments[index].chest = item_type;
+        break;
+    case EquipSlot::Legs:
+        equipments[index].legs = item_type;
+        break;
+    case EquipSlot::Feet:
+        equipments[index].feet = item_type;
+        break;
+    case EquipSlot::Melee:
+        equipments[index].melee = item_type;
+        break;
+    case EquipSlot::Ranged:
+        equipments[index].ranged = item_type;
+        break;
+    }
 }
 
-char ActorEquipmentTable::deequip(ActorId actor, short slot)
+char ActorEquipmentTable::deequip(ActorId actor, EquipSlot slot)
 {
     std::size_t index = actor_ids.index_of(actor);
 
@@ -127,7 +109,70 @@ char ActorEquipmentTable::deequip(ActorId actor, short slot)
         return -1;
     }
 
-    const char old_item = equipments[index + slot];
-    equipments[index + slot] = -1;
-    return old_item;
+    char old_item;
+    switch(slot) {
+    case EquipSlot::Head:
+        old_item = equipments[index].head;
+        equipments[index].head = -1;
+        return old_item;
+    case EquipSlot::Chest:
+        old_item = equipments[index].chest;
+        equipments[index].chest = -1;
+        return old_item;
+    case EquipSlot::Legs:
+        old_item = equipments[index].legs;
+        equipments[index].legs = -1;
+        return old_item;
+    case EquipSlot::Feet:
+        old_item = equipments[index].feet;
+        equipments[index].feet = -1;
+        return old_item;
+    case EquipSlot::Melee:
+        old_item = equipments[index].melee;
+        equipments[index].melee = -1;
+        return old_item;
+    case EquipSlot::Ranged:
+        old_item = equipments[index].ranged;
+        equipments[index].ranged = -1;
+        return old_item;
+    }
 }
+
+char ActorEquipmentTable::equipment_at(ActorId actor, EquipSlot slot) const
+{
+    std::size_t index = actor_ids.index_of(actor);
+
+    if(index >= actor_ids.size() || actor_ids[index] != actor) {
+        return -1;
+    }
+
+    switch(slot) {
+    case EquipSlot::Head:
+        return equipments[index].head;
+    case EquipSlot::Chest:
+        return equipments[index].chest;
+    case EquipSlot::Legs:
+        return equipments[index].legs;
+    case EquipSlot::Feet:
+        return equipments[index].feet;
+    case EquipSlot::Melee:
+        return equipments[index].melee;
+    case EquipSlot::Ranged:
+        return equipments[index].ranged;
+    }
+}
+
+char ActorEquipmentTable::to_bits(size_t index) const
+{
+    const ActorEquipment &slots = equipments[index];
+    char result = 0;
+    if(slots.head != -1)   result |= 0b0000'0001;
+    if(slots.chest != -1)  result |= 0b0000'0010;
+    if(slots.legs != -1)   result |= 0b0000'0100;   
+    if(slots.feet != -1)   result |= 0b0000'1000;
+    if(slots.melee != -1)  result |= 0b0001'0000; 
+    if(slots.ranged != -1) result |= 0b0010'0000;
+
+    return result;
+}
+*/

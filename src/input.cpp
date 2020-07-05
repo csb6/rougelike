@@ -46,26 +46,26 @@ bool Input::process()
 	    switch(m_screen.getEventChar())
 	    {
 	    case 'i':
-		m_board.showInventory();
+		//m_board.showInventory();
 		break;
 	    case '@':
-		m_board.showStats();
+		//m_board.showStats();
 		break;
 	    case 'e':
-		m_board.showPlayerEquipped();
+		//m_board.showPlayerEquipped();
 		break;
 	    case 'E':
-		m_board.equipPlayerItem();
+		//m_board.equipPlayerItem();
 		break;
 	    case 'D':
-		m_board.deequipPlayerItem();
+		//m_board.deequipPlayerItem();
 		break;
 		//Controls for showing/moving cursor
 	    case 'r':
 		//m_board.bindCursorMode(m_board.player(), &GameBoard::rangeAttack);
 		break;
 	    case 't':
-		m_board.bindCursorMode(&GameBoard::moveActor);
+		//m_board.bindCursorMode(&GameBoard::moveActor);
 		break;
 	    }
 	}

@@ -60,7 +60,7 @@ bool Display::isEmpty(int x, int y)
     int row = convertCoord(y, false);
     int col = convertCoord(x, true);
     tb_cell *buffer = tb_cell_buffer();
-    return buffer[(tb_width() * row) + col].ch == EmptySpace;
+    return buffer[(tb_width() * row) + col].ch == '.';
 }
 
 void Display::moveCursor(int x, int y)
@@ -89,7 +89,7 @@ void Display::hideCursor()
 /* Replaces the character at a given point with a space character */
 void Display::clearChar(int col, int row)
 {
-    putChar(col, row, EmptySpace);
+    putChar(col, row, '.');
 }
 
 /* Places a character at a given point with foreground/background colors.
@@ -267,11 +267,7 @@ void Display::draw(const std::array<std::array<Cell, MapWidth>, MapHeight> &map,
 	for(int x=m_cornerX; x<(m_cornerX+m_screenWidth); ++x) {
 	    int col = convertCoord(x, true);
 	    int row = convertCoord(y, false);
-	    if(map[y][x].ch != 0) {
-		putChar(col, row, map[y][x].ch);
-	    } else {
-		putChar(col, row, EmptySpace);
-	    }
+            putChar(col, row, map[y][x].icon);
 	}
     }
     drawGUI();

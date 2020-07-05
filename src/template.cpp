@@ -1,7 +1,24 @@
 #include "include/template.h"
 #include <fstream>
+#include <type_traits>
 
-static std::string::size_type findSplit(const std::string line)
+struct ActorTypeTemplate {
+    char icon;
+    std::string name;
+    short energy;
+    BattleStats base_battle_stats;
+
+    static_assert(std::is_same_v<decltype(icon),
+                  decltype(ActorTypeTable::icon)::element_type>);
+    static_assert(std::is_same_v<decltype(name),
+                  decltype(ActorTypeTable::name)::element_type>);
+    static_assert(std::is_same_v<decltype(energy),
+                  decltype(ActorTypeTable::energy)::element_type>);
+    static_assert(std::is_same_v<decltype(base_battle_stats),
+                  decltype(ActorTypeTable::base_battle_stats)::element_type>);
+};
+
+std::string::size_type findSplit(const std::string &line)
 {
     std::string::size_type split(0);
     for(std::string::size_type i=0; i<line.size(); ++i) {
@@ -33,55 +50,35 @@ static unsigned int parseInt(std::string value, int defaultVal = 0)
     }
 }
 
-static void applyIniPair(ActorType &actor, std::string key, std::string value)
+static void applyIniPair(ActorTypeTemplate &actor, std::string key,
+                         std::string value)
 {
-    if(key == "char") actor.id = {parseChar(value)};
-    else if(key == "name") actor.name = {value};
-    else if(key == "strength") actor.strength = {parseInt(value)};
-    else if(key == "maxCarryWeight") actor.max_carry = {parseInt(value, 10)};
+    if     (key == "icon")          actor.icon                            = parseChar(value);
+    else if(key == "name")          actor.name                            = value;
+    else if(key == "energy")        actor.energy                          = parseInt(value);
+    else if(key == "attack")        actor.base_battle_stats.attack        = parseInt(value);
+    else if(key == "defense")       actor.base_battle_stats.defense       = parseInt(value);
+    else if(key == "ranged_attack") actor.base_battle_stats.ranged_attack = parseInt(value);
 }
 
-static void applyIniPair(ItemType &item, std::string key, std::string value)
+void applyIniPair(WeaponType &item, std::string key, std::string value)
 {
-    if(key == "char") item.id = {parseChar(value)};
-    if(key == "name") item.name = {value};
-    else if(key == "weight") item.weight = {parseInt(value)};
-    else if(key == "attack") item.attack_value = {parseInt(value)};
-    else if(key == "armor") item.armor_value = {parseInt(value)};
+    if     (key == "icon")   item.icon   = parseChar(value);
+    else if(key == "name")   item.name   = value;
+    else if(key == "attack") item.attack = parseInt(value);
 }
 
-void loadItemTypes(const std::string &&path, ItemTypeTable &types)
+void applyIniPair(ArmorType &item, std::string key, std::string value)
 {
-    std::ifstream itemFile(path);
+    if     (key == "icon")    item.icon    = parseChar(value);
+    else if(key == "name")    item.name    = value;
+    else if(key == "defense") item.defense = parseInt(value);
+}
 
-    bool in_process = false;
-    ItemType new_type;
-    while(itemFile) {
-	std::string line;
-	std::getline(itemFile, line);
-	//Finalize/add template when at blank line (end of section)
-	if(line == "" && in_process) {
-            types.add(new_type);
-            in_process = false;
-            new_type = {};
-	    continue;
-	} else if(line[0] == '#') {
-            //Skip comments
-	    continue;
-        }
-	//Find out where '=' is; it's the division between key/value
-	auto split = findSplit(line);
-	//Ignore erroneously formatted lines
-	if(split == 0 || split == (line.size() - 1)) {
-	    continue;
-	}
-
-	if(line.substr(0, split) == "char") {
-	    in_process = true;
-	}
-
-	applyIniPair(new_type, line.substr(0, split), line.substr(split+1));
-    }
+void applyIniPair(MiscItemType &item, std::string key, std::string value)
+{
+    if     (key == "icon") item.icon = parseChar(value);
+    else if(key == "name") item.name = value;
 }
 
 void loadMonsterTypes(const std::string &&path, ActorTypeTable &types)
@@ -89,7 +86,7 @@ void loadMonsterTypes(const std::string &&path, ActorTypeTable &types)
     std::ifstream monsterFile(path);
 
     bool in_process = false;
-    ActorType new_type;
+    ActorTypeTemplate new_type{};
     while(monsterFile) {
 	std::string line;
 	std::getline(monsterFile, line);
@@ -98,7 +95,8 @@ void loadMonsterTypes(const std::string &&path, ActorTypeTable &types)
 	    continue;
 	//Finalize/add template when at blank line (end of section)
 	else if(line == "" && in_process) {
-            types.add(new_type);
+            types.add(new_type.icon, new_type.name, new_type.energy,
+                      new_type.base_battle_stats);
 	    new_type = {};
             in_process = false;
 	    continue;
@@ -110,7 +108,7 @@ void loadMonsterTypes(const std::string &&path, ActorTypeTable &types)
 	    continue;
 	}
 
-        if(line.substr(0, split) == "char") {
+        if(line.substr(0, split) == "icon") {
 	    in_process = true;
 	}
 

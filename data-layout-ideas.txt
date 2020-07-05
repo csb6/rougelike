@@ -1,0 +1,138 @@
+-Some entity takes an action
+  -The entity changes position
+  -The entity melees another entity
+  -The entity range-attacks another entity
+  -The entity picks up an item
+
+
+-Every entity has a collection of items (its inventory)
+-A separate, smaller, non-overlapping collection of items is
+the entity's equipment
+  -Equipment consists of a finite number of named slots, which can
+   hold an item or hold nothing
+-Every entity has a 
+-Every entity is of a certain type; each type can have many instances
+  -Each instance shares its base stats with its type
+
+
+
+Procedure:
+
+1. An agent (player or NPC) selects an action
+  a. Movement
+    - The character changes position; restricts on walking/teleporting
+    - If constraints pass and no one/thing is in the target location, go
+      there
+  b. Melee/range-attacks
+    - The character identifies another character and has a stat comparison;
+      damage occurs to one of the two participants; one participant may die
+    - Equipped armor and weapons can affect the stat comparison
+  c. Pick up item
+    - If player has enough available inventory space, insert item into inventory
+    - Item instances are indistinguishable
+
+2. The turn ends; repeat step 1 for the next entity
+
+
+
+Basic data structures:
+
+-Need an id representing each unique actor
+-Need a set of types representing each actor type
+-Need a set of types representing each item type
+
+battle_stats {
+  int attack;
+  int defense;
+  int ranged_attack;
+}
+
+position {
+  int x;
+  int y;
+}
+
+weapon_type {
+  std::string name;
+  char icon;
+  int attack;
+}
+
+armor_type {
+  std::string name;
+  char icon;
+  int defense;
+}
+
+misc_item_type {
+  std::string name;
+  char icon;
+}
+
+inventory_set {
+  std::vector<item_id> melee_weapon;
+  std::vector<item_id> ranged_weapon;
+  std::vector<item_id> armor;
+  std::vector<item_id> misc;
+}
+
+equipment_set {
+ ItemId head;
+ ItemId chest;
+ ItemId legs;
+ ItemId feet;
+ ItemId melee;
+ ItemId ranged;
+}
+
+cell {
+  int actor_id = -1;
+  int item_id = -1;
+  char icon;
+}
+
+
+actor_type_table {
+  // ID: the index
+  // All arrays have same length
+  array<char>        icon; // What is seen on board
+  array<std::string> name;
+  array<int>         energy;
+  array<battle_stats> base_battle_stats;
+
+  // Operations:
+  get_icon, get_stat0, etc.
+  add_type
+   -Appends a new element to each array
+}
+
+actor_table {
+  // ID: the index
+  // All arrays have same length
+  array<actor_type_id> type;
+  array<std::string> name;
+  array<position>      position;
+  array<int>           health;
+  array<inventory_set> inventory;
+  array<equipment_set> equipment;
+
+  // Operations
+  get_pos, etc.
+  add_actor
+   -Appends a new element to each array
+}
+
+item_type_table {
+  // ID: the index and the kind of weapon
+  array<weapon_type> melee_weapons;
+  array<weapon_type> ranged_weapons;
+  array<armor_type>  armor;
+  array<misc_item_type> misc;
+
+  // Operations
+  get_melee_weapon, etc.
+  add_melee_weapon, etc.
+    -Append
+}
+
+

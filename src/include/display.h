@@ -12,7 +12,6 @@ constexpr int MinDisplayHeight = 16;
 constexpr int GUIHeight = 10;
 constexpr int GUIWidth = 10;
 constexpr int InputTimeout = 10; //in milliseconds
-constexpr char EmptySpace = '.';
 constexpr char WallTile = '#';
 constexpr char PlayerTile = '@';
 constexpr char ItemTile = 'i';
@@ -24,8 +23,10 @@ constexpr int MapWidth = 30;
 constexpr int MapHeight = 30;
 
 struct Cell {
-    char ch = 0;
-    ActorId actor_id{-1};
+    char icon = '.';
+    ItemCategory item_cat = ItemCategory::None;
+    ActorId actor_id = -1;
+    ItemId item_id = -1;
 };
 
 class Display {

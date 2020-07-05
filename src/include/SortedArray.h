@@ -5,6 +5,8 @@
 template<typename T, std::size_t Size>
 class Array {
 public:
+    using element_type = T;
+
     T& operator[](std::size_t index) { return m_data[index]; }
     const T& operator[](std::size_t index) const { return m_data[index]; }
     std::size_t size() const { return m_size; }
@@ -40,13 +42,6 @@ public:
         m_data[m_size++] = value;
         assert(m_size <= Size);
     }
-
-    void fill_init(T value)
-    {
-        for(auto& each : m_data) {
-            each = value;
-        }
-    }
 protected:
     std::size_t m_size = 0;
     T m_data[Size];
@@ -65,6 +60,21 @@ public:
         while (low < high) {
             int mid =  low + (high - low) / 2;
             if (value <= m_data[mid]) {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+        return low;
+    }
+
+    std::size_t index_of(T value, bool(*less_eq)(const T&, const T&))
+    {
+        int low = 0;
+        int high = m_size;
+        while (low < high) {
+            int mid =  low + (high - low) / 2;
+            if (less_eq(value, m_data[mid])) {
                 high = mid;
             } else {
                 low = mid + 1;

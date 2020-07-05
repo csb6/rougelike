@@ -13,30 +13,29 @@ private:
     ActorTypeTable m_actor_types;
     ItemTypeTable m_item_types;
     ActorTable m_actors;
-    ActorInventoryTable m_inventories;
-    ActorEquipmentTable m_equipment;
-    void swapCells(int x, int y, int newX, int newY);
-    bool pickupItem(ActorId actor, std::size_t actor_index, int item_x, int item_y);
-    void melee(std::size_t attacker_index, ActorId target);
+    //ActorInventoryTable m_inventories;
+    //ActorEquipmentTable m_equipment;
+    void swapCells(short x, short y, short newX, short newY);
+    //bool pickupItem(ActorId actor, std::size_t actor_index, int item_x, int item_y);
+    //void melee(std::size_t attacker_index, ActorId target);
 public:
-    GameBoard(Display &screen, const std::string &mapPath,
-              ActorType player_type);
+    GameBoard(Display &screen, const std::string &mapPath);
     void loadMap(const std::string &path);
-    void bindCursorMode(bool (GameBoard::*action)(ActorId, int, int));
+    //void bindCursorMode(bool (GameBoard::*action)(ActorId, int, int));
     //void updateActors();
-    void showInventory();
+    /*void showInventory();
     void showStats();
     void showPlayerEquipped();
     void equipPlayerItem();
-    void deequipPlayerItem();
+    void deequipPlayerItem();*/
     void log(const std::string &);
     void redraw();
     void present();
     static bool isValid(int x, int y);
-    bool moveActor(ActorId actor, int newX, int newY);
-    bool rangeAttack(ActorId attacker, int target_x, int target_y);
-    //bool translateActor(ActorId actor, int dx, int dy);
-    void movePlayer(int newX, int newY);
-    void translatePlayer(int dx, int dy);
+    //bool rangeAttack(ActorId attacker, int target_x, int target_y);
+    bool moveActor(ActorId actor, short newX, short newY);
+    bool translateActor(ActorId actor, short dx, short dy);
+    void movePlayer(short newX, short newY);
+    void translatePlayer(short dx, short dy);
 };
 #endif

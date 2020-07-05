@@ -1,24 +1,30 @@
 #include "include/item.h"
 
-char ItemTypeTable::add(char id, std::string name, Weight weight,
-                        ArmorValue armor, AttackValue attack)
+std::pair<ItemCategory, ItemId> ItemTypeTable::find(char icon) const
 {
-    const auto insert_index = ids.index_of(id);
-    ids.insert_at(insert_index, id);
-    names.insert_at(insert_index, name);
-    weights.insert_at(insert_index, weight);
-    armor_values.insert_at(insert_index, armor);
-    attack_values.insert_at(insert_index, attack);
-    return id;
-}
+    for(size_t i = 0; i < melee_weapons.size(); ++i) {
+        if(melee_weapons[i].icon == icon) {
+            return {ItemCategory::Melee, i};
+        }
+    }
 
-char ItemTypeTable::add(const ItemType &new_type)
-{
-    return add(new_type.id, new_type.name, new_type.weight, new_type.armor_value,
-               new_type.attack_value);
-}
+    for(size_t i = 0; i < ranged_weapons.size(); ++i) {
+        if(ranged_weapons[i].icon == icon) {
+            return {ItemCategory::Ranged, i};
+        }
+    }
 
-bool ItemTypeTable::contains(char type) const
-{
-    return ids.index_of(type) != ids.size();
+    for(size_t i = 0; i < armor.size(); ++i) {
+        if(armor[i].icon == icon) {
+            return {ItemCategory::Armor, i};
+        }
+    }
+
+    for(size_t i = 0; i < misc.size(); ++i) {
+        if(misc[i].icon == icon) {
+            return {ItemCategory::Misc, i};
+        }
+    }
+
+    return {ItemCategory::None, 0};
 }

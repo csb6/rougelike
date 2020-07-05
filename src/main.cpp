@@ -1,6 +1,6 @@
 /*TODO:
 [ ] Profile to see what is causing memory leaks when resizing window
-xf[ ] Add way to save/load
+[ ] Add way to save/load
 [ ] Add way to drop items onto map (remove from inventory)
 [X] Add basic test suite for key functionality (see old RPG code)
 [ ] Add better, safer, more comprehensive way to draw GUI
@@ -169,8 +169,7 @@ int main()
 
     bool running = true;
     Display screen;
-    GameBoard board(screen, getLocalDir() + "trapped-map.csv",
-                    {'@', "Player", Strength{5}, Weight{10}});
+    GameBoard board(screen, getLocalDir() + "trapped-map.csv");
     Input device(running, screen, board);
 
     //Start main game loop

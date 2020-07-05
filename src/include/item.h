@@ -1,31 +1,36 @@
 #ifndef ITEM_GAME_H
 #define ITEM_GAME_H
 #include <string>
-#include "strong-types.hpp"
 #include "SortedArray.h"
+#include <utility>
 
-struct Weight : strong_type<unsigned int, Weight> {};
-struct ArmorValue : strong_type<unsigned int, ArmorValue> {};
-struct AttackValue : strong_type<unsigned int, AttackValue> {};
-
-struct ItemType {
-    char id;
+struct BaseItemType {
     std::string name;
-    Weight weight;
-    ArmorValue armor_value;
-    AttackValue attack_value;
+    char icon;
+};
+
+struct WeaponType : public BaseItemType {
+    int attack;
+};
+
+struct ArmorType : public BaseItemType {
+    int defense;
+};
+
+struct MiscItemType : public BaseItemType {};
+
+using ItemId = size_t;
+
+enum class ItemCategory : char {
+    Melee, Ranged, Armor, Misc, None
 };
 
 struct ItemTypeTable {
-    SortedArray<char, 30> ids; // the char representing the item onscreen
-    Array<std::string, 30> names;
-    Array<Weight, 30> weights;
-    Array<ArmorValue, 30> armor_values;
-    Array<AttackValue, 30> attack_values;
+    Array<WeaponType, 30>   melee_weapons;
+    Array<WeaponType, 30>   ranged_weapons;
+    Array<ArmorType, 30>    armor;
+    Array<MiscItemType, 30> misc;
 
-    char add(char id, std::string name, Weight weight, ArmorValue armor = {1},
-             AttackValue attack = {1});
-    char add(const ItemType &new_type);
-    bool contains(char type) const;
+    std::pair<ItemCategory, ItemId> find(char icon) const;
 };
 #endif
